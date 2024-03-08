@@ -4,6 +4,8 @@
 git pull origin main
 git merge --allow-unrelated-histories main
 git merge main
+git checkout main
+git merge master
 ```
 
 * Override local changes for the <file>
