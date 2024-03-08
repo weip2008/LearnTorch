@@ -1,3 +1,10 @@
+* merge master to main
+
+```dos
+git pull origin main
+git merge --allow-unrelated-histories main
+git merge main
+```
 
 * Override local changes for the <file>
 
