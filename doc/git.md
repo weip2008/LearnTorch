@@ -20,9 +20,10 @@ curl -o <local-file-path> <raw-file-url>
 git reset --hard origin/<branch-name>
 ```
 
-* Discard all local changes:
+* Discard all local changes and reset github:
 
 ```dos
 git reset --hard HEAD
+git push --force
 ```
 

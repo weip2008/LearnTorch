@@ -10,3 +10,8 @@ python -m venv env
 ❓ not available module
 ![](images/unavailable%20modue.png)
 📝 close VS Code, reopen, and run all code from the top.
+
+## AI on Fashion
+![](images/neuralNetwork4handwritingDigits.png)
+28X28=784 input, 0-9 output
+![sample fashion images](images/fashionSample.png)
