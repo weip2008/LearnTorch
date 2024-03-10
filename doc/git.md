@@ -11,7 +11,7 @@ git merge master
 * Override local changes for the <file>
 
 ```dos
-git checkout -- <file>
+curl -o <local-file-path> <raw-file-url>
 ```
 
 * Reset your local branch to match the remote branch:
