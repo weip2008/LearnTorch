@@ -1,3 +1,7 @@
+"""
+从数据中取出一个图像，读入模型数据，使用模型判断该图像的分类。
+"""
+
 import torch
 from torch import nn
 from torchvision import datasets

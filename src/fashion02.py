@@ -1,3 +1,7 @@
+"""
+使用Fashion数据制作一个简单的三层的神经网络模型，并讲模型保存在文件
+fashion_model.pth中，以待后用。
+"""
 import torch
 from torch import nn
 from torchvision import datasets
