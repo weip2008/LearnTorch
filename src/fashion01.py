@@ -29,7 +29,7 @@ img_idx = 11
 img = x[img_idx]
 print(y[img_idx])
 index = torch.argmax(y[img_idx]).item()
-print(img.shape, img.T.shape, index, label_names[index]) 
+print(img.shape, img.mT.shape, index, label_names[index]) 
 # plt.imshow(img) #TypeError: Invalid shape (1, 28, 28) for image data
 
 # plt.imshow(img.T) # the transpose turn the image 90 degree
