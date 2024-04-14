@@ -84,5 +84,8 @@ test_data = datasets.MNIST('data/MNIST_data/', download=True, train=False, trans
 * [Understand weight in linear function](../src/weight.py)
 * [Understand ReLU activate function](../src/relu.py)
 
+## Linear Regression
+* [Prepare linear data](../src/linear01.py)
+* 
 ## backpropagation
 * [wikipedia Backpropagation Explain](https://en.wikipedia.org/wiki/Backpropagation)

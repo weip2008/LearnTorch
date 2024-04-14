@@ -23,7 +23,7 @@ ax.plot(x, fx1, label='y=3x')
 ax.plot(x, fx2, 'bo', label='y=3x-4')
 ax.plot(x, fx3, label='relu(3x-4)')
 ax.plot(x, fx4, label='y=3x+4')
-ax.plot(x, fx5, 'p--',label='relu3(relu2(relu(fx2)))')
+ax.plot(x, fx5, 'p--',label='relu3(relu2(relu(3x-4)))')
 
 ax.text(2.2, 0, "bias=-4 as shifting line to the right")
 
