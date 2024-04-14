@@ -13,9 +13,9 @@ from fashion02 import NeuralNetwork, training_data, label_names
 
 model = NeuralNetwork()
 model.load_state_dict(torch.load("fashion_model.pth"))
-
+index = 655
 model.eval()
-img, labelIndex = training_data[111][0], training_data[111][1]
+img, labelIndex = training_data[index][0], training_data[index][1]
 print(img.shape, labelIndex.shape, labelIndex.ndim)
 print(img, labelIndex)
 index = torch.argmax(labelIndex).item()
