@@ -1,3 +1,12 @@
+<h1>Idea of AI Stock Modeling</h1>
+
+1. use boolinger line to determine sell/buy points
+2. use a window find stock input raw data
+3. create datasets: 
+   a. input(close, slope, accelerate, weekdays, time)
+   b. output(sell, buy)
+4. create model
+5. use the model to test training data
 
 ## Create datasets
 
