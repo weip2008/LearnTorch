@@ -86,6 +86,8 @@ test_data = datasets.MNIST('data/MNIST_data/', download=True, train=False, trans
 
 ## Linear Regression
 * [Prepare linear data](../src/linear01.py)
+* [understand epoch, ir, batch_size, optimizer, loss function, and modeling](../src/linear02.py)
+* [manually simulate model creation process](../src/linear03.py)
 * 
 ## backpropagation
 * [wikipedia Backpropagation Explain](https://en.wikipedia.org/wiki/Backpropagation)

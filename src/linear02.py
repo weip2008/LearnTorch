@@ -29,7 +29,7 @@ if __name__ == '__main__':
     y_train += np.random.randn(*y_train.shape) * 1 # measured output, use as our training output data, pretent we don't know the model
 
     # Create a PyTorch DataLoader for the dataset
-    batch_size = 5
+    batch_size = 10
     train_dataset = torch.utils.data.TensorDataset(torch.from_numpy(x_train), torch.from_numpy(y_train))
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
@@ -67,4 +67,4 @@ if __name__ == '__main__':
     x = torch.tensor([x], dtype=torch.float32)
     y_pred = model(x).item()
 
-    print(f'Predict value: {y_pred}, Actual value: {13*slope1 + intercept1}')
+    print(f'Predict value: {y_pred}, Actual value: {x*slope1 + intercept1}')
