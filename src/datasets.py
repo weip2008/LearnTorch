@@ -1,7 +1,7 @@
 import torch
 
 # Number of data groups
-num_groups = 1000
+num_groups = 2000
 
 # Create random input data with shape (num_groups, 1000, 5)
 input_data = torch.rand(num_groups, 1000, 5)

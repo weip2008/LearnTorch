@@ -1,17 +1,14 @@
-import torch
+import pandas as pd
 
-# Number of data groups
-num_groups = 2000
+# Assuming input_data and output_data are already defined as described earlier
 
-# Create random input data with shape (num_groups, 1000, 5)
-input_data = torch.rand(num_groups, 1000, 5)
+# Reshape the input data to (num_groups, 5000) for CSV format
+input_data_reshaped = input_data.view(num_groups, -1)
 
-# Create random output data with shape (num_groups, 2)
-output_data = torch.rand(num_groups, 2)
+# Create a DataFrame with input and output data
+df = pd.DataFrame(input_data_reshaped.numpy())
+df['output1'] = output_data[:, 0].numpy()
+df['output2'] = output_data[:, 1].numpy()
 
-# Create tensors
-input_tensor = torch.tensor(input_data, dtype=torch.float32)
-output_tensor = torch.tensor(output_data, dtype=torch.float32)
-
-print("Input tensor shape:", input_tensor.shape)
-print("Output tensor shape:", output_tensor.shape)
+# Save the DataFrame to a CSV file
+df.to_csv('dataset.csv', index=False)

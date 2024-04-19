@@ -1,12 +1,15 @@
 <h1>Idea of AI Stock Modeling</h1>
 
-1. use boolinger line to determine sell/buy points
-2. use a window find stock input raw data
-3. create datasets: 
-   a. input(close, slope, accelerate, weekdays, time)
+1. use boolinger line to determine sell/buy points(max:sell, min:buy value)
+2. smooth (9, 15) all data, use the smoothed data as close[array]
+3. calculate vilocity for all points(array)
+4. calculate accelerate for all points(array)
+5. use a window find stock input smooth data
+6. create datasets: 
+   a. input(close, vilocity, accelerate, weekdays, time, volume)
    b. output(sell, buy)
-4. create model
-5. use the model to test training data
+7. create model
+8. use the model to test training data
 
 ## Create datasets
 
