@@ -101,7 +101,10 @@ $$f(x) = x^3 + \frac 1 2 x^2 - 4 x -2$$
 * [get 2 pints on the nonlinear function, make a stright line based on the 2 points](../src/nonlinear02.py)
 * [generate data based on above function](../src/nonlinear03.py)
 * [use activate function to get part of the line](../src/nonlinear04.py)
-* [use relu activate function to train our model](../src/nonlinear05.py)
+* [save our model to file relu_model.pth](../src/nonlinear05.py)
+* [use relu activate function to train our model](../src/nonlinear06.py)
+* [save our model to file relu_model.pth](../src/nonlinear07.py)
+* [what are weights and bias look like](../src/nonlinear08.py)
 
 ## backpropagation
 * [wikipedia Backpropagation Explain](https://en.wikipedia.org/wiki/Backpropagation)

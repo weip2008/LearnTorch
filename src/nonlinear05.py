@@ -20,6 +20,7 @@ class Net(nn.Module):
 
 if __name__ == '__main__':
     x = torch.linspace(-3, 3, 100, dtype=torch.float32)
+    print(type(x), x.ndim)
     y = x**3 + x**2/2 - 4*x - 2
 
     net = Net()
