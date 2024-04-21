@@ -17,7 +17,7 @@ python -m venv env
 $$f_{l+1} = \sigma (w_l a_l + b_l) $$
 $w_l$: weight for layer l
 $b_l$: bias for layer l
-$sigma$: activation function
+$\sigma$: activation function
 $f_{l+1}$: l+1 function of layer l
 the purpose of modeling is find each $w_l$ and $b_l$
 
@@ -97,7 +97,11 @@ test_data = datasets.MNIST('data/MNIST_data/', download=True, train=False, trans
 
 $$f(x) = x^3 + \frac 1 2 x^2 - 4 x -2$$
 
-* [](../src/nonlinear01.py)
+* [generate data based on above function](../src/nonlinear01.py)
+* [get 2 pints on the nonlinear function, make a stright line based on the 2 points](../src/nonlinear02.py)
+* [generate data based on above function](../src/nonlinear03.py)
+* [use activate function to get part of the line](../src/nonlinear04.py)
+* [use relu activate function to train our model](../src/nonlinear05.py)
 
 ## backpropagation
 * [wikipedia Backpropagation Explain](https://en.wikipedia.org/wiki/Backpropagation)
