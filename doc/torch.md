@@ -11,6 +11,7 @@ python -m venv env
 ![](images/unavailable%20modue.png)
 📝 close VS Code, reopen, and run all code from the top.
 ## AI on Fashion
+![sample fashion images](images/fashionSample.png)
 ![](images/neuralNetwork4handwritingDigits.png)
 28X28=784 input, 2 modle layer,  0-9 output
 $$f_{l+1} = \sigma (w_l a_l + b_l) $$
@@ -20,7 +21,9 @@ $sigma$: activation function
 $f_{l+1}$: l+1 function of layer l
 the purpose of modeling is find each $w_l$ and $b_l$
 
-![sample fashion images](images/fashionSample.png)
+### Activation Function
+
+
 
 * [tensor basics](torchBasics.ipynb)
 
@@ -88,7 +91,13 @@ test_data = datasets.MNIST('data/MNIST_data/', download=True, train=False, trans
 * [Prepare linear data](../src/linear01.py)
 * [understand epoch, ir, batch_size, optimizer, loss function, and modeling](../src/linear02.py)
 * [manually simulate model creation process](../src/linear03.py)
-* [manually simulate model creation process](../src/linear04.py)
-* 
+* [create model based on network data](../src/linear04.py)
+
+## Non-linear Function Fit
+
+$$f(x) = x^3 + \frac 1 2 x^2 - 4 x -2$$
+
+* [](../src/nonlinear01.py)
+
 ## backpropagation
 * [wikipedia Backpropagation Explain](https://en.wikipedia.org/wiki/Backpropagation)

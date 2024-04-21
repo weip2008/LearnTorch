@@ -38,7 +38,7 @@ if __name__ == '__main__':
     optimizer = optim.SGD(model.parameters(), lr=0.01)   #  Stochastic Gradient Descent, lr: Learning Rate
 
     # Train the model
-    num_epochs = 300
+    num_epochs = 1000
     for epoch in range(num_epochs):
         for x_batch, y_batch in train_loader:
             optimizer.zero_grad()
