@@ -1,3 +1,6 @@
+"""
+create linear model to find slope and interception for COVID-19 death rate
+"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
