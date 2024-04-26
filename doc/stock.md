@@ -28,3 +28,8 @@ close,slope,accelerate,weekdays,time,sell,buy
 ...
 ```
 
+## velocity and acceleration
+
+$$v_i=\frac {c_{i+1}-c_{i-1}} {t_{i+1}-t_{i-1}}$$
+i.e. the velocity at $t_i$ equals the difference of the "close" at $t_{i+1}$ and $t_{i-1}$. same as accelerate as below:
+$$a_i=\frac {v_{i+1}-v_{i-1}} {t_{i+1}-t_{i-1}}$$
