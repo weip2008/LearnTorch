@@ -20,6 +20,7 @@ $b_l$: bias for layer l
 $\sigma$: activation function
 $f_{l+1}$: l+1 function of layer l
 the purpose of modeling is find each $w_l$ and $b_l$
+$$f=\sum_{l=0}^{l=n} {f_{l}}$$
 
 ### Activation Function
 
@@ -86,6 +87,8 @@ test_data = datasets.MNIST('data/MNIST_data/', download=True, train=False, trans
 
 * [Understand weight in linear function](../src/weight.py)
 * [Understand ReLU activate function](../src/relu.py)
+* [efact only on x<0](../src/ReLU1.py)
+* [efact only on x<0](../src/ReLU2.py)
 
 ## Linear Regression
 * [Prepare linear data](../src/linear01.py)
@@ -108,3 +111,27 @@ $$f(x) = x^3 + \frac 1 2 x^2 - 4 x -2$$
 
 ## backpropagation
 * [wikipedia Backpropagation Explain](https://en.wikipedia.org/wiki/Backpropagation)
+$$y_j=relu\left( \sum_{k=1}^n w_{kj}\cdot x_{k} + b_j\right)$$
+wher relu() is activation function, and $y_j$ is layer j output.
+
+## Translator Project
+
+```mermaid
+graph LR
+
+ENG(English audio)
+ENG_TXT[English text]
+CHN_TXT[Chinese text]
+CHN[Chinese audio]
+
+ENG --> ENG_TXT -->CHN_TXT --> CHN
+
+classDef start fill:#3cdf77,stroke:#1a6d38,stroke-width:2px,color:white;
+classDef js fill:#73dbf7,stroke:#194652,stroke-width:2px;
+classDef end1 fill:#f17168,stroke:#902a23,stroke-width:2px,color:white;
+
+class ENG start
+class CHN end1
+class ENG_TXT,CHN_TXT js
+```
+* [load wav audio from internet](../src/audio/audio01.py)
