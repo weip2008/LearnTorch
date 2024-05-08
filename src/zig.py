@@ -1,105 +1,38 @@
-import numpy as np
+import yfinance as yf
+import matplotlib.pyplot as plt
 
-def wilders_average(data, length):
-    return np.mean(data[-length:])
+def zigzag(stock_data, percentage_reversal):
+    high_points = []
+    low_points = []
 
-def tick_size():
-    return 0.01  # Assuming tick size is 0.01 for this example
+    i = 0
+    while i < len(stock_data) - 1:
+        start = i
+        end = i
+        while end + 1 < len(stock_data) and ((stock_data['Close'][end + 1] - stock_data['Close'][start]) / stock_data['Close'][start]) * 100 <= -percentage_reversal:
+            end += 1
+        if end > start:
+            high_points.append((stock_data.index[start], stock_data['Close'][start]))
+            low_points.append((stock_data.index[end], stock_data['Close'][end]))
+        i = end + 1
 
-def convert_thinkscript_to_python(price_high, price_low, percentage_reversal, absolute_reversal, atr_length, atr_reversal, tick_reversal):
-    assert percentage_reversal >= 0, f"'percentage reversal' must not be negative: {percentage_reversal}"
-    assert absolute_reversal >= 0, f"'absolute reversal' must not be negative: {absolute_reversal}"
-    assert atr_reversal >= 0, f"'atr reversal' must not be negative: {atr_reversal}"
-    assert tick_reversal >= 0, f"'ticks' must not be negative: {tick_reversal}"
-    assert any([percentage_reversal != 0, absolute_reversal != 0, atr_reversal != 0, tick_reversal != 0]), "Either 'percentage reversal' or 'absolute reversal' or 'atr reversal' or 'tick reversal' must not be zero"
+    return high_points, low_points
 
-    abs_reversal = absolute_reversal if absolute_reversal != 0 else tick_reversal * tick_size()
+# Fetch stock data for Apple (AAPL) from Yahoo Finance
+stock_data = yf.download('AAPL', start='2023-01-01', end='2024-01-01')
 
-    if atr_reversal != 0:
-        hl_pivot = percentage_reversal / 100 + wilders_average(np.abs(price_high - price_low), atr_length) / price_low * atr_reversal
-    else:
-        hl_pivot = percentage_reversal / 100
+# Percentage reversal
+percentage_reversal = 0.3
 
-    state = {'init': 0, 'undefined': 1, 'uptrend': 2, 'downtrend': 3}
-    max_price_high = None
-    min_price_low = None
-    new_max = None
-    new_min = None
-    prev_max_high = None
-    prev_min_low = None
+high_points, low_points = zigzag(stock_data, percentage_reversal)
 
-    for i in range(len(price_high)):
-        if state.get(i - 1) == state.get('init'):
-            max_price_high[i] = price_high[i]
-            min_price_low[i] = price_low[i]
-            new_max[i] = True
-            new_min[i] = True
-            state[i] = state.get('undefined')
-        elif state.get(i - 1) == state.get('undefined'):
-            if price_high[i] >= prev_max_high:
-                state[i] = state.get('uptrend')
-                max_price_high[i] = price_high[i]
-                min_price_low[i] = prev_min_low
-                new_max[i] = True
-                new_min[i] = False
-            elif price_low[i] <= prev_min_low:
-                state[i] = state.get('downtrend')
-                max_price_high[i] = prev_max_high
-                min_price_low[i] = price_low[i]
-                new_max[i] = False
-                new_min[i] = True
-            else:
-                state[i] = state.get('undefined')
-                max_price_high[i] = prev_max_high
-                min_price_low[i] = prev_min_low
-                new_max[i] = False
-                new_min[i] = False
-        elif state.get(i - 1) == state.get('uptrend'):
-            if price_low[i] <= prev_max_high - prev_max_high * hl_pivot - abs_reversal:
-                state[i] = state.get('downtrend')
-                max_price_high[i] = prev_max_high
-                min_price_low[i] = price_low[i]
-                new_max[i] = False
-                new_min[i] = True
-            else:
-                state[i] = state.get('uptrend')
-                if price_high[i] >= prev_max_high:
-                    max_price_high[i] = price_high[i]
-                    new_max[i] = True
-                else:
-                    max_price_high[i] = prev_max_high
-                    new_max[i] = False
-                min_price_low[i] = prev_min_low
-                new_min[i] = False
-        else:
-            if price_high[i] >= prev_min_low + prev_min_low * hl_pivot + abs_reversal:
-                state[i] = state.get('uptrend')
-                max_price_high[i] = price_high[i]
-                min_price_low[i] = prev_min_low
-                new_max[i] = True
-                new_min[i] = False
-            else:
-                state[i] = state.get('downtrend')
-                max_price_high[i] = prev_max_high
-                new_max[i] = False
-                if price_low[i] <= prev_min_low:
-                    min_price_low[i] = price_low[i]
-                    new_min[i] = True
-                else:
-                    min_price_low[i] = prev_min_low
-                    new_min[i] = False
-
-    return max_price_high, min_price_low
-
-# Example usage
-price_high = [100, 110, 105, 115, 120]
-price_low = [90, 95, 100, 105, 110]
-percentage_reversal = 5.0
-absolute_reversal = 0.0
-atr_length = 5
-atr_reversal = 1.5
-tick_reversal = 0
-
-max_price_high, min_price_low = convert_thinkscript_to_python(price_high, price_low, percentage_reversal, absolute_reversal, atr_length, atr_reversal, tick_reversal)
-print("Max Price High:", max_price_high)
-print("Min Price Low:", min_price_low)
+plt.figure(figsize=(12, 6))
+plt.plot(stock_data.index, stock_data['Close'], label='Close Price', color='blue')
+plt.scatter([x[0] for x in high_points], [x[1] for x in high_points], color='green', marker='^', label='High Points')
+plt.scatter([x[0] for x in low_points], [x[1] for x in low_points], color='red', marker='v', label='Low Points')
+plt.title('AAPL Stock Price with Zigzag Diagram')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.grid(True)
+plt.show()
