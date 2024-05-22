@@ -146,7 +146,7 @@ if __name__ == "__main__":
             print(f"Filtered point at index {i} not found in selected_low_points.")
         
         
-    ''' combined_filtered_points = pd.concat([filtered_low_points, filtered_high_points])
+    combined_filtered_points = pd.concat([filtered_low_points, filtered_high_points])
     combined_filtered_points_sorted = combined_filtered_points.sort_index()
     
     # Plot selected_low_points, selected_high_points, filtered_low_points, and filtered_high_points
@@ -161,4 +161,4 @@ if __name__ == "__main__":
     # Plot the sorted dataframe
     combined_filtered_points_sorted['Price'].plot()
 
-    plt.show() '''
+    plt.show()
