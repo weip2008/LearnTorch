@@ -29,16 +29,16 @@ def getDataSet(file_path):
     inputs = tuple(inputs)
 
     # # Print the results (for verification)
-    print("Outputs:")
-    print(outputs)
+    # print("Outputs:")
+    # print(outputs)
     # print("\nInputs:")
     # print(inputs)
 
     # print(len(outputs))
-    print(len(inputs),len(inputs[0]))
+    # print(len(inputs),len(inputs[0]))
     # Convert to PyTorch tensors
     outputs_tensor = torch.tensor(outputs).reshape(18,2)
-    inputs_tensor = torch.tensor(inputs).reshape(18,1,6,10)
+    inputs_tensor = torch.tensor(inputs).reshape(18,6,10)
     test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
     trainingDataset = TensorDataset(inputs_tensor, outputs_tensor)
     testingDataset = TensorDataset(inputs_tensor, test_output_tensor)
@@ -91,10 +91,7 @@ def test(dataloader, model, loss_fn):
             X, y = X.to(device), y.to(device)
             pred = model(X)
             test_loss += loss_fn(pred, y).item()
-            y1 = pred.argmax(1)
-            y2 = y1 == y
-            correct += y2.type(torch.float).sum().item()
-            print(f'correct: {correct}')
+            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
     test_loss /= num_batches
     correct /= size
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
