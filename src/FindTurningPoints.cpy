@@ -6,12 +6,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import yfinance as yf
+import os
 from ta.utils import dropna
 from FilteredHighLowPoints import filter_points
 from FilteredHighLowPoints import find_point_index_int
 from TimeElapsed import measure_operation_time
 from TimeElapsed import read_CSV_file
 from enum import Enum
+
 
 class TradePosition(Enum):
     Long = 1
@@ -256,13 +258,15 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
     
     if (TradePosition is TradePosition.Short):        
         result = "0,1," + trainingdata_str + "\n"
-        print(result)
+        if IsDebug:
+            print(result)
         # Parse the input string into separate fields
         #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
         csvfile.write(result)
     else:
         result = "1,0," + trainingdata_str + "\n"
-        print(result)
+        if IsDebug:
+            print(result)
         # Parse the input string into separate fields
         #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
         csvfile.write(result)
@@ -278,15 +282,20 @@ def generate_training_data(tddf_highlow_list, position):
     # Iterate over each tuple in tddf_highlow_list starting from the second tuple
     for i in range(0, len(tddf_highlow_list)):
         processing_df = tddf_highlow_list[i]
-        print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
+        if IsDebug:
+            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
         
         tddf_velocity_list = calculate_velocity(processing_df)
-        print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
+        if IsDebug:
+            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
         
         tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
-        print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
+        if IsDebug:
+            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
         
-        print("\nGenerate training data:")
+        if IsDebug:
+            print("\nGenerate training data:")
+            
         write_training_data(position, tddf_acceleration_list, datafile)
         
     return
@@ -299,29 +308,34 @@ logging.basicConfig(
 )
         
 IsDebug = True
-WindowLen = 5
+#WindowLen = 5
 
 #Trainning data lenth
-tdLen = 10
+tdLen = 30
+
+# Series Number for output training data
+SN = "08"
            
 symbol = "SPY"
 #symbol = "MES=F"
-
 
 # Define the table name as a string variable
 #table_name = "AAPL_1m"
 table_name = "SPY_1m"
 # Define the SQLite database file
-db_file = "data\\stock_data.db"
+data_dir = "stockdata"
+db_file = os.path.join(data_dir, "stock_data.db")
+
+# Define the query date range
+query_start = "2024-04-11"
+#query_end = "2024-04-19"
+query_end = "2024-05-19"
 
 # Connect to the SQLite database
 conn = sqlite3.connect(db_file)
 cursor = conn.cursor()
 print("\n\n==========================4===Query==========================\n\n")
 
-# Define the query date range
-query_start = "2024-04-15"
-query_end = "2024-04-21"
 
 # Query the data between May 6th, 2024, and May 12th, 2024
 query_range = f'''
@@ -467,7 +481,10 @@ if IsDebug:
     print("========================================\n\n\n")
 
 # Open a CSV file in write mode
-with open("data/StockTraningData02.csv", "w") as datafile:
+
+td_file = os.path.join(data_dir, f"{symbol}_TraningData_{tdLen}_{SN}.csv")
+
+with open(td_file, "w") as datafile:
     generate_training_data(tddf_low_list, TradePosition.Long)
     generate_training_data(tddf_high_list, TradePosition.Short)
 
