@@ -5,7 +5,7 @@ from torch.utils.data import TensorDataset, DataLoader
 
 # Define the file path
 file_path = 'data/SPY_TraningData06.csv'
-
+labels = ["Sell","Buy"]
 def getDataSet(file_path):
     # Initialize lists to store the outputs and inputs
     outputs = []
@@ -38,7 +38,7 @@ def getDataSet(file_path):
     # print(len(inputs),len(inputs[0]))
     # Convert to PyTorch tensors
     outputs_tensor = torch.tensor(outputs).reshape(18,2)
-    inputs_tensor = torch.tensor(inputs).reshape(18,6,10)
+    inputs_tensor = torch.tensor(inputs).reshape(18,1,6,10)
     test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
     trainingDataset = TensorDataset(inputs_tensor, outputs_tensor)
     testingDataset = TensorDataset(inputs_tensor, test_output_tensor)

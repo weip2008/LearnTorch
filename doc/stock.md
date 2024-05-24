@@ -149,7 +149,7 @@ tensor([[[ 4.0000e+00,  1.0117e+01,  5.1337e+02,  ...,  1.0133e+01,
            1.1000e-01,  4.0000e-02]]])
 ```
 
-sample output tensor
+sample training output tensor
 
 ```
 tensor([[1., 0.],
