@@ -1,7 +1,10 @@
 import csv
+import os
 
 # Define the file path
-file_path = 'data/StockTraningData02.csv'
+data_dir = "stockdata"
+file_path = os.path.join(data_dir, "SPY_TraningData06.csv")
+#file_path = 'data/StockTraningData02.csv'
 
 # Initialize lists to store the outputs and inputs
 outputs = []
