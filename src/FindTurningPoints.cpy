@@ -308,14 +308,16 @@ logging.basicConfig(
 )
         
 IsDebug = True
-WindowLen = 5
+#WindowLen = 5
 
 #Trainning data lenth
-tdLen = 10
+tdLen = 30
+
+# Series Number for output training data
+SN = "08"
            
 symbol = "SPY"
 #symbol = "MES=F"
-
 
 # Define the table name as a string variable
 #table_name = "AAPL_1m"
@@ -324,15 +326,16 @@ table_name = "SPY_1m"
 data_dir = "stockdata"
 db_file = os.path.join(data_dir, "stock_data.db")
 
+# Define the query date range
+query_start = "2024-04-11"
+#query_end = "2024-04-19"
+query_end = "2024-05-19"
+
 # Connect to the SQLite database
 conn = sqlite3.connect(db_file)
 cursor = conn.cursor()
 print("\n\n==========================4===Query==========================\n\n")
 
-# Define the query date range
-query_start = "2024-04-11"
-query_end = "2024-04-19"
-#query_end = "2024-05-19"
 
 # Query the data between May 6th, 2024, and May 12th, 2024
 query_range = f'''
@@ -478,7 +481,8 @@ if IsDebug:
     print("========================================\n\n\n")
 
 # Open a CSV file in write mode
-td_file = os.path.join(data_dir, f"{symbol}_TraningData06.csv")
+
+td_file = os.path.join(data_dir, f"{symbol}_TraningData_{tdLen}_{SN}.csv")
 
 with open(td_file, "w") as datafile:
     generate_training_data(tddf_low_list, TradePosition.Long)
