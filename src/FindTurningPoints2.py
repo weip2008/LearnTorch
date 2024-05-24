@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import yfinance as yf
+import os
 from ta.utils import dropna
 from FilteredHighLowPoints import filter_points
 from FilteredHighLowPoints import find_point_index_int
@@ -280,7 +281,9 @@ ohlc_df = yf.download(tickers=symbol, start=start, end=end, interval=interval)
  '''
 # Define the file path
 #file_path = "data/SPY_2024-04-11_2024-05-12_1m.csv"
-file_path = "data/SPY_2024-04-15_2024-04-21_1m.csv"
+#file_path = "data/SPY_2024-04-15_2024-04-21_1m.csv"
+data_dir = "stockdata"
+file_path = os.path.join(data_dir, "SPY_2024-04-15_2024-04-21_1m.csv")
 
 # # Read the data from CSV into a DataFrame
 ohlc_df = pd.read_csv(file_path, index_col=0, parse_dates=True)
@@ -419,7 +422,9 @@ if IsDebug:
     print("========================================\n\n\n")
 
 # Open a CSV file in write mode
-with open("data/StockTraningData05.csv", "w") as datafile:
+td_file = os.path.join(data_dir, f"{symbol}_TraningData05.csv")
+
+with open(td_file, "w") as datafile:
     generate_training_data(tddf_low_list, TradePosition.Long)
     generate_training_data(tddf_high_list, TradePosition.Short)
 
