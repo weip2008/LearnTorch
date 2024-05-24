@@ -188,3 +188,10 @@ test datasets 和training datasets两者的输入结构是相同的，但是输�
 test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
 ```
 这里巧妙地应用了将bool数据转换成整数的方法，也就是int(True)为1，int(Fale)为0.还要注意到我们的sell和buy是相关的，x=1则y=0,反之亦然。所以程序中只使用了y的值，就得到了正确的测试输出数组。
+
+👍😄 **Conclusion**
+运行
+[read stock data, build model, save model to a file](../src/stock.py)
+![most time only get 50% accuracy](images/50percent.png)
+![occasionally get 72% accuracy](images/72%.png)
+❌😢<font style="background-color:yellow">仅仅得到50%的精准度，表明这样的数据结构和NN模型是完全不能够预测股票走势的。</font>
