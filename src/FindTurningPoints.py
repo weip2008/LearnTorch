@@ -254,7 +254,7 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
 
 def generate_training_data(tddf_highlow_list, position):
     
-    filename = 'stockdata/trainingDataLog_'+ str(position)+".txt"
+    filename = 'stockdata/TrainingDataGenLog_'+ str(position)+".log"
     # Open a file in write mode
     outputfile = open(filename, 'w')
  
