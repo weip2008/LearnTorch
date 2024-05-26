@@ -5,7 +5,7 @@ from torch.utils.data import TensorDataset, DataLoader
 
 # Define the file path
 file_path = 'data/SPY_TraningData06.csv'
-labels = ["Sell","Buy"]
+labels = ["long","short"]
 total=18
 columns = 6
 window = 10
