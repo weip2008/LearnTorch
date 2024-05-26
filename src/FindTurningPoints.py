@@ -67,14 +67,11 @@ def cut_slices(ohlc_df, selected_points_index, window_len):
     '''
     tddf_list = []
     for index in selected_points_index:
-        # Backup WindowLen positions and extract the slice of data
-        l1 = ohlc_df.index[0]
-        # pd.Timedelta is a pandas function used to represent a duration 
-        # or a difference between two dates or times. 
-        #td =  pd.Timedelta(minutes=(window_len + 1))
-        l2 = index - (window_len+1) 
-        start_index = max(l1, l2)
-        #start_index = index - (window_len+1)  
+
+        start_index = index - (window_len+1) 
+        # if we don't have enough long data series for this slice, ignore it
+        if start_index < 0:
+            continue
         
         # Adjust end index to include one more element
         end_index = index+1
@@ -275,6 +272,10 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
 
 def generate_training_data(tddf_highlow_list, position):
     
+    filename = 'stockdata/trainingDataLog_'+ str(position)+".txt"
+    # Open a file in write mode
+    outputfile = open(filename, 'w')
+ 
     # Initialize an empty list to store tuples with the "Velocity" column
     tddf_velocity_list = []
     tddf_acceleration_list = []
@@ -295,9 +296,14 @@ def generate_training_data(tddf_highlow_list, position):
         
         if IsDebug:
             print("\nGenerate training data:")
-            
-        write_training_data(position, tddf_acceleration_list, datafile)
         
+        outputfile.write(str(len(processing_df))+","
+                         +str(len(tddf_velocity_list))
+                         +","+str(len(tddf_acceleration_list))+"\n")    
+        
+        write_training_data(position, tddf_acceleration_list, datafile)
+    
+    outputfile.close()    
     return
 
 #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
