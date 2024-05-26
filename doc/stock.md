@@ -1,13 +1,13 @@
 <h1>Idea of AI Stock Modeling</h1>
 
-1. use boolinger line to determine sell/buy points(max:sell, min:buy value)
+1. use boolinger line to determine long/short points(max:long, min:short value)
 2. smooth (9, 15) all data, use the smoothed data as close[array]
 3. calculate vilocity for all points(array)
 4. calculate accelerate for all points(array)
 5. use a window find stock input smooth data
 6. create datasets: 
    a. input(close, vilocity, accelerate, weekdays, time, volume)
-   b. output(sell, buy)
+   b. output(long, short)
 7. create model
 8. use the model to test training data
 
@@ -21,7 +21,7 @@
 * better file format
 
 ```csv
-sell,buy,[(weekdays,time,close,slope,accelerate,volume),(...)]
+long,short,[(weekdays,time,close,slope,accelerate,volume),(...)]
 0.1,0.2,0.3,0.4,0.5,0.6,0.7
 0.2,0.3,0.4,0.5,0.6,0.8,0.9
 0.3,0.4,0.5,0.6,0.7,0.5,0.4
@@ -38,7 +38,7 @@ $$a_i=\frac {v_{i+1}-v_{i-1}} {t_{i+1}-t_{i-1}}$$
 
 * csv file format
 ```
-sell,buy,weekdays,time,close,velocity,acceleration,volume,...
+long,short,weekdays,time,close,velocity,acceleration,volume,...
 1,0,2.0,10.0,503.039,2.3,0.12,1232,2.0,10.123,503.3,2.1,0.3,1354,...
 1,0,2.0,10.0,503.039,2.3,0.12,1232,2.0,10.123,503.3,2.1,0.3,1354,...
 ... ...
@@ -46,7 +46,7 @@ sell,buy,weekdays,time,close,velocity,acceleration,volume,...
 [sample data file](../data/SPY_TraningData06.csv)
 Sample format:
 ```csv
-sell,buy,weekday,time,close,velocity,acceleration,volume,weekday,time,close,velocity,acceleration,volume,weekday,time,close,velocity,acceleration,volume,weekday,time,close,velocity,acceleration,volume,weekday,time,close,velocity,acceleration,volume,weekday,time,close,velocity,acceleration,volume,weekday,time,close,velocity,acceleration,volume,weekday,time,close,velocity,acceleration,volume,weekday,time,close,velocity,acceleration,volume,weekday,time,close,velocity,acceleration,volume
+long,short,weekday,time,price,volume,velocity,acceleration,... ...
 1,0,4.0000,10.1167,513.3700,230304.0000,-0.0600,0.1100,4.0000,10.1333,513.2700,389610.0000,-0.1000,-0.0400,4.0000,10.1500,513.2300,116196.0000,-0.0400,0.0600,4.0000,10.1667,513.0700,125490.0000,-0.1600,-0.1200,4.0000,10.1833,512.9400,308380.0000,-0.1300,0.0300,4.0000,10.2000,512.8300,153775.0000,-0.1100,0.0200,4.0000,10.2167,512.9300,191395.0000,0.1000,0.2100,4.0000,10.2333,512.7600,186673.0000,-0.1700,-0.2700,4.0000,10.2500,512.5800,243147.0000,-0.1800,-0.0100,4.0000,10.2667,512.3400,222841.0000,-0.2400,-0.0600
 1,0,5.0000,15.1167,509.5700,91117.0000,-0.0400,-0.0500,5.0000,15.1333,509.5500,153922.0000,-0.0200,0.0200,5.0000,15.1500,509.4800,136941.0000,-0.0700,-0.0500,5.0000,15.1667,509.5900,115541.0000,0.1100,0.1800,5.0000,15.1833,509.5900,146988.0000,0.0000,-0.1100,5.0000,15.2000,509.5700,122923.0000,-0.0200,-0.0200,5.0000,15.2167,509.4300,163968.0000,-0.1400,-0.1200,5.0000,15.2333,509.3400,110492.0000,-0.0900,0.0500,5.0000,15.2500,509.2600,243777.0000,-0.0800,0.0100,5.0000,15.2667,509.2000,151465.0000,-0.0600,0.0200
 ...
@@ -56,13 +56,14 @@ sell,buy,weekday,time,close,velocity,acceleration,volume,weekday,time,close,velo
 ```
 * training dataset format 
 trainingDataset.shape = [18,6,10]
+
 ```py
 outputs_tensor = torch.tensor(outputs).reshape(18,2)
-inputs_tensor = torch.tensor(inputs).reshape(18,6,10)
+inputs_tensor = torch.tensor(inputs).reshape(18,1,6,10)
 ```
 where 
 1. 18 is total number of training data.
-2. 2 in outputs_tensor is 1 demension 2 items array, [sell, buy].
+2. 2 in outputs_tensor is 1 demension 2 items array, ['long', 'short'].
 3. 6 in inputs_tensor is 6 columns as (weekdays,time,close,velocity,acceleration,volume).
 4. 10 in inputs_tensor is window size, which means we start from current time backwards for 10 data.
 
@@ -171,23 +172,23 @@ tensor([[1., 0.],
         [0., 1.],
         [0., 1.]])
 ```
-index=0, 表明该窗口数据属于sell类。index=1，表面该窗口数据属于buy类。
+index=0, 表明该窗口数据属于long类。index=1，表面该窗口数据属于short类。
 
 预测结果实例：
-predict=[-0.27，,3.45]
-由于index=2的数字更大，表明该输入数据被认定为buy。
+predict=[-0.27,3.45]
+由于index=1的数字更大，表明该输入数据被认定为short。
 
 * test dataset format
-test datasets 和training datasets两者的输入结构是相同的，但是输出的结构是不同的。对于训练用的数据，输出部分也是一个二维矩阵（见上面的实际例子），表示该给定窗口数据的分类，或者是sell，或者是buy，用[1,0]表示设定为sell，用[0,1]设定为buy。 
+test datasets 和training datasets两者的输入结构是相同的，但是输出的结构是不同的。对于训练用的数据，输出部分也是一个二维矩阵（见上面的实际例子），表示该给定窗口数据的分类，或者是long，或者是short，用[1,0]表示设定为long，用[0,1]设定为short。 
 而test数据的输出，只是一个一维矩阵，包含每个窗口的正确结果所处的位置（index）。对于上面给出的18行的数据，测试Tensor看起来应该是这样的：
 [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1]
-他表示前8行属于0类，也就是sell类；后8行属于1类，也就是buy类。
+他表示前8行属于0类，也就是long类；后8行属于1类，也就是short类。
 在我们的程序中是通过下面的程序段达到这样的效果。
 
 ```py
 test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
 ```
-这里巧妙地应用了将bool数据转换成整数的方法，也就是int(True)为1，int(Fale)为0.还要注意到我们的sell和buy是相关的，x=1则y=0,反之亦然。所以程序中只使用了y的值，就得到了正确的测试输出数组。
+这里巧妙地应用了将bool数据转换成整数的方法，也就是int(True)为1，int(Fale)为0.还要注意到我们的long和short是相关的，x=1则y=0,反之亦然。所以程序中只使用了y的值，就得到了正确的测试输出数组。
 
 👍😄 **Conclusion**
 运行
@@ -195,3 +196,4 @@ test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
 ![most time only get 50% accuracy](images/50percent.png)
 ![occasionally get 72% accuracy](images/72%.png)
 ❌😢<font style="background-color:yellow">仅仅得到50%的精准度，表明这样的数据结构和NN模型是完全不能够预测股票走势的。</font>
+[use model file to predict stock data(which is same as the trainging data)](../src/stock1.py)
