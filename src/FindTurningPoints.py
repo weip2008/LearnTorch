@@ -59,12 +59,7 @@ def find_selected_points2(ohlc_df, comparison_operator):
 
    
 def cut_slices(ohlc_df, selected_points_index, window_len):
-    '''
-    In this function the start index has -1 and the end index +1 is because in next step
-    calculate voloctiy, the result voloctiy list will shrink at two ends;
-    in next step calculate acceleration, the list will shrink at two ends again.
-    therefore, the list should two more elements at both ends
-    '''
+    
     tddf_list = []
     for index in selected_points_index:
 
@@ -75,11 +70,7 @@ def cut_slices(ohlc_df, selected_points_index, window_len):
         
         # Adjust end index to include one more element
         end_index = index+1
-        
-        # By passing minutes=1 as an argument, 
-        # create a Timedelta object that represents a duration of 1 minute.
-        # end_index = index + pd.Timedelta(minutes=1)  
-        
+     
         # Create a copy of the section of the original DataFrame
         # start from start_index up to but not including end_index!
         #section_df = ohlc_df.loc[start_index:end_index].copy()  
@@ -101,15 +92,6 @@ def cut_slices(ohlc_df, selected_points_index, window_len):
     #logging.DEBUG(tddf_list)
     
     return tddf_list
-
-''' def list_to_string(acceleration_list):
-    # Example usage:
-    # acceleration_str = list_to_string(acceleration_list)
-    # print(acceleration_str)
-
-    # Convert each tuple to a string with parentheses and join them with newline characters
-    return ' '.join(['(' + ','.join(map(str, acceleration_tuple)) + '),' for acceleration_tuple in acceleration_list])
- '''
 
 def list_to_string(acceleration_list):
     # Convert each tuple to a string with parentheses and join them with newline characters
