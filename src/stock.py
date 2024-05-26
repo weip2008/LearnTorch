@@ -6,6 +6,11 @@ from torch.utils.data import TensorDataset, DataLoader
 # Define the file path
 file_path = 'data/SPY_TraningData06.csv'
 labels = ["Sell","Buy"]
+total=18
+columns = 6
+window = 10
+batch_global = 3
+
 def getDataSet(file_path):
     # Initialize lists to store the outputs and inputs
     outputs = []
@@ -37,8 +42,8 @@ def getDataSet(file_path):
     # print(len(outputs))
     # print(len(inputs),len(inputs[0]))
     # Convert to PyTorch tensors
-    outputs_tensor = torch.tensor(outputs).reshape(18,2)
-    inputs_tensor = torch.tensor(inputs).reshape(18,1,6,10)
+    outputs_tensor = torch.tensor(outputs).reshape(total,2)
+    inputs_tensor = torch.tensor(inputs).reshape(total,1,columns,window)
     test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
     trainingDataset = TensorDataset(inputs_tensor, outputs_tensor)
     testingDataset = TensorDataset(inputs_tensor, test_output_tensor)
@@ -50,11 +55,11 @@ class NeuralNetwork(nn.Module):
         super().__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(6*10, 10),
+            nn.Linear(columns*window, window),
             nn.ReLU(),  # Rectified Linear Unit
-            nn.Linear(10, 6),
+            nn.Linear(window, columns),
             nn.ReLU(),
-            nn.Linear(6, 2)
+            nn.Linear(columns, 2)
         )
 
     def forward(self, x):
@@ -77,7 +82,7 @@ def train(dataloader, model, loss_fn, optimizer):
         loss.backward()
         optimizer.step()
 
-        if batch % 100 == 0:
+        if batch % batch_global == 0:
             loss, current = loss.item(), (batch + 1) * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
     
@@ -99,8 +104,8 @@ def test(dataloader, model, loss_fn):
 if __name__ == "__main__":
     trainDataset,testDataset = getDataSet(file_path)   
 
-    train_dataloader = DataLoader(trainDataset, batch_size=3) # the train data include images (input) and its lable index (output)
-    test_dataloader = DataLoader(testDataset, batch_size=3) # the train data include images (input) and its lable index (output)
+    train_dataloader = DataLoader(trainDataset, batch_size=batch_global) # the train data include images (input) and its lable index (output)
+    test_dataloader = DataLoader(testDataset, batch_size=batch_global) # the train data include images (input) and its lable index (output)
 
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     # device = 'gpu'
