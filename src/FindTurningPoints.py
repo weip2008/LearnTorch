@@ -311,7 +311,7 @@ IsDebug = True
 #WindowLen = 5
 
 #Trainning data lenth
-tdLen = 30
+tdLen = 200
 
 # Series Number for output training data
 SN = "08"
