@@ -279,9 +279,12 @@ def generate_training_data(tddf_highlow_list, position):
         if IsDebug:
             print("\nGenerate training data:")
         
-        outputfile.write(str(len(processing_df))+","
-                         +str(len(tddf_velocity_list))
-                         +","+str(len(tddf_acceleration_list))+"\n")    
+        # Write lengths to the file in the desired format
+        outputfile.write(
+            f"{len(processing_df)},"
+            f"{len(tddf_velocity_list)},"
+            f"{len(tddf_acceleration_list)}\n"
+        ) 
         
         write_training_data(position, tddf_acceleration_list, datafile)
     
@@ -290,12 +293,12 @@ def generate_training_data(tddf_highlow_list, position):
 
 #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
 logging.basicConfig(
-    level=logging.DEBUG,  # Set the logging level to DEBUG
+    level=logging.INFO,  # Set the logging level to DEBUG
     #format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     format=' %(levelname)s => %(message)s'
 )
         
-IsDebug = True
+IsDebug = False
 #WindowLen = 5
 
 #Trainning data lenth
@@ -353,8 +356,8 @@ if IsDebug:
 logging.debug("Results dataframe length: %d", len(ohlc_df))
 logging.debug("Data read from table: %s", table_name)
 # Log the first few rows of the DataFrame
-logging.debug("First 10 rows of the DataFrame:\n%s", ohlc_df.head(10))
-logging.debug("Last 10 rows of the DataFrame:\n%s", ohlc_df.tail(10))
+#logging.debug("First 10 rows of the DataFrame:\n%s", ohlc_df.head(10))
+#logging.debug("Last 10 rows of the DataFrame:\n%s", ohlc_df.tail(10))
 
 
 # Clean NaN values
