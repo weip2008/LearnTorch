@@ -236,14 +236,14 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
     #     result += ",".join(map(str, acceleration_tuple)) 
     
     if (TradePosition is TradePosition.Short):        
-        result = "0,1," + trainingdata_str + "\n"
+        result = trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
         #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
         csvfile.write(result)
     else:
-        result = "1,0," + trainingdata_str + "\n"
+        result = trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
@@ -252,9 +252,9 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
     
     return
 
-def generate_training_data(tddf_highlow_list, position):
+def generate_testing_data(tddf_highlow_list, position):
     
-    filename = 'stockdata/TrainingDataGenLog_'+ str(position)+".log"
+    filename = 'stockdata/TestingDataGenLog_'+ str(position)+".log"
     # Open a file in write mode
     outputfile = open(filename, 'w')
  
@@ -305,7 +305,7 @@ IsDebug = False
 tdLen = 200
 
 # Series Number for output training data
-SN = "08"
+SN = "09"
            
 symbol = "SPY"
 #symbol = "MES=F"
@@ -318,9 +318,9 @@ data_dir = "stockdata"
 db_file = os.path.join(data_dir, "stock_data.db")
 
 # Define the query date range
-query_start = "2024-04-11"
+query_start = "2024-05-17"
 #query_end = "2024-04-19"
-query_end = "2024-05-19"
+query_end = "2024-05-26"
 
 # Connect to the SQLite database
 conn = sqlite3.connect(db_file)
@@ -473,10 +473,10 @@ if IsDebug:
 
 # Open a CSV file in write mode
 
-td_file = os.path.join(data_dir, f"{symbol}_TraningData_{tdLen}_{SN}.csv")
+td_file = os.path.join(data_dir, f"{symbol}_TestingData_{tdLen}_{SN}.csv")
 
 with open(td_file, "w") as datafile:
-    generate_training_data(tddf_low_list, TradePosition.Long)
-    generate_training_data(tddf_high_list, TradePosition.Short)
+    generate_testing_data(tddf_low_list, TradePosition.Long)
+    generate_testing_data(tddf_high_list, TradePosition.Short)
 
 
