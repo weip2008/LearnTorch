@@ -183,17 +183,20 @@ def calculate_acceleration(velocity_list):
     acceleration_list = []
 
     # Iterate over each tuple in velocity_list starting from the second tuple
-    for i in range(1, len(velocity_list)):
+    for i in range(0, len(velocity_list)-1):
         # Extract velocity data from the current and previous tuples
+        next_tuple = velocity_list[i+1] 
         current_tuple = velocity_list[i]
-        previous_tuple = velocity_list[i - 1]
+        #previous_tuple = velocity_list[i - 1]
 
+        velocity_next = next_tuple[3]
         velocity_current = current_tuple[3]  # velocity is stored at index 2 in the tuple
-        velocity_previous = previous_tuple[3]
+        #velocity_previous = previous_tuple[3]
 
         # Calculate the change in velocity
         #dV = abs(velocity_current) - abs(velocity_previous)
-        dV = velocity_current - velocity_previous
+        #dV = velocity_current - velocity_previous
+        dV = velocity_next - velocity_current 
 
         ''' 
         # Convert timestamp strings to datetime objects
@@ -205,9 +208,11 @@ def calculate_acceleration(velocity_list):
         '''
         #index_current = velocity_list[i].index
         #index_previous = velocity_list[i-1].index
+        index_next = i+1
         index_current = i
-        index_previous = i-1
-        dT = index_current - index_previous
+        i#ndex_previous = i-1
+        #dT = index_current - index_previous
+        dT = index_next - index_current
         
         # Calculate acceleration (dV/dT)
         acceleration = dV / dT
@@ -302,7 +307,7 @@ logging.basicConfig(
     format=' %(levelname)s => %(message)s'
 )
         
-IsDebug = False
+IsDebug = True
 #WindowLen = 5
 
 #Trainning data lenth
