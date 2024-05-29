@@ -149,27 +149,31 @@ def convert_to_day_and_time(timestamp):
 
 def calculate_velocity(processing_element):
     velocity_list = []
-    for j in range(1, len(processing_element)):
+    for j in range(0, len(processing_element)-1):
         # Extract Price from the current and previous rows
         #price_current = processing_element[j]['Price']
         #price_previous = processing_element[j - 1]['Price']
         price_current = processing_element.iloc[j]['Price']
-        price_previous = processing_element.iloc[j - 1]['Price']
+        #price_previous = processing_element.iloc[j - 1]['Price']
+        price_next = processing_element.iloc[j+1]['Price']
 
         #print("Price_current:", Price_current)
         #print("Price_previous:", Price_previous)
         
-        dY = price_current - price_previous
+        #dY = price_current - price_previous
+        dY = price_next - price_current 
         #print("dY:", dY)
         
         # Extract timestamps from the current and previous rows
+        index_next = processing_element.index[j+1]
         index_current = processing_element.index[j]
-        index_previous = processing_element.index[j - 1]
+        #index_previous = processing_element.index[j - 1]
         #print("index_current:", index_current)
         #print("index_previous:", index_previous)
         
         #dT = (index_current - index_previous) / pd.Timedelta(minutes=1)  
-        dT = index_current - index_previous 
+        #dT = index_current - index_previous 
+        dT = index_next - index_current
         #print("dT:", dT)
         
         # Calculate the velocity (dY/dT)
@@ -198,17 +202,20 @@ def calculate_acceleration(velocity_list):
     acceleration_list = []
 
     # Iterate over each tuple in velocity_list starting from the second tuple
-    for i in range(1, len(velocity_list)):
+    for i in range(0, len(velocity_list)-1):
         # Extract velocity data from the current and previous tuples
+        next_tuple = velocity_list[i+1] 
         current_tuple = velocity_list[i]
-        previous_tuple = velocity_list[i - 1]
+        #previous_tuple = velocity_list[i - 1]
 
+        velocity_next = next_tuple[3]
         velocity_current = current_tuple[3]  # velocity is stored at index 2 in the tuple
-        velocity_previous = previous_tuple[3]
+        #velocity_previous = previous_tuple[3]
 
         # Calculate the change in velocity
         #dV = abs(velocity_current) - abs(velocity_previous)
-        dV = velocity_current - velocity_previous
+        #dV = velocity_current - velocity_previous
+        dV = velocity_next - velocity_current 
 
         ''' 
         # Convert timestamp strings to datetime objects
@@ -220,9 +227,11 @@ def calculate_acceleration(velocity_list):
         '''
         #index_current = velocity_list[i].index
         #index_previous = velocity_list[i-1].index
+        index_next = i+1
         index_current = i
-        index_previous = i-1
-        dT = index_current - index_previous
+        i#ndex_previous = i-1
+        #dT = index_current - index_previous
+        dT = index_next - index_current
         
         # Calculate acceleration (dV/dT)
         acceleration = dV / dT
@@ -255,14 +264,14 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
     #     result += ",".join(map(str, acceleration_tuple)) 
     
     if (TradePosition is TradePosition.Short):        
-        result = trainingdata_str + "\n"
+        result = "1," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
         #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
         csvfile.write(result)
     else:
-        result = trainingdata_str + "\n"
+        result = "0," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
@@ -317,7 +326,7 @@ logging.basicConfig(
     format=' %(levelname)s => %(message)s'
 )
         
-IsDebug = False
+IsDebug = True
 #WindowLen = 5
 
 #Trainning data lenth
