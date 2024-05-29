@@ -121,7 +121,7 @@ def list_to_string(acceleration_list):
 
 
 # Convert training data list to string           
-def convert_list_to_string(tddf_list):
+''' def convert_list_to_string(tddf_list):
     formatted_strings = []
     for section_df in tddf_list:
         formatted_str = "["
@@ -130,7 +130,7 @@ def convert_list_to_string(tddf_list):
         formatted_str = formatted_str[:-2]  # Remove the last comma and space
         formatted_str += "]"
         formatted_strings.append(formatted_str)
-    return formatted_strings
+    return formatted_strings '''
 
 
     
@@ -152,9 +152,9 @@ def calculate_velocity(processing_element):
     for j in range(0, len(processing_element)-1):
         # Extract Price from the current and previous rows
         #price_current = processing_element[j]['Price']
-        #price_previous = processing_element[j - 1]['Price']
-        price_current = processing_element.iloc[j]['Price']
+        #price_previous = processing_element[j - 1]['Price']        
         #price_previous = processing_element.iloc[j - 1]['Price']
+        price_current = processing_element.iloc[j]['Price']
         price_next = processing_element.iloc[j+1]['Price']
 
         #print("Price_current:", Price_current)
@@ -165,9 +165,9 @@ def calculate_velocity(processing_element):
         #print("dY:", dY)
         
         # Extract timestamps from the current and previous rows
-        index_next = processing_element.index[j+1]
-        index_current = processing_element.index[j]
         #index_previous = processing_element.index[j - 1]
+        index_current = processing_element.index[j]
+        index_next = processing_element.index[j+1]
         #print("index_current:", index_current)
         #print("index_previous:", index_previous)
         
@@ -333,7 +333,7 @@ IsDebug = True
 tdLen = 200
 
 # Series Number for output training data
-SN = "09"
+SN = "10"
            
 symbol = "SPY"
 #symbol = "MES=F"
