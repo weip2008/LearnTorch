@@ -314,7 +314,7 @@ IsDebug = True
 tdLen = 200
 
 # Series Number for output training data
-SN = "09"
+SN = "10"
            
 symbol = "SPY"
 #symbol = "MES=F"
@@ -329,7 +329,7 @@ db_file = os.path.join(data_dir, "stock_data.db")
 # Define the query date range
 query_start = "2024-04-11"
 #query_end = "2024-04-19"
-query_end = "2024-05-19"
+query_end = "2024-05-26"
 
 # Connect to the SQLite database
 conn = sqlite3.connect(db_file)
