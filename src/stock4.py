@@ -3,7 +3,6 @@ Load stock data (weekday,time,price,volume,velocity,acceleration) from csv file;
 build a linear model
 save the model to a file
 
-!!important, the training data and test data are the same!!
 """
 import csv
 import torch
@@ -11,14 +10,15 @@ from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 
 # Define the file path
-file_path = 'stockdata/SPY_TrainingData_200_09.csv'
+file_train = 'stockdata/SPY_TrainingData_200_09.csv'
+file_test = 'stockdata/SPY_TestingData_200_09.csv'
 labels = ["long","short"]
 total=54
 columns = 6
 window = 100
 batch_global = 10
 
-def getDataSet(file_path):
+def getTrainingDataSet(file_path):
     global window,columns,batch_global,total
     # Initialize lists to store the outputs and inputs
     outputs = []
@@ -34,7 +34,6 @@ def getDataSet(file_path):
             outputs.append((float(row[0]), float(row[1])))
             
             # The rest of the columns go into inputs and are converted to floats
-            # inputs.append(tuple(float(value) for value in row[2:]))
             inputs.append(tuple(map(float, row[2:])))
 
     # Convert lists to tuples
@@ -47,8 +46,9 @@ def getDataSet(file_path):
     # print("\nInputs:")
     # print(inputs)
 
-    print(len(outputs))
-    print(len(inputs),len(inputs[0]))
+    print("Training Data...")
+    print(f'total number of output data: {len(outputs)}')
+    print(f'total input: {len(inputs)}, window size: {len(inputs[0])}')
     total = len(inputs)
     window = int(len(inputs[2])/columns)
     print("window:",window)
@@ -58,10 +58,45 @@ def getDataSet(file_path):
     # Convert to PyTorch tensors
     outputs_tensor = torch.tensor(outputs).reshape(total,2)
     inputs_tensor = torch.tensor(inputs).reshape(total,1,columns,window)
-    test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
     trainingDataset = TensorDataset(inputs_tensor, outputs_tensor)
-    testingDataset = TensorDataset(inputs_tensor, test_output_tensor)
-    return trainingDataset, testingDataset
+    return trainingDataset
+
+def getTestingDataSet(file_path):
+    global window,columns,batch_global,total
+    # Initialize lists to store the outputs and inputs
+    outputs = []
+    inputs = []
+
+    # Open and read the CSV file
+    with open(file_path, newline='') as csvfile:
+        csvreader = csv.reader(csvfile)
+        
+        # Iterate through each row in the CSV file
+        for row in csvreader:
+            # The first two columns go into outputs and are converted to floats
+            outputs.append(int(row[0]))
+            
+            # The rest of the columns go into inputs and are converted to floats
+            inputs.append(tuple(map(float, row[1:])))
+
+    # Convert lists to tuples
+    outputs = tuple(outputs)
+    inputs = tuple(inputs)
+
+    print("Test Data...")
+    print(f'total number of output data: {len(outputs)}')
+    print(f'total input: {len(inputs)}, number of data: {len(inputs[0])}')
+    total = len(inputs)
+    window = int(len(inputs[2])/columns)
+    print("window:",window)
+    for i in range(total):
+        if len(inputs[i])/columns!=window:
+            raise RuntimeError(f"Input data Error. expected={window}, got {len(inputs[i])/columns}")
+    # Convert to PyTorch tensors
+    outputs_tensor = torch.tensor(outputs).reshape(total)
+    inputs_tensor = torch.tensor(inputs).reshape(total,1,columns,window)
+    testingDataset = TensorDataset(inputs_tensor, outputs_tensor)
+    return testingDataset
 
 # Define model
 class NeuralNetwork(nn.Module):
@@ -118,8 +153,8 @@ def test(dataloader, model, loss_fn):
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
 if __name__ == "__main__":
-    trainDataset,testDataset = getDataSet(file_path)   
-
+    trainDataset = getTrainingDataSet(file_train)   
+    testDataset = getTestingDataSet(file_test)
     train_dataloader = DataLoader(trainDataset, batch_size=batch_global) # the train data include images (input) and its lable index (output)
     test_dataloader = DataLoader(testDataset, batch_size=batch_global) # the train data include images (input) and its lable index (output)
 
@@ -128,9 +163,9 @@ if __name__ == "__main__":
     model = NeuralNetwork().to(device) # create an model instance without training
 
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=1.5e-8) # lr: learning rate
+    optimizer = torch.optim.SGD(model.parameters(), lr=1.e-10) # lr: learning rate
 
-    epochs = 50
+    epochs = 200
     for t in range(epochs):
         print(f"Epoch {t+1}********************")
         train(train_dataloader, model, loss_fn, optimizer)
