@@ -36,6 +36,7 @@ ax1.set_ylabel('Price', color='b')
 # Creating a secondary y-axis
 ax2 = ax1.twinx()
 ax2.plot(x, v, 'r-')
+ax2.plot([0,199],[0,0])
 ax2.set_ylabel('velocity', color='r')
 
 plt.show()
