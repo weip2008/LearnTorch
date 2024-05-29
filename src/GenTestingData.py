@@ -19,6 +19,25 @@ class TradePosition(Enum):
     Long = 1
     Short = 0
 
+# Function to find the previous working day based on actual data in the database
+def get_previous_working_day(date_str, table_name, conn):
+    #conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    # Query to get the latest date before the given date
+    query = f"""
+    SELECT MAX(Datetime) FROM {table_name} 
+    WHERE Datetime < '{date_str} 00:00:00'
+    """
+    cursor.execute(query)
+    result = cursor.fetchone()
+    #conn.close()
+    
+    previous_working_day = result[0]
+    if previous_working_day:
+        return previous_working_day.split(" ")[0]  # Return only the date part
+    else:
+        return None
 
 def find_selected_points1(ohlc_df, comparison_operator):
 
@@ -318,7 +337,7 @@ data_dir = "stockdata"
 db_file = os.path.join(data_dir, "stock_data.db")
 
 # Define the query date range
-query_start = "2024-05-17"
+query_start = "2024-05-20"
 #query_end = "2024-04-19"
 query_end = "2024-05-26"
 
@@ -327,6 +346,9 @@ conn = sqlite3.connect(db_file)
 cursor = conn.cursor()
 print("\n\n==========================4===Query==========================\n\n")
 
+previous_working_day = get_previous_working_day(query_start, table_name, conn)
+print(f"Previous working day for {query_start} is {previous_working_day}\n")
+query_start = previous_working_day
 
 # Query the data between May 6th, 2024, and May 12th, 2024
 query_range = f'''
