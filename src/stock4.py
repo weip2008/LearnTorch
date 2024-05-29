@@ -3,6 +3,7 @@ Load stock data (weekday,time,price,volume,velocity,acceleration) from csv file;
 build a linear model
 save the model to a file
 
+important: training dataset and testing dataset are different
 """
 import csv
 import torch
@@ -163,9 +164,9 @@ if __name__ == "__main__":
     model = NeuralNetwork().to(device) # create an model instance without training
 
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=1.e-10) # lr: learning rate
+    optimizer = torch.optim.SGD(model.parameters(), lr=1.5e-8) # lr: learning rate
 
-    epochs = 200
+    epochs = 20
     for t in range(epochs):
         print(f"Epoch {t+1}********************")
         train(train_dataloader, model, loss_fn, optimizer)
