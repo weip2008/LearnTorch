@@ -1,23 +1,21 @@
-"""
-Plot the price, velocity, and acceleration for a single point within a given window..
-"""
 import csv
-import torch
-from torch import nn
-from torch.utils.data import TensorDataset, DataLoader
 import matplotlib.pyplot as plt
 
 # Define the file path
-file_path = 'stockdata/SPY_TestingData_200_09.csv'
-
+file_path = 'stockdata/SPY_TrainingData_200_09.csv'
+start_column = 2
+# file_path = 'stockdata/SPY_TestingData_200_09.csv'
+#start_colomn = 1
 inputs = []
+target_row = 29 # specify the row you want to read
+
 with open(file_path, newline='') as csvfile:
     csvreader = csv.reader(csvfile)
-    print(csvreader)
+    for count, row in enumerate(csvreader):
+        if count == target_row:
+            inputs.append(tuple(map(float, row[start_column:])))
+            break  # Exit the loop after reading the desired row
 
-    for row in csvreader:
-        inputs.append(tuple(map(float, row[1:])))
-        break
 x = []
 y = []
 v = []
@@ -28,14 +26,23 @@ for i in range(int(len(inputs[0])/6)):
     y.append(inputs[0][i*6+2])
     v.append(inputs[0][i*6+4])
     a.append(inputs[0][i*6+5])
+
 fig, ax1 = plt.subplots()
-ax1.plot(x, y, 'b-')
+
+# Plot price on primary y-axis
+price_line, = ax1.plot(x, y, 'b-', label="Price")
 ax1.set_xlabel('Index')
 ax1.set_ylabel('Price', color='b')
 
 # Creating a secondary y-axis
 ax2 = ax1.twinx()
-ax2.plot(x, v, 'r-')
-ax2.set_ylabel('velocity', color='r')
+velocity_line, = ax2.plot(x, v, 'r-', label="Velocity")
+ax2.plot([0, len(x) - 1], [0, 0], 'k--')
+ax2.set_ylabel('Velocity', color='r')
 
+# Combine legends
+lines = [price_line, velocity_line]
+ax1.legend(lines, [line.get_label() for line in lines], loc=2)
+
+plt.title("Long Point")
 plt.show()

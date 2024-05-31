@@ -1,3 +1,7 @@
+"""
+create 28X28 handwriting digit image
+"""
+
 import tkinter as tk
 from tkinter import simpledialog
 from PIL import Image, ImageDraw
