@@ -172,8 +172,11 @@ if __name__ == "__main__":
     train_dataloader = DataLoader(trainDataset, batch_size=batch_global) # the train data include images (input) and its lable index (output)
     test_dataloader = DataLoader(testDataset, batch_size=batch_global) # the train data include images (input) and its lable index (output)
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
-    # Generate weights
-    weights = np.linspace(0.1, 1.0, len(train_dataloader.dataset))
+
+    # Generate exponentially increasing weights
+    num_samples = len(train_dataloader.dataset)
+    base = 1.01  # Adjust the base to control the rate of increase
+    weights = np.exp(np.linspace(0, num_samples-1, num_samples) * np.log(base))
     weights = torch.tensor(weights, dtype=torch.float32).to(device)
 
     # device = 'gpu'

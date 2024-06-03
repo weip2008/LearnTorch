@@ -218,4 +218,4 @@ tensor([[1., 0.,0],
 ## Add Weights on Data
 
 * [add linear weights on Data](../src/stock5.py)
-* 
+* [add exponential weights on Data](../src/stock6.py)
