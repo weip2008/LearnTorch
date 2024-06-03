@@ -11,6 +11,10 @@
 7. create model
 8. use the model to test training data
 
+## Idea of selecting long,short,hold points
+
+🛠🎯 Leave this section for 周浩
+
 ## Create datasets
 
 
@@ -196,7 +200,9 @@ test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
 * [read stock data, build model, save model to a file](../src/stock.py)
 ![most time only get 50% accuracy](images/50percent.png)
 ![occasionally get 72% accuracy](images/72%.png)
+
 ❌😢<font style="background-color:yellow">仅仅得到50%的精准度，表明这样的数据结构和NN模型是完全不能够预测股票走势的。</font>
+
 [use model file to predict stock data(which is same as the trainging data)](../src/stock1.py)
 
 ![](images/StockTrainModel.png)
@@ -219,3 +225,15 @@ tensor([[1., 0.,0],
 
 * [add linear weights on Data](../src/stock5.py)
 * [add exponential weights on Data](../src/stock6.py)
+* [comparison of linear and exponential weights](../src/stock7.py)
+![](images/weights.png)
+
+## Add hold as output as [long, hold, short]
+
+![](images/StockTrainModel-2.png)
+
+💡👉 Idea of selecting hold points
+1. between long and short, evenly select 3 or 5 points as hold points.
+
+* [add hold to classify long and short](../src/stock8.py)
+
