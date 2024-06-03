@@ -11,6 +11,10 @@
 7. create model
 8. use the model to test training data
 
+## Idea of selecting long,short,hold points
+
+🛠🎯 Leave this section for 周浩
+
 ## Create datasets
 
 
@@ -185,6 +189,7 @@ test datasets 和training datasets两者的输入结构是相同的，但是输�
 他表示前8行属于0类，也就是long类；后8行属于1类，也就是short类。
 在我们的程序中是通过下面的程序段达到这样的效果。
 
+
 ```py
 test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
 ```
@@ -192,8 +197,43 @@ test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
 
 👍😄 **Conclusion**
 运行
-[read stock data, build model, save model to a file](../src/stock.py)
+* [read stock data, build model, save model to a file](../src/stock.py)
 ![most time only get 50% accuracy](images/50percent.png)
 ![occasionally get 72% accuracy](images/72%.png)
+
 ❌😢<font style="background-color:yellow">仅仅得到50%的精准度，表明这样的数据结构和NN模型是完全不能够预测股票走势的。</font>
+
 [use model file to predict stock data(which is same as the trainging data)](../src/stock1.py)
+
+![](images/StockTrainModel.png)
+
+```
+tensor([[1., 0.,0],
+        [1., 0.,0],
+        [1., 0.,0],
+        [0., 0.,1],
+        [0.,1,0.],
+        ...
+        [0., 1.]])
+```
+* [load model from file built by stock.py, use the model to test](../src/stock1.py)
+* [plot one window data with Velocity or Accelaration](../src/stock2.py)
+![](images/buyPoint_15.png)
+* [read training and testing data separately](../src/stock4.py)
+  
+## Add Weights on Data
+
+* [add linear weights on Data](../src/stock5.py)
+* [add exponential weights on Data](../src/stock6.py)
+* [comparison of linear and exponential weights](../src/stock7.py)
+![](images/weights.png)
+
+## Add hold as output as [long, hold, short]
+
+![](images/StockTrainModel-2.png)
+
+💡👉 Idea of selecting hold points
+1. between long and short, evenly select 3 or 5 points as hold points.
+
+* [add hold to classify long and short](../src/stock8.py)
+
