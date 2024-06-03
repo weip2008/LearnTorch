@@ -7,7 +7,7 @@ start_column = 2
 # file_path = 'stockdata/SPY_TestingData_200_09.csv'
 #start_colomn = 1
 inputs = []
-target_row = 29 # specify the row you want to read
+target_row = 15 # specify the row you want to read
 
 with open(file_path, newline='') as csvfile:
     csvreader = csv.reader(csvfile)
