@@ -15,6 +15,9 @@
 
 🛠🎯 Leave this section for 周浩
 
+* Concern and Issues
+>
+
 ## Create datasets
 
 
@@ -201,6 +204,10 @@ test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
 ![most time only get 50% accuracy](images/50percent.png)
 ![occasionally get 72% accuracy](images/72%.png)
 
+```py input data
+file_path = 'stockdata/SPY_TraningData_30_07.csv'
+```
+
 ❌😢<font style="background-color:yellow">仅仅得到50%的精准度，表明这样的数据结构和NN模型是完全不能够预测股票走势的。</font>
 
 [use model file to predict stock data(which is same as the trainging data)](../src/stock1.py)
@@ -217,6 +224,50 @@ tensor([[1., 0.,0],
         [0., 1.]])
 ```
 * [load model from file built by stock.py, use the model to test](../src/stock1.py)
+
+```py input data
+file_path = 'stockdata/SPY_TraningData_30_07.csv'
+```
+
+![occasionally get 83% accuracy,stock_model_30_07_83.pth](images/83%.png)
+
+```text
+(env) C:\Users\wangq\workspace\LearnTorch>c:/Users/wangq/workspace/LearnTorch/env/Scripts/python.exe c:/Users/wangq/workspace/LearnTorch/src/stock1.py
+18
+18 180
+window: 30
+Predicted: "long", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "short", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "short", Actual: "long"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "long", Actual: "short"
+accuracy: 83.33
+```
+
+👍😄 令人可喜的结论：
+> 一旦模型保存在文件中，重复使用的精度是一直保持着的。
+
+👎😢 可悲的是：
+> 训练数据和测试数据完全相同的情况下，精度应该是100%才对。
+> 1. window=30 太小
+> 2. 只有18个点，训练数据太少。
+> 3. 线性模型不够好？
+
+🔔⚡️ <font style="background-color:yellow">偶然发现的buy的测试比sell的测试更精确的现象是不存在的。根据目前的结果，两者没有差异。</font>
+
 * [plot one window data with Velocity or Accelaration](../src/stock2.py)
 ![](images/buyPoint_15.png)
 * [read training and testing data separately](../src/stock4.py)
