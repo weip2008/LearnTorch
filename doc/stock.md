@@ -17,6 +17,11 @@
 
 * Concern and Issues
 >
+### Data Normalization
+
+It is generally a good practice to normalize the input features, including price, when training a machine learning model for stock prediction. Normalization helps to scale the features to a similar range, which can improve the convergence of the model during training and prevent certain features from dominating others. Normalizing the input features can also make the model more robust to changes in the scale of the data.
+
+However, the specific choice of normalization method can depend on the characteristics of your data and the model you are using. Common normalization techniques include min-max scaling (scaling to a range of [0, 1]) or standardization (scaling to have mean 0 and standard deviation 1). Experimenting with different normalization methods and observing the impact on the model's performance can help you determine the best approach for your stock prediction task.
 
 ## Create datasets
 
@@ -200,7 +205,7 @@ test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
 
 👍😄 **Conclusion**
 运行
-* [read stock data, build model, save model to a file](../src/stock.py)
+* [read stock data, build model, save model to a file，stock.py](../src/stock.py)
 ![most time only get 50% accuracy](images/50percent.png)
 ![occasionally get 72% accuracy](images/72%.png)
 
@@ -308,6 +313,7 @@ Saved PyTorch Model State to stock_model_200_10_100_linearWeighted.pth
 
 > 感觉使用原始数据所做的模型精度，远好于归一化后的数据。
 > 加权后并没有改进精度。
+> 因为我们并没有与其他数据作比对，所以归一化应该没有任何影响才对。😢😢
 
 * [comparison of linear and exponential weights](../src/stock7.py)
 ![](images/weights.png)
@@ -321,3 +327,26 @@ Saved PyTorch Model State to stock_model_200_10_100_linearWeighted.pth
 
 * [add hold to classify long and short](../src/stock8.py)
 
+## Available Models
+
+![](images/possibleModels.png)
+
+### 卷积神经网络
+
+* [卷积神经网络](../src/cnn.py)
+
+### Recurrent Neural Network
+
+* [Recurrent Neural Network](../src/rnn.py)
+* 
+### Attension Machanics
+
+* [Attension Machanics](../src/attention.py)
+
+### Transform 模型
+
+* [](../src/transform.py)
+
+### AutoEncoders
+
+* [](../src/autoencoder.py)
