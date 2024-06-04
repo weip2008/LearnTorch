@@ -350,3 +350,13 @@ Saved PyTorch Model State to stock_model_200_10_100_linearWeighted.pth
 ### AutoEncoders
 
 * [](../src/autoencoder.py)
+* [](../src/autoencoder2.py)
+
+### 生成对抗网络
+
+* [understand what it is](../src/gan.py)
+* [Successful](../src/gan1.py)
+
+### Reinforcement Learning
+
+* [Need use real data](../src/reinforcement.py)
