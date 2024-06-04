@@ -5,7 +5,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import matplotlib.pyplot as plt
 
 # Define the file path
-file_path = 'stockdata/SPY_TraningData_200_08.csv'
+file_path = 'stockdata/SPY_TraningData_30_08.csv'
 labels = ["long","short"]
 total=54
 columns = 6

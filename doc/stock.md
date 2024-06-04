@@ -268,14 +268,47 @@ accuracy: 83.33
 
 🔔⚡️ <font style="background-color:yellow">偶然发现的buy的测试比sell的测试更精确的现象是不存在的。根据目前的结果，两者没有差异。</font>
 
-* [plot one window data with Velocity or Accelaration](../src/stock2.py)
+* [plot one window data with Velocity or Accelaration, stock2.py](../src/stock2.py)
 ![](images/buyPoint_15.png)
-* [read training and testing data separately](../src/stock4.py)
+* [read training and testing data separately, stock4.py](../src/stock4.py)
   
 ## Add Weights on Data
 
-* [add linear weights on Data](../src/stock5.py)
-* [add exponential weights on Data](../src/stock6.py)
+* [add linear weights on Data, stock5.py](../src/stock5.py)
+
+如果训练数据不包括测试数据（stockdata/SPY_TrainingData_200_09.csv, 53points），精度较低，最高只达到84%。
+
+如果训练数据包括测试数据（stockdata/SPY_TrainingData_200_10.csv, 65points），精度较高，最高可达到100%。
+
+```text 线性加权
+Epoch 19********************
+loss: 3.667773  [    5/   65]
+loss: 0.000000  [   30/   65]
+loss: 0.000000  [   55/   65]
+Test Error: 
+ Accuracy: 100.0%, Avg loss: 0.000000
+
+Epoch 20********************
+loss: 3.534004  [    5/   65]
+loss: 0.000000  [   30/   65]
+loss: 0.000000  [   55/   65]
+Test Error:
+ Accuracy: 100.0%, Avg loss: 0.000000
+
+Done with training.
+Saved PyTorch Model State to stock_model_200_10_100_linearWeighted.pth
+```
+
+* [add exponential weights on Data and normalization](../src/stock6.py)
+1. 原始价格，最好精度=92%
+2. 只归一，最好精度=66%
+3. 归一加指数权重，最好精度=60%
+
+👍😄 **Conclusion**
+
+> 感觉使用原始数据所做的模型精度，远好于归一化后的数据。
+> 加权后并没有改进精度。
+
 * [comparison of linear and exponential weights](../src/stock7.py)
 ![](images/weights.png)
 

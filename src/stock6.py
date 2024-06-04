@@ -13,13 +13,15 @@ import numpy as np
 import torch.nn.functional as F
 
 # Define the file path
-file_train = 'stockdata/SPY_TrainingData_200_10.csv'
+file_train = 'stockdata/SPY_TrainingData_200_11.csv' # 价格归一
+file_test = 'stockdata/SPY_TestingData_200_11.csv'
+file_train = 'stockdata/SPY_TrainingData_200_10.csv' # 原始价格
 file_test = 'stockdata/SPY_TestingData_200_10.csv'
 labels = ["long","short"]
 total=54
 columns = 6
 window = 100
-batch_global = 10
+batch_global = 5
 
 def getTrainingDataSet(file_path):
     global window,columns,batch_global,total
@@ -174,7 +176,8 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 
     # Generate exponentially increasing weights
-    num_samples = len(train_dataloader.dataset)
+    # num_samples = len(train_dataloader.dataset)
+    num_samples = batch_global
     base = 1.01  # Adjust the base to control the rate of increase
     weights = np.exp(np.linspace(0, num_samples-1, num_samples) * np.log(base))
     weights = torch.tensor(weights, dtype=torch.float32).to(device)
@@ -183,6 +186,7 @@ if __name__ == "__main__":
     model = NeuralNetwork().to(device) # create an model instance without training
 
     loss_fn = nn.CrossEntropyLoss()
+    # loss_fn = WeightedCrossEntropyLoss(weights)
     optimizer = torch.optim.SGD(model.parameters(), lr=1.5e-8) # lr: learning rate
 
     epochs = 20
