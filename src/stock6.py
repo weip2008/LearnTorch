@@ -13,8 +13,8 @@ import numpy as np
 import torch.nn.functional as F
 
 # Define the file path
-file_train = 'stockdata/SPY_TrainingData_200_09.csv'
-file_test = 'stockdata/SPY_TestingData_200_09.csv'
+file_train = 'stockdata/SPY_TrainingData_200_10.csv'
+file_test = 'stockdata/SPY_TestingData_200_10.csv'
 labels = ["long","short"]
 total=54
 columns = 6
