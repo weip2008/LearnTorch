@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 import os
 
-ticker_name = "AAPL"
-#ticker_name = "SPY"
+#ticker_name = "AAPL"
+ticker_name = "SPY"
 #symbol = "MES=F"
 # start = "2024-04-12"
 # end = "2024-04-15"
@@ -18,8 +18,10 @@ ticker_name = "AAPL"
 # end = "2024-05-05"
 # start = "2024-05-06"
 # end = "2024-05-12"
-start = "2024-05-20"
-end = "2024-05-26"
+#start = "2024-05-20"
+#end = "2024-05-26"
+start = "2024-05-27"
+end = "2024-06-01"
 interval = "1m"
 
 # inverval could be 1m, 1h, 1d, 1wk, 1mo, 3mo

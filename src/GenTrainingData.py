@@ -16,8 +16,9 @@ from enum import Enum
 
 
 class TradePosition(Enum):
-    Long = 1
-    Short = 0
+    LONG = 1
+    HOLD = 0
+    SHORT = -1
 
 
 def find_selected_points1(ohlc_df, comparison_operator):
@@ -57,7 +58,50 @@ def find_selected_points2(ohlc_df, comparison_operator):
     return selected_points
 
 
-   
+def merge_highlow_list(filtered_low_points, filtered_high_points):
+    # Add a new column 'buysell' with value 0 to 'filtered_low_points'
+    filtered_low_points['buysell'] = TradePosition.LONG.value
+
+    # Add a new column 'buysell' with value 1 to 'filtered_high_points'
+    filtered_high_points['buysell'] = TradePosition.SHORT.value
+        
+    # Merge the dataframes
+    merged_df = pd.concat([filtered_low_points, filtered_high_points])
+
+    # Sort by index
+    sorted_df = merged_df.sort_index()
+    #sorted_df.drop['Open', 'High', 'Low', 'Close']
+    sorted_df.drop(['Open', 'High', 'Low', 'Close'], axis=1, inplace=True)
+    
+    df_file = os.path.join(data_dir, 'filtered_highlow_points.csv')
+    sorted_df.to_csv(df_file)  # Save to a CSV file  
+    
+    return sorted_df
+
+
+def gen_hold_list_index(df):
+    """
+    Generates new index numbers by inserting two integers evenly between consecutive index numbers.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+
+    Returns:
+        list: List of newly generated index numbers.
+    """
+    index_column = df.index
+    new_index = []
+
+    for i in range(len(index_column) - 1):
+        steps = (index_column[i+1] - index_column[i]) // 3
+        new_index.append(index_column[i]+steps)
+        new_index.append(index_column[i]+steps*2)
+
+    # Add the last index
+    new_index.append(index_column[-1])
+
+    return new_index 
+
 def cut_slices(ohlc_df, selected_points_index, window_len):
     
     tddf_list = []
@@ -98,8 +142,8 @@ def list_to_string(acceleration_list):
     #return ' '.join(['(' + ','.join(map(str, acceleration_tuple)) + '),' for acceleration_tuple in acceleration_list])
     #return ' '.join('(' + ','.join(map(str, acceleration_tuple)) + '),' for acceleration_tuple in acceleration_list)    
     #return ','.join(','.join(map(str, acceleration_tuple)) for acceleration_tuple in acceleration_list)
-    return ','.join(','.join(f'{value:.4f}' for value in acceleration_tuple) for acceleration_tuple in acceleration_list)
-
+    #return ','.join(','.join(f'{value:.4f}' for value in acceleration_tuple) for acceleration_tuple in acceleration_list)
+    return ','.join(','.join(f'{value}' for value in acceleration_tuple) for acceleration_tuple in acceleration_list)
 
 # Convert training data list to string           
 def convert_list_to_string(tddf_list):
@@ -127,46 +171,65 @@ def convert_to_day_and_time(timestamp):
 
     return day_of_week_numeric, time_float
 
+# Normalization function
+def normalize(series):
+    return (series - series.min()) / (series.max() - series.min())
 
-def calculate_velocity(processing_element):
+
+def calculate_velocity(processing_df):
     velocity_list = []
-    for j in range(0, len(processing_element)-1):
+    
+    # Find the lowest price and corresponding volume in the DataFrame
+    #lowest_price, corresponding_volume = find_lowest_price_with_volume(processing_df)
+    
+    # Normalize 'Volume' and 'Price'
+    processing_df['Normalized_Volume'] = normalize(processing_df['Volume'])
+    processing_df['Normalized_Price'] = normalize(processing_df['Price'])
+    
+    if IsDebug:
+        print(processing_df)
+    
+    for j in range(0, len(processing_df)-1):
         # Extract Price from the current and previous rows
-        #price_current = processing_element[j]['Price']
-        #price_previous = processing_element[j - 1]['Price']
-        price_current = processing_element.iloc[j]['Price']
-        #price_previous = processing_element.iloc[j - 1]['Price']
-        price_next = processing_element.iloc[j+1]['Price']
+        #price_current = processing_df[j]['Price']
+        #price_previous = processing_df[j - 1]['Price']        
+        #price_previous = processing_df.iloc[j - 1]['Price']
+        price_current = processing_df.iloc[j]['Price']
+        price_next = processing_df.iloc[j+1]['Price']
+        normalized_price_current = processing_df.iloc[j]['Normalized_Price']
+        normalized_price_next = processing_df.iloc[j+1]['Normalized_Price']
 
         #print("Price_current:", Price_current)
         #print("Price_previous:", Price_previous)
         
         #dY = price_current - price_previous
-        dY = price_next - price_current 
+        dY = normalized_price_next - normalized_price_current 
         #print("dY:", dY)
         
         # Extract timestamps from the current and previous rows
-        index_next = processing_element.index[j+1]
-        index_current = processing_element.index[j]
-        #index_previous = processing_element.index[j - 1]
+        #index_previous = processing_df.index[j - 1]
+        index_current = processing_df.index[j]
+        index_next = processing_df.index[j+1]
         #print("index_current:", index_current)
         #print("index_previous:", index_previous)
         
         #dT = (index_current - index_previous) / pd.Timedelta(minutes=1)  
         #dT = index_current - index_previous 
-        dT = index_next - index_current
+        dT = (index_next - index_current) / tdLen
         #print("dT:", dT)
         
         # Calculate the velocity (dY/dT)
         velocity = dY / dT
         #print("velocity:", velocity)
         
-        datetime_current = processing_element.iloc[j]['Datetime']
-        volume_current = processing_element.iloc[j]['Volume']
+        datetime_current = processing_df.iloc[j]['Datetime']
+        volume_current = processing_df.iloc[j]['Volume']
+        normalized_volum_current = processing_df.iloc[j]['Normalized_Volume']
         # Append the tuple with the "Velocity" column to tdohlc_df_high_velocity_list
-        velocity_list.append((datetime_current, price_current, volume_current, velocity))
+        velocity_list.append((datetime_current, normalized_price_current, normalized_volum_current, velocity))
 
     return velocity_list
+
 
 def calculate_acceleration(velocity_list):
     """
@@ -244,21 +307,32 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
     #     # Convert each element of the tuple to a string and concatenate them
     #     result += ",".join(map(str, acceleration_tuple)) 
     
-    if (TradePosition is TradePosition.Short):        
-        result = "0,1," + trainingdata_str + "\n"
+    if (TradePosition is TradePosition.SHORT):        
+        result = "0,0,1," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
         #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
         csvfile.write(result)
-    else:
-        result = "1,0," + trainingdata_str + "\n"
-        if IsDebug:
-            print(result)
-        # Parse the input string into separate fields
-        #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
-        csvfile.write(result)
+        return
     
+    if (TradePosition is TradePosition.LONG):
+        result = "1,0,0," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+        # Parse the input string into separate fields
+        #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
+        csvfile.write(result)
+        return
+    
+    if (TradePosition is TradePosition.HOLD):
+        result = "0,1,0," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+        # Parse the input string into separate fields
+        #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
+        csvfile.write(result)
+        
     return
 
 def generate_training_data(tddf_highlow_list, position):
@@ -311,10 +385,13 @@ IsDebug = True
 #WindowLen = 5
 
 #Trainning data lenth
-tdLen = 200
+# average number of working days in a month is 21.7, based on a five-day workweek
+# so 45 days is total for two months working days
+# 200 days is one year working days
+tdLen = 50
 
 # Series Number for output training data
-SN = "10"
+SN = "13"
            
 symbol = "SPY"
 #symbol = "MES=F"
@@ -327,7 +404,7 @@ data_dir = "stockdata"
 db_file = os.path.join(data_dir, "stock_data.db")
 
 # Define the query date range
-query_start = "2024-04-11"
+training_start_date = "2024-04-11"
 #query_end = "2024-04-19"
 query_end = "2024-05-26"
 
@@ -343,7 +420,7 @@ SELECT * FROM {table_name}
 WHERE Datetime BETWEEN ? AND ?
 '''
 # Save the query result into a DataFrame object named query_result_df
-query_result_df = pd.read_sql_query(query_range, conn, params=(query_start, query_end))
+query_result_df = pd.read_sql_query(query_range, conn, params=(training_start_date, query_end))
 
 # print("Length of query result is:", len(query_result_df))
 # print("Datatype of query result:", type(query_result_df))
@@ -404,7 +481,14 @@ if IsDebug:
     print(filtered_low_points)
     print("\nFiltered High Points:")
     print(filtered_high_points)
+    
 
+sorted_df = merge_highlow_list(filtered_low_points, filtered_high_points)
+
+# Print the sorted dataframe
+print("\nMerged High/Low points:\n",sorted_df)
+
+hold_points_index = gen_hold_list_index(sorted_df)
 
 # Example usage of find_point_index_int
 ''' print("\nIndex and location of filtered points in selected_low_points:")
@@ -424,18 +508,38 @@ plt.figure(figsize=(10, 6))
 plt.plot(ohlc_df.index, ohlc_df['Price'], color='blue', label='3-Point Avg Data')
 
 # Plot selected points
-plt.scatter(selected_high_points.index, selected_high_points['Price'], 
-            color='green', label='Selected High Points', marker='o')
+# plt.scatter(selected_high_points.index, selected_high_points['Price'], 
+#             color='green', label='Selected High Points', marker='o')
 
-plt.scatter(selected_low_points.index, selected_low_points['Price'], 
-            color='red', label='Selected Low Points', marker='o')
+# plt.scatter(selected_low_points.index, selected_low_points['Price'], 
+#             color='red', label='Selected Low Points', marker='o')
 
-            
-# Add legend and labels
+# Plot selected points
+plt.scatter(filtered_high_points.index, filtered_high_points['Price'], 
+            color='green', label='Filtered High Points', marker='o')
+
+plt.scatter(filtered_low_points.index, filtered_low_points['Price'], 
+            color='red', label='Filtered Low Points', marker='o')
+
+# Create a new subplot (axis) in the existing figure
+#plt.figure(figsize=(10, 6))
+plt.plot(sorted_df.index, sorted_df['Price'], color='cyan', label='Selected Points')
+
+# Add legend and labels for the new subplot
 plt.legend()
-plt.title(symbol+' Original Data with Selected Points')
+plt.title(symbol + ' Original Data with Selected Points')
 plt.xlabel('Date')
 plt.ylabel('Price')
+
+# Show the updated plot
+# plt.tight_layout()
+# plt.show()
+            
+# Add legend and labels
+# plt.legend()
+# plt.title(symbol+' Original Data with Selected Points')
+# plt.xlabel('Date')
+# plt.ylabel('Price')
 
 # Rotate date labels for better readability
 plt.xticks(rotation=45)
@@ -455,6 +559,10 @@ tddf_low_list = cut_slices(ohlc_df, filtered_low_points_index, tdLen)
 #print(tddf_low_list[:5])
 tddf_high_list = cut_slices(ohlc_df, filtered_high_points_index, tdLen)
 
+
+tddf_hold_list = cut_slices(ohlc_df, hold_points_index, tdLen)
+
+
 #formatted_strings = convert_list_to_string(tddf_low_list)
 
 # Print out the first 5 formatted strings
@@ -465,27 +573,35 @@ tddf_high_list = cut_slices(ohlc_df, filtered_high_points_index, tdLen)
 
 if IsDebug:
     print("\n\n\nLength of original DataFrames:", len(ohlc_df))
-    print("Length of Low Trainning Data DataFrames:", len(tddf_low_list))               
-    print("Contents of Trainning Data DataFrmes:")
+    print("Length of Low Training Data DataFrames:", len(tddf_low_list))               
+    print("Contents of Training Data DataFrmes:")
     print(tddf_low_list[:3])    # first 3
     print(".................")
     print(tddf_low_list[-3:])   # last 3
     print("========================================\n\n\n")
 
 
-    print("Length of High Trainning Data DataFrames:", len(tddf_high_list))               
-    print("Contents of Trainning Data DataFrmes:")
+    print("Length of High Training Data DataFrames:", len(tddf_high_list))               
+    print("Contents of Training Data DataFrmes:")
     print(tddf_high_list[:3])    # first 3
     print(".................")
     print(tddf_high_list[-3:])   # last 3
     print("========================================\n\n\n")
 
+
+    print("Length of Hold Training Data DataFrames:", len(tddf_hold_list))               
+    print("Contents of Training Data DataFrmes:")
+    print(tddf_hold_list[:3])    # first 3
+    print(".................")
+    print(tddf_hold_list[-3:])   # last 3
+    print("========================================\n\n\n")
 # Open a CSV file in write mode
 
 td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
 
 with open(td_file, "w") as datafile:
-    generate_training_data(tddf_low_list, TradePosition.Long)
-    generate_training_data(tddf_high_list, TradePosition.Short)
+    generate_training_data(tddf_low_list, TradePosition.LONG)
+    generate_training_data(tddf_high_list, TradePosition.SHORT)
+    generate_training_data(tddf_hold_list, TradePosition.HOLD)
 
 
