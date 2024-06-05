@@ -41,7 +41,15 @@
 
 🛠🎯 Leave this section for 周浩,马头儿
 
+* IPO (input, process, output)
+* AI training: from tensor to token
+* Prepare tensor (training data and testing data) 
+
 * Concern and Issues，solution
+  1. simplify and efficiency we choos nasdaq 100 future only.
+  2. one minuts data maybe enough
+  3. day trading or swing trading
+  4. 20 or 30 points as base rule
 >
 ### Data Normalization
 
