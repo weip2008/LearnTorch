@@ -15,6 +15,14 @@
 
 🛠🎯 Leave this section for 周浩
 
+* Concern and Issues
+>
+### Data Normalization
+
+It is generally a good practice to normalize the input features, including price, when training a machine learning model for stock prediction. Normalization helps to scale the features to a similar range, which can improve the convergence of the model during training and prevent certain features from dominating others. Normalizing the input features can also make the model more robust to changes in the scale of the data.
+
+However, the specific choice of normalization method can depend on the characteristics of your data and the model you are using. Common normalization techniques include min-max scaling (scaling to a range of [0, 1]) or standardization (scaling to have mean 0 and standard deviation 1). Experimenting with different normalization methods and observing the impact on the model's performance can help you determine the best approach for your stock prediction task.
+
 ## Create datasets
 
 
@@ -197,9 +205,13 @@ test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
 
 👍😄 **Conclusion**
 运行
-* [read stock data, build model, save model to a file](../src/stock.py)
+* [read stock data, build model, save model to a file，stock.py](../src/stock.py)
 ![most time only get 50% accuracy](images/50percent.png)
 ![occasionally get 72% accuracy](images/72%.png)
+
+```py input data
+file_path = 'stockdata/SPY_TraningData_30_07.csv'
+```
 
 ❌😢<font style="background-color:yellow">仅仅得到50%的精准度，表明这样的数据结构和NN模型是完全不能够预测股票走势的。</font>
 
@@ -217,14 +229,92 @@ tensor([[1., 0.,0],
         [0., 1.]])
 ```
 * [load model from file built by stock.py, use the model to test](../src/stock1.py)
-* [plot one window data with Velocity or Accelaration](../src/stock2.py)
+
+```py input data
+file_path = 'stockdata/SPY_TraningData_30_07.csv'
+```
+
+![occasionally get 83% accuracy,stock_model_30_07_83.pth](images/83%.png)
+
+```text
+(env) C:\Users\wangq\workspace\LearnTorch>c:/Users/wangq/workspace/LearnTorch/env/Scripts/python.exe c:/Users/wangq/workspace/LearnTorch/src/stock1.py
+18
+18 180
+window: 30
+Predicted: "long", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "short", Actual: "long"
+Predicted: "long", Actual: "long"
+Predicted: "short", Actual: "long"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "short", Actual: "short"
+Predicted: "long", Actual: "short"
+accuracy: 83.33
+```
+
+👍😄 令人可喜的结论：
+> 一旦模型保存在文件中，重复使用的精度是一直保持着的。
+
+👎😢 可悲的是：
+> 训练数据和测试数据完全相同的情况下，精度应该是100%才对。
+> 1. window=30 太小
+> 2. 只有18个点，训练数据太少。
+> 3. 线性模型不够好？
+
+🔔⚡️ <font style="background-color:yellow">偶然发现的buy的测试比sell的测试更精确的现象是不存在的。根据目前的结果，两者没有差异。</font>
+
+* [plot one window data with Velocity or Accelaration, stock2.py](../src/stock2.py)
 ![](images/buyPoint_15.png)
-* [read training and testing data separately](../src/stock4.py)
+* [read training and testing data separately, stock4.py](../src/stock4.py)
   
 ## Add Weights on Data
 
-* [add linear weights on Data](../src/stock5.py)
-* [add exponential weights on Data](../src/stock6.py)
+* [add linear weights on Data, stock5.py](../src/stock5.py)
+
+如果训练数据不包括测试数据（stockdata/SPY_TrainingData_200_09.csv, 53points），精度较低，最高只达到84%。
+
+如果训练数据包括测试数据（stockdata/SPY_TrainingData_200_10.csv, 65points），精度较高，最高可达到100%。
+
+```text 线性加权
+Epoch 19********************
+loss: 3.667773  [    5/   65]
+loss: 0.000000  [   30/   65]
+loss: 0.000000  [   55/   65]
+Test Error: 
+ Accuracy: 100.0%, Avg loss: 0.000000
+
+Epoch 20********************
+loss: 3.534004  [    5/   65]
+loss: 0.000000  [   30/   65]
+loss: 0.000000  [   55/   65]
+Test Error:
+ Accuracy: 100.0%, Avg loss: 0.000000
+
+Done with training.
+Saved PyTorch Model State to stock_model_200_10_100_linearWeighted.pth
+```
+
+* [add exponential weights on Data and normalization](../src/stock6.py)
+1. 原始价格，最好精度=92%
+2. 只归一，最好精度=66%
+3. 归一加指数权重，最好精度=60%
+
+👍😄 **Conclusion**
+
+> 感觉使用原始数据所做的模型精度，远好于归一化后的数据。
+> 加权后并没有改进精度。
+> 因为我们并没有与其他数据作比对，所以归一化应该没有任何影响才对。😢😢
+
 * [comparison of linear and exponential weights](../src/stock7.py)
 ![](images/weights.png)
 
@@ -237,3 +327,36 @@ tensor([[1., 0.,0],
 
 * [add hold to classify long and short](../src/stock8.py)
 
+## Available Models
+
+![](images/possibleModels.png)
+
+### 卷积神经网络
+
+* [卷积神经网络](../src/cnn.py)
+
+### Recurrent Neural Network
+
+* [Recurrent Neural Network](../src/rnn.py)
+* 
+### Attension Machanics
+
+* [Attension Machanics](../src/attention.py)
+
+### Transform 模型
+
+* [](../src/transform.py)
+
+### AutoEncoders
+
+* [](../src/autoencoder.py)
+* [](../src/autoencoder2.py)
+
+### 生成对抗网络
+
+* [understand what it is](../src/gan.py)
+* [Successful](../src/gan1.py)
+
+### Reinforcement Learning
+
+* [Need use real data](../src/reinforcement.py)

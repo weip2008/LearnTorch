@@ -12,6 +12,11 @@
 <img src="images/bug.png" width="32"/><img src="images/waiting.gif" width="32">
 [](images/bug.png) [](images/waiting.gif)
 
+## Highlight
+
+```md
+<font style="background-color:yellow"></font>
+```
 ## references
 * [Color Picker](https://www.webfx.com/web-design/color-picker/)
 * [favorite icon website](https://www.webfx.com/tools/emoji-cheat-sheet/)

@@ -13,13 +13,13 @@ import numpy as np
 import torch.nn.functional as F
 
 # Define the file path
-file_train = 'stockdata/SPY_TrainingData_200_09.csv'
-file_test = 'stockdata/SPY_TestingData_200_09.csv'
+file_train = 'stockdata/SPY_TrainingData_200_10.csv'
+file_test = 'stockdata/SPY_TestingData_200_10.csv'
 labels = ["long","short"]
 total=54
 columns = 6
 window = 100
-batch_global = 10
+batch_global = 5
 
 def getTrainingDataSet(file_path):
     global window,columns,batch_global,total
@@ -173,13 +173,14 @@ if __name__ == "__main__":
     test_dataloader = DataLoader(testDataset, batch_size=batch_global) # the train data include images (input) and its lable index (output)
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     # Generate weights
-    weights = np.linspace(0.1, 1.0, len(train_dataloader.dataset))
+    weights = np.linspace(0.1, 1.0, batch_global)
     weights = torch.tensor(weights, dtype=torch.float32).to(device)
 
     # device = 'gpu'
     model = NeuralNetwork().to(device) # create an model instance without training
 
-    loss_fn = nn.CrossEntropyLoss()
+    loss_fn = WeightedCrossEntropyLoss(weights)
+    # loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=1.5e-8) # lr: learning rate
 
     epochs = 20

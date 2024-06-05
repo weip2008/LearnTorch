@@ -11,11 +11,11 @@ from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 
 # Define the file path
-file_path = 'stockdata/SPY_TrainingData_200_09.csv'
+file_path = 'stockdata/SPY_TraningData_30_07.csv' # total 18 points, 9 sell, 9 buy
 labels = ["long","short"]
-total=54
+total=18
 columns = 6
-window = 100
+window = 30
 batch_global = 10
 
 def getDataSet(file_path):
