@@ -1,2 +1,2 @@
-print("Hello world")
-a,b=10,20
+print("Hello world 2")
+a, b = 10, 20
