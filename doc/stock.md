@@ -11,11 +11,37 @@
 7. create model
 8. use the model to test training data
 
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [Idea of selecting long,short,hold points](#idea-of-selecting-longshorthold-points)
+  - [Data Normalization](#data-normalization)
+- [Create datasets](#create-datasets)
+- [save and load datasets from file](#save-and-load-datasets-from-file)
+- [velocity and acceleration](#velocity-and-acceleration)
+- [Training and test data design](#training-and-test-data-design)
+- [Add Weights on Data](#add-weights-on-data)
+- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
+- [Available Models](#available-models)
+  - [卷积神经网络](#卷积神经网络)
+  - [Recurrent Neural Network](#recurrent-neural-network)
+  - [Attension Machanics](#attension-machanics)
+  - [Transform 模型](#transform-模型)
+  - [AutoEncoders](#autoencoders)
+  - [生成对抗网络](#生成对抗网络)
+  - [Reinforcement Learning](#reinforcement-learning)
+
+<!-- /code_chunk_output -->
+
+
+
 ## Idea of selecting long,short,hold points
 
-🛠🎯 Leave this section for 周浩
+🛠🎯 Leave this section for 周浩,马头儿
 
-* Concern and Issues
+* Concern and Issues，solution
 >
 ### Data Normalization
 
@@ -42,7 +68,7 @@ long,short,[(weekdays,time,close,slope,accelerate,volume),(...)]
 
 ## velocity and acceleration
 
-$$v_i=\frac {c_{i+1}-c_{i-1}} {t_{i+1}-t_{i-1}}$$
+~~$$v_i=\frac {c_{i+1}-c_{i-1}} {t_{i+1}-t_{i-1}}$$~~
 i.e. the velocity at $t_i$ equals the difference of the "close" at $t_{i+1}$ and $t_{i-1}$. same as accelerate as below:
 $$a_i=\frac {v_{i+1}-v_{i-1}} {t_{i+1}-t_{i-1}}$$
 
@@ -207,7 +233,7 @@ test_output_tensor = torch.tensor([int(y == 1.0) for x, y in outputs])
 运行
 * [read stock data, build model, save model to a file，stock.py](../src/stock.py)
 ![most time only get 50% accuracy](images/50percent.png)
-![occasionally get 72% accuracy](images/72%.png)
+![occasionally get 83% accuracy](images/83%.png)
 
 ```py input data
 file_path = 'stockdata/SPY_TraningData_30_07.csv'
@@ -266,7 +292,7 @@ accuracy: 83.33
 > 一旦模型保存在文件中，重复使用的精度是一直保持着的。
 
 👎😢 可悲的是：
-> 训练数据和测试数据完全相同的情况下，精度应该是100%才对。
+> 训练数据和测试数据完全相同的情况下，精度应该是100%才对。“预测偏离”
 > 1. window=30 太小
 > 2. 只有18个点，训练数据太少。
 > 3. 线性模型不够好？
@@ -283,7 +309,7 @@ accuracy: 83.33
 
 如果训练数据不包括测试数据（stockdata/SPY_TrainingData_200_09.csv, 53points），精度较低，最高只达到84%。
 
-如果训练数据包括测试数据（stockdata/SPY_TrainingData_200_10.csv, 65points），精度较高，最高可达到100%。
+如果训练数据包括测试数据（stockdata/SPY_TrainingData_200_10.csv, 65points），精度较高，最高可达到100%。65points中有13个用来作为测试数据。
 
 ```text 线性加权
 Epoch 19********************
@@ -311,7 +337,7 @@ Saved PyTorch Model State to stock_model_200_10_100_linearWeighted.pth
 
 👍😄 **Conclusion**
 
-> 感觉使用原始数据所做的模型精度，远好于归一化后的数据。
+> 感觉使用原始数据所做的模型精度，远好于归一化后的数据。“预测偏离”
 > 加权后并没有改进精度。
 > 因为我们并没有与其他数据作比对，所以归一化应该没有任何影响才对。😢😢
 
@@ -338,7 +364,7 @@ Saved PyTorch Model State to stock_model_200_10_100_linearWeighted.pth
 ### Recurrent Neural Network
 
 * [Recurrent Neural Network](../src/rnn.py)
-* 
+  
 ### Attension Machanics
 
 * [Attension Machanics](../src/attention.py)
