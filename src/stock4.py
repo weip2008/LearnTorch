@@ -48,8 +48,8 @@ def getTrainingDataSet(file_path):
     # print(inputs)
 
     print("Training Data...")
-    print(f'total number of output data: {len(outputs)}')
-    print(f'total input: {len(inputs)}, window size: {len(inputs[0])}')
+    print(f'total rows of output dataset: {len(outputs)}')
+    print(f'total input dataset: {len(inputs)}, columns X window: {len(inputs[0])}')
     total = len(inputs)
     window = int(len(inputs[2])/columns)
     print("window:",window)
