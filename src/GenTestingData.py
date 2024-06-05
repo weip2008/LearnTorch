@@ -338,7 +338,7 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
     #     result += ",".join(map(str, acceleration_tuple)) 
     
     if (TradePosition is TradePosition.SHORT):        
-        result = "-1," + trainingdata_str + "\n"
+        result = "2," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
@@ -347,7 +347,7 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
         return
     
     if (TradePosition is TradePosition.LONG):
-        result = "1," + trainingdata_str + "\n"
+        result = "0," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
@@ -356,7 +356,7 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
         return
     
     if (TradePosition is TradePosition.HOLD):
-        result = "0," + trainingdata_str + "\n"
+        result = "1," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
