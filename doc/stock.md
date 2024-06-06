@@ -361,6 +361,33 @@ Saved PyTorch Model State to stock_model_200_10_100_linearWeighted.pth
 1. between long and short, evenly select 3 or 5 points as hold points.
 
 * [add hold to classify long and short](../src/stock8.py)
+* [training data with row=196, window=50, column=6](../stockdata/SPY_TrainingData_50_13.csv)
+* [testing data with row=196, window=50, column=6](../stockdata/SPY_TestingData_50_13.csv)
+
+```
+Epoch 20********************
+loss: 1.341251  [    4/  196]
+loss: 1.352880  [   20/  196]
+loss: 1.736566  [   36/  196]
+loss: 1.582978  [   52/  196]
+loss: 0.872862  [   68/  196]
+loss: 0.565427  [   84/  196]
+loss: 0.624644  [  100/  196]
+loss: 0.593255  [  116/  196]
+loss: 0.521536  [  132/  196]
+loss: 0.528101  [  148/  196]
+loss: 0.471056  [  164/  196]
+loss: 0.508025  [  180/  196]
+loss: 0.434915  [  196/  196]
+Test Error:
+ Accuracy: 67.4%, Avg loss: 0.844671
+
+Done with training.
+Saved PyTorch Model State to best_stock_model_69.pth
+```
+修改了程序，把最高精度的模型保存在文件中。
+
+第13套数据只获得最高69%的精度。
 
 ## Available Models
 

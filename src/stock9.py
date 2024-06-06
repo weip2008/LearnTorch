@@ -23,31 +23,17 @@ batch_global = 4
 
 def getTrainingDataSet(file_path):
     global window,columns,batch_global,total
-    # Initialize lists to store the outputs and inputs
     outputs = []
     inputs = []
 
-    # Open and read the CSV file
     with open(file_path, newline='') as csvfile:
         csvreader = csv.reader(csvfile)
-        
-        # Iterate through each row in the CSV file
         for row in csvreader:
-            # The first two columns go into outputs and are converted to floats
             outputs.append((float(row[0]), float(row[1]), float(row[2])))
-            
-            # The rest of the columns go into inputs and are converted to floats
             inputs.append(tuple(map(float, row[3:])))
 
-    # Convert lists to tuples
     outputs = tuple(outputs)
     inputs = tuple(inputs)
-
-    # # Print the results (for verification)
-    # print("Outputs:")
-    # print(outputs)
-    # print("\nInputs:")
-    # print(inputs)
 
     print("Training Data...")
     print(f'total number of output data: {len(outputs)}')
@@ -58,7 +44,7 @@ def getTrainingDataSet(file_path):
     for i in range(total):
         if len(inputs[i])/columns!=window:
             raise RuntimeError(f"Input data Error. expected={window}, got {len(inputs[i])/columns}")
-    # Convert to PyTorch tensors
+
     outputs_tensor = torch.tensor(outputs).reshape(total,3)
     inputs_tensor = torch.tensor(inputs).reshape(total,1,columns,window)
     trainingDataset = TensorDataset(inputs_tensor, outputs_tensor)
@@ -66,23 +52,15 @@ def getTrainingDataSet(file_path):
 
 def getTestingDataSet(file_path):
     global window,columns,batch_global,total
-    # Initialize lists to store the outputs and inputs
     outputs = []
     inputs = []
 
-    # Open and read the CSV file
     with open(file_path, newline='') as csvfile:
         csvreader = csv.reader(csvfile)
-        
-        # Iterate through each row in the CSV file
         for row in csvreader:
-            # The first two columns go into outputs and are converted to floats
             outputs.append(int(row[0]))
-            
-            # The rest of the columns go into inputs and are converted to floats
             inputs.append(tuple(map(float, row[1:])))
 
-    # Convert lists to tuples
     outputs = tuple(outputs)
     inputs = tuple(inputs)
 
@@ -95,13 +73,12 @@ def getTestingDataSet(file_path):
     for i in range(total):
         if len(inputs[i])/columns!=window:
             raise RuntimeError(f"Input data Error. expected={window}, got {len(inputs[i])/columns}")
-    # Convert to PyTorch tensors
+
     outputs_tensor = torch.tensor(outputs).reshape(total)
     inputs_tensor = torch.tensor(inputs).reshape(total,1,columns,window)
     testingDataset = TensorDataset(inputs_tensor, outputs_tensor)
     return testingDataset
 
-# Define model
 class NeuralNetwork(nn.Module):
     def __init__(self):
         global window,columns,batch_global
@@ -109,7 +86,7 @@ class NeuralNetwork(nn.Module):
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
             nn.Linear(columns*window, window),
-            nn.ReLU(),  # Rectified Linear Unit
+            nn.ReLU(),
             nn.Linear(window, columns),
             nn.ReLU(),
             nn.Linear(columns, 3)
@@ -125,13 +102,11 @@ def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
     model.train()
     for batch, (X, y) in enumerate(dataloader):
-        X, y = X.to(device), y.to(device) # y是
+        X, y = X.to(device), y.to(device)
 
-        # Compute prediction error
         pred = model(X)
         loss = loss_fn(pred, y)
 
-        # Backpropagation
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -146,14 +121,16 @@ def test(dataloader, model, loss_fn):
     model.eval()
     test_loss, correct = 0, 0
     with torch.no_grad():
-        for X, y in dataloader: # y 包含 3个分类结果
+        for X, y in dataloader:
             X, y = X.to(device), y.to(device)
             pred = model(X)
             test_loss += loss_fn(pred, y).item()
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+            pass
     test_loss /= num_batches
     correct /= size
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    return correct
 
 class WeightedCrossEntropyLoss(nn.Module):
     def __init__(self, weights):
@@ -165,32 +142,38 @@ class WeightedCrossEntropyLoss(nn.Module):
         weighted_loss = loss * self.weights
         return weighted_loss.mean()
 
-
 if __name__ == "__main__":
     trainDataset = getTrainingDataSet(file_train)   
     testDataset = getTestingDataSet(file_test)
-    train_dataloader = DataLoader(trainDataset, batch_size=batch_global) # the train data include images (input) and its lable index (output)
-    test_dataloader = DataLoader(testDataset, batch_size=batch_global) # the train data include images (input) and its lable index (output)
+    train_dataloader = DataLoader(trainDataset, batch_size=batch_global)
+    test_dataloader = DataLoader(testDataset, batch_size=batch_global)
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 
-    # Generate exponentially increasing weights
     num_samples = len(train_dataloader.dataset)
-    base = 1.01  # Adjust the base to control the rate of increase
+    base = 1.01
     weights = np.exp(np.linspace(0, num_samples-1, num_samples) * np.log(base))
     weights = torch.tensor(weights, dtype=torch.float32).to(device)
 
-    # device = 'gpu'
-    model = NeuralNetwork().to(device) # create an model instance without training
+    model = NeuralNetwork().to(device)
 
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=1.e-5) # lr: learning rate
+    optimizer = torch.optim.SGD(model.parameters(), lr=1.e-4)
 
     epochs = 20
+    best_accurate = 0
+    best_model_state = None
+
     for t in range(epochs):
         print(f"Epoch {t+1}********************")
         train(train_dataloader, model, loss_fn, optimizer)
-        test(test_dataloader, model, loss_fn)
+        current_accurate = test(test_dataloader, model, loss_fn)
+        if current_accurate > best_accurate:
+            best_accurate = current_accurate
+            best_model_state = model.state_dict()
+
     print("Done with training.")
 
-    torch.save(model.state_dict(), "stock_model.pth")
-    print("Saved PyTorch Model State to stock_model.pth")
+    if best_model_state is not None:
+        model_file_name = f"best_stock_model_{int(best_accurate*100)}.pth"
+        torch.save(best_model_state, model_file_name)
+        print(f"Saved PyTorch Model State to {model_file_name}")
