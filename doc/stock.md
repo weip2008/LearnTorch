@@ -5,7 +5,7 @@
 3. calculate vilocity for all points(array)
 4. calculate accelerate for all points(array)
 5. use a window find stock input smooth data
-6. create datasets: 
+6. create datasets:
    a. input(close, vilocity, accelerate, weekdays, time, volume)
    b. output(long, short)
 7. create model
@@ -43,13 +43,14 @@
 
 * IPO (input, process, output)
 * AI training: from tensor to token
-* Prepare tensor (training data and testing data) 
+* Prepare tensor (training data and testing data)
 
 * Concern and Issues，solution
   1. simplify and efficiency we choos nasdaq 100 future only.
   2. one minuts data maybe enough
   3. day trading or swing trading
   4. 20 or 30 points as base rule
+  5. try Zigzag get training data long/short points
 >
 ### Data Normalization
 
@@ -100,14 +101,14 @@ long,short,weekday,time,price,volume,velocity,acceleration,... ...
 0,1,4.0000,15.4333,499.7100,180733.0000,0.0600,0.0000,4.0000,15.4500,499.7700,130763.0000,0.0600,0.0000,4.0000,15.4667,499.8200,110770.0000,0.0500,-0.0100,4.0000,15.4833,499.7900,105657.0000,-0.0300,-0.0800,4.0000,15.5000,499.8400,224877.0000,0.0500,0.0800,4.0000,15.5167,499.9200,147421.0000,0.0800,0.0300,4.0000,15.5333,499.9700,269021.0000,0.0500,-0.0300,4.0000,15.5500,500.0700,131807.0000,0.1000,0.0500,4.0000,15.5667,500.1400,149343.0000,0.0700,-0.0300,4.0000,15.5833,500.2500,164901.0000,0.1100,0.0400
 
 ```
-* training dataset format 
+* training dataset format
 trainingDataset.shape = [18,6,10]
 
 ```py
 outputs_tensor = torch.tensor(outputs).reshape(18,2)
 inputs_tensor = torch.tensor(inputs).reshape(18,1,6,10)
 ```
-where 
+where
 1. 18 is total number of training data.
 2. 2 in outputs_tensor is 1 demension 2 items array, ['long', 'short'].
 3. 6 in inputs_tensor is 6 columns as (weekdays,time,close,velocity,acceleration,volume).
@@ -225,7 +226,7 @@ predict=[-0.27,3.45]
 由于index=1的数字更大，表明该输入数据被认定为short。
 
 * test dataset format
-test datasets 和training datasets两者的输入结构是相同的，但是输出的结构是不同的。对于训练用的数据，输出部分也是一个二维矩阵（见上面的实际例子），表示该给定窗口数据的分类，或者是long，或者是short，用[1,0]表示设定为long，用[0,1]设定为short。 
+test datasets 和training datasets两者的输入结构是相同的，但是输出的结构是不同的。对于训练用的数据，输出部分也是一个二维矩阵（见上面的实际例子），表示该给定窗口数据的分类，或者是long，或者是short，用[1,0]表示设定为long，用[0,1]设定为short。
 而test数据的输出，只是一个一维矩阵，包含每个窗口的正确结果所处的位置（index）。对于上面给出的18行的数据，测试Tensor看起来应该是这样的：
 [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1]
 他表示前8行属于0类，也就是long类；后8行属于1类，也就是short类。
@@ -310,7 +311,7 @@ accuracy: 83.33
 * [plot one window data with Velocity or Accelaration, stock2.py](../src/stock2.py)
 ![](images/buyPoint_15.png)
 * [read training and testing data separately, stock4.py](../src/stock4.py)
-  
+
 ## Add Weights on Data
 
 * [add linear weights on Data, stock5.py](../src/stock5.py)
@@ -324,7 +325,7 @@ Epoch 19********************
 loss: 3.667773  [    5/   65]
 loss: 0.000000  [   30/   65]
 loss: 0.000000  [   55/   65]
-Test Error: 
+Test Error:
  Accuracy: 100.0%, Avg loss: 0.000000
 
 Epoch 20********************
@@ -372,7 +373,7 @@ Saved PyTorch Model State to stock_model_200_10_100_linearWeighted.pth
 ### Recurrent Neural Network
 
 * [Recurrent Neural Network](../src/rnn.py)
-  
+
 ### Attension Machanics
 
 * [Attension Machanics](../src/attention.py)
