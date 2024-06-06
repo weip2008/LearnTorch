@@ -12,8 +12,10 @@ tv = TvDatafeed()
 
 
 # Test with a known working symbol
-test_data = tv.get_hist(symbol='NDX', exchange='NASDAQ', interval=Interval.in_1_minute, n_bars=5)
-print(test_data)
+#test_data = tv.get_hist(symbol='NDX', exchange='NASDAQ', interval=Interval.c, n_bars=5)
+#print(test_data)
+
+nq_data = tv.get_hist(symbol='NQ1!', exchange='CME_MINI', interval=Interval.in_1_minute, n_bars=100000)
 
 # print(tv) # <tvDatafeed.main.TvDatafeed object at 0x7fc1d6307c10>
 
@@ -23,7 +25,7 @@ print(test_data)
 # nifty_index_data = tv.get_hist(symbol='BA',exchange='NSE',interval=Interval.in_1_hour,n_bars=1000)
 
 # futures continuous contract
-nq_data = tv.get_hist(symbol='NQ', exchange='CME', interval=Interval.in_1_minute, n_bars=5, fut_contract=1)
+# #nq_data = tv.get_hist(symbol='NQ', exchange='CME', interval=Interval.in_1_minute, n_bars=5, fut_contract=1)
 print(nq_data)
 # crudeoil
 # crudeoil_data = tv.get_hist(symbol='CRUDEOIL',exchange='MCX',interval=Interval.in_1_hour,n_bars=5000,fut_contract=1)
