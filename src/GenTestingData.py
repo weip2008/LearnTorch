@@ -327,31 +327,16 @@ def calculate_acceleration(velocity_list):
     # acceleration_data = calculate_acceleration(velocity_list)
 
 def write_training_data(TradePosition, acceleration_list, csvfile):
-    # Initialize an empty string to store the result
-    #result = ""
+    # for testing data, the first number is index of "LONG, HOLD, SHORT" series!
+    # so if it's LONG, then it's 0; SHORT is 2;
     
     trainingdata_str = list_to_string(acceleration_list)
-    
-    # Iterate over each tuple in the acceleration_list
-    # for acceleration_tuple in acceleration_list:
-    #     # Convert each element of the tuple to a string and concatenate them
-    #     result += ",".join(map(str, acceleration_tuple)) 
-    
-    if (TradePosition is TradePosition.SHORT):        
-        result = "2," + trainingdata_str + "\n"
-        if IsDebug:
-            print(result)
-        # Parse the input string into separate fields
-        #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
-        csvfile.write(result)
-        return
-    
+   
     if (TradePosition is TradePosition.LONG):
         result = "0," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
-        # Parse the input string into separate fields
-        #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
+    
         csvfile.write(result)
         return
     
@@ -359,9 +344,17 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
         result = "1," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
-        # Parse the input string into separate fields
-        #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
+        
+        csvfile.write(result)        
+        return
+        
+    if (TradePosition is TradePosition.SHORT):        
+        result = "2," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+        
         csvfile.write(result)
+            
     return
 
 def generate_testing_data(tddf_highlow_list, position):
@@ -416,7 +409,7 @@ IsDebug = True
 #Trainning data lenth
 # average number of working days in a month is 21.7, based on a five-day workweek
 # so 45 days is total for two months working days
-# 200 days is one year working days
+# 200 days is approximately one year working days
 tdLen = 50
 
 # Series Number for output training data
@@ -518,21 +511,11 @@ if IsDebug:
 sorted_df = merge_highlow_list(filtered_low_points, filtered_high_points)
 
 # Print the sorted dataframe
-print("\nMerged High/Low points:\n",sorted_df)
+if IsDebug:
+    print("\nMerged High/Low points:\n",sorted_df)
 
 hold_points_index = gen_hold_list_index(sorted_df)
 
-# Example usage of find_point_index_int
-''' print("\nIndex and location of filtered points in selected_low_points:")
-for i, filtered_point in filtered_low_points.iterrows():
-    original_index, location = find_point_index_int(filtered_point, selected_low_points)
-    if original_index is not None:
-        print(f"Filtered point at index {i} corresponds to original index {original_index} \
-                and location No. {location} in selected_low_points.")
-    else:
-        print(f"Filtered point at index {i} not found in selected_low_points.")
-    
-         '''
 
 # Plot original data
 plt.figure(figsize=(10, 6))
@@ -545,7 +528,6 @@ plt.scatter(selected_high_points.index, selected_high_points['Price'],
 
 plt.scatter(selected_low_points.index, selected_low_points['Price'], 
             color='red', label='Selected Low Points', marker='o')
-
 
 plt.plot(sorted_df.index, sorted_df['Price'], color='cyan', label='Selected Points')
 
@@ -570,49 +552,38 @@ filtered_low_points_index = filtered_low_points.index.tolist()
 filtered_high_points_index = filtered_high_points.index.tolist()
 
 tddf_low_list = cut_slices(ohlc_df, filtered_low_points_index, tdLen)
-#print("First couple of Traning Data Dataframe Low points list:\n")
-#print(tddf_low_list[:5])
 tddf_high_list = cut_slices(ohlc_df, filtered_high_points_index, tdLen)
-
-
-
 tddf_hold_list = cut_slices(ohlc_df, hold_points_index, tdLen)
 
-
-
-#formatted_strings = convert_list_to_string(tddf_low_list)
-
-# Print out the first 5 formatted strings
-#for formatted_str in formatted_strings[:5]:
-#    print(formatted_str)
-    
-#tddf_low_list = find_highest_points(bbohlc_df)
 
 if IsDebug:
     print("\n\n\nLength of original DataFrames:", len(ohlc_df))
     print("Length of Low Trainning Data DataFrames:", len(tddf_low_list))               
     print("Contents of Trainning Data DataFrmes:")
-    print(tddf_low_list[:3])    # first 3
-    print(".................")
-    print(tddf_low_list[-3:])   # last 3
+    print(tddf_low_list)
+    # print(tddf_low_list[:3])    # first 3
+    # print(".................")
+    # print(tddf_low_list[-3:])   # last 3
     print("========================================\n\n\n")
 
 
     print("Length of High Trainning Data DataFrames:", len(tddf_high_list))               
     print("Contents of Trainning Data DataFrmes:")
-    print(tddf_high_list[:3])    # first 3
-    print(".................")
-    print(tddf_high_list[-3:])   # last 3
+    print(tddf_high_list) 
+    # print(tddf_high_list[:3])    # first 3
+    # print(".................")
+    # print(tddf_high_list[-3:])   # last 3
     print("========================================\n\n\n")
 
     print("Length of Hold Training Data DataFrames:", len(tddf_hold_list))               
     print("Contents of Training Data DataFrmes:")
-    print(tddf_hold_list[:3])    # first 3
-    print(".................")
-    print(tddf_hold_list[-3:])   # last 3
+    print(tddf_hold_list)
+    # print(tddf_hold_list[:3])    # first 3
+    # print(".................")
+    # print(tddf_hold_list[-3:])   # last 3
     print("========================================\n\n\n")
-# Open a CSV file in write mode
 
+# Open a CSV file in write mode for Training Data DataFrame
 td_file = os.path.join(data_dir, f"{symbol}_TestingData_{tdLen}_{SN}.csv")
 
 with open(td_file, "w") as datafile:
