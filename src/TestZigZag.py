@@ -156,7 +156,7 @@ if 'Adj Close' in df.columns:
 print(df)
 
 
-df['TickSize'] = 0.01  # Set a constant tick size for example
+df['TickSize'] = 0.0082 # Set a constant tick size for example
 
 zz_df = calculate_zigzag(df)
 print(zz_df[['High', 'Low', 'Close', 'ZZ']])
