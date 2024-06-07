@@ -18,7 +18,7 @@ tv = TvDatafeed()
 
 # futures continuous contract
 # nq_data = tv.get_hist(symbol='NQ', exchange='CME', interval=Interval.in_1_minute, n_bars=5, fut_contract=1)
-nq_data = tv.get_hist(symbol='NQ1!', exchange='CME_MINI', interval=Interval.in_1_minute, n_bars=100000)
+nq_data = tv.get_hist(symbol='NQ1!', exchange='CME_MINI', interval=Interval.in_45_minute, n_bars=100000)
 print(nq_data)
 
 # downloading data for extended market hours
