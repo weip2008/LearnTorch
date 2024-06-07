@@ -17,7 +17,7 @@ def calculate_zigzag(df, percentage_reversal=5.0, absolute_reversal=0.0, atr_len
     assert percentage_reversal != 0 or absolute_reversal != 0 or atr_reversal != 0 or tick_reversal != 0, "Either 'percentage reversal' or 'absolute reversal' or 'atr reversal' or 'tick reversal' must not be zero"
 
     if 'TickSize' not in df.columns:
-        df['TickSize'] = 0.01  # Set a default value for TickSize if not present
+        df['TickSize'] = 0.0085  # Set a default value for TickSize if not present
 
     abs_reversal = absolute_reversal if absolute_reversal != 0 else tick_reversal * df['TickSize'].iloc[0]
 
