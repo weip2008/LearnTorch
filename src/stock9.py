@@ -157,7 +157,7 @@ if __name__ == "__main__":
     model = NeuralNetwork().to(device)
 
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=1.e-4)
+    optimizer = torch.optim.SGD(model.parameters(), lr=1.5e-5)
 
     epochs = 20
     best_accurate = 0
