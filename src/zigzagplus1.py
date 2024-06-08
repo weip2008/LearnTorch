@@ -1,3 +1,4 @@
+import yfinance as yf
 import pandas as pd
 import numpy as np
 from zigzag import peak_valley_pivots
@@ -13,6 +14,14 @@ def calculate_zigzag(df, deviation):
     """
     pivots = peak_valley_pivots(df['Close'].values, deviation, -deviation)
     zigzag = df['Close'][pivots != 0]
+    # Create zigzag DataFrame with 'Datetime' and 'Close'
+    # zigzag = df[pivots != 0].copy()
+   
+    # zigzag = zigzag.drop(columns=['Open'])
+    # zigzag = zigzag.drop(columns=['High'])
+    # zigzag = zigzag.drop(columns=['Low'])
+    # zigzag = zigzag.drop(columns=['Volume'])    
+                            
     return zigzag
 
 def plot_zigzag(df, zigzag):
@@ -27,6 +36,47 @@ def plot_zigzag(df, zigzag):
     plt.scatter(zigzag.index, zigzag, color='red', label='ZigZag')
     plt.legend()
     plt.show()
+    return
+
+def convert_list_to_df(patterns):
+    # Convert list to DataFrame
+    # Specify column names
+    columns = ['Datetime', 'Point', 'Label']
+    
+    # Create DataFrame and set index
+    patterns_df = pd.DataFrame(patterns, columns=columns)
+    patterns_df['Datetime'] = pd.to_datetime(patterns_df['Datetime'])
+    patterns_df.set_index('Datetime', inplace=True)
+    return patterns_df
+
+def plot_patterns(df, patterns_df):
+    # Plotting to visualize the result
+    fig, ax = plt.subplots(figsize=(14, 7))
+
+    ax.plot(df.index, df['Close'], label='Close Price')
+    # 1.
+    # patterns_df.loc[patterns_df['Label'] == 'HH'].index
+    # you are locating rows in patterns_df where the 'Label' column is 'HH' 
+    # and then accessing the index of those rows
+    ax.scatter(patterns_df.loc[patterns_df['Label'] == 'HH'].index, patterns_df.loc[patterns_df['Label'] == 'HH', 'Point'], color='green', label='HH', marker='^', alpha=1)
+    ax.scatter(patterns_df.loc[patterns_df['Label'] == 'LL'].index, patterns_df.loc[patterns_df['Label'] == 'LL', 'Point'], color='red', label='LL', marker='v', alpha=1)
+    ax.scatter(patterns_df.loc[(patterns_df['Label'] == 'LH') | (patterns_df['Label'] == 'HL')].index, patterns_df.loc[(patterns_df['Label'] == 'LH') | (patterns_df['Label'] == 'HL'), 'Point'], color='black', label='LH/HL', marker='o', alpha=1)
+
+    # 2. 
+    # patterns_df.index[patterns_df['Label'] == 'HH']
+    # This method first creates a boolean mask with patterns_df['Label'] == 'HH' 
+    # and then uses this mask to index patterns_df.index.
+    #ax.scatter(patterns_df.index[patterns_df['Label'] == 'HH'], patterns_df['Point'][patterns_df['Label'] == 'HH'], color='green', label='HH', marker='^', alpha=1)
+    #ax.scatter(patterns_df.index[patterns_df['Label'] == 'LL'], patterns_df['Point'][patterns_df['Label'] == 'LL'], color='red', label='LL', marker='v', alpha=1)
+    #ax.scatter(patterns_df.index[(patterns_df['Label'] == 'LH') | (patterns_df['Label'] == 'HL')], patterns_df['Point'][(patterns_df['Label'] == 'LH') | (patterns_df['Label'] == 'HL')], color='black', label='LH/HL', marker='o', alpha=1)
+
+    ax.set_title('Points with Labels')
+    ax.set_xlabel('Datetime')
+    ax.set_ylabel('Points')
+    ax.legend()
+
+    plt.show()
+    return
 
 def detect_patterns(zigzag_points):
     """
@@ -49,7 +99,8 @@ def detect_patterns(zigzag_points):
                 label = "LL"  # Lower Low
             else:
                 label = "LH"  # Lower High
-        patterns.append((current_point['Close'], label))
+        #patterns.append((current_point['Close'], label))
+        patterns.append((current_point.name, current_point['Close'], label))
     return patterns
 
 def generate_alerts(zigzag_points):
@@ -72,27 +123,99 @@ def generate_alerts(zigzag_points):
 
 if __name__ == "__main__":
     # Sample data
-    data = {
-        'High': [1, 2, 3, 4, 5, 4.5, 3, 3.5, 4, 3],
-        'Low': [0.5, 1, 1.5, 2, 2.5, 2, 1.5, 2, 2.5, 1.5],
-        'Close': [0.8, 1.5, 2.5, 3.5, 4.5, 3.5, 2.5, 3, 3.5, 2]
-    }
-    df = pd.DataFrame(data)
+    # data = {
+    #     'High': [1, 2, 3, 4, 5, 4.5, 3, 3.5, 4, 3],
+    #     'Low': [0.5, 1, 1.5, 2, 2.5, 2, 1.5, 2, 2.5, 1.5],
+    #     'Close': [0.8, 1.5, 2.5, 3.5, 4.5, 3.5, 2.5, 3, 3.5, 2]
+    # }
+    # df = pd.DataFrame(data)
+
+    import pandas as pd
+
+    # Data to convert to DataFrame
+    # data = {
+    #     "Datetime": [
+    #         "2024-06-02 18:00:00-04:00", "2024-06-02 18:01:00-04:00", "2024-06-02 18:02:00-04:00", 
+    #         "2024-06-02 18:03:00-04:00", "2024-06-02 18:04:00-04:00", "2024-06-02 18:05:00-04:00", 
+    #         "2024-06-02 18:06:00-04:00", "2024-06-02 18:07:00-04:00", "2024-06-02 18:08:00-04:00", 
+    #         "2024-06-02 18:09:00-04:00", "2024-06-02 18:10:00-04:00", "2024-06-02 18:11:00-04:00", 
+    #         "2024-06-02 18:12:00-04:00", "2024-06-02 18:13:00-04:00", "2024-06-02 18:14:00-04:00", 
+    #         "2024-06-02 18:15:00-04:00", "2024-06-02 18:16:00-04:00", "2024-06-02 18:17:00-04:00", 
+    #         "2024-06-02 18:18:00-04:00", "2024-06-02 18:19:00-04:00"
+    #     ],
+    #     "Open": [
+    #         5299.25, 5302.75, 5301.50, 5294.25, 5294.25, 5292.50, 5291.00, 5291.75, 
+    #         5292.50, 5292.50, 5292.25, 5292.75, 5292.75, 5293.00, 5294.25, 5294.75, 
+    #         5296.75, 5297.25, 5299.00, 5299.25
+    #     ],
+    #     "High": [
+    #         5304.25, 5303.75, 5301.75, 5295.50, 5295.00, 5292.50, 5292.00, 5292.75, 
+    #         5293.00, 5293.00, 5293.75, 5292.75, 5293.75, 5294.50, 5294.75, 5297.00, 
+    #         5297.50, 5299.75, 5299.25, 5299.75
+    #     ],
+    #     "Low": [
+    #         5298.25, 5301.25, 5293.75, 5292.75, 5292.50, 5290.75, 5290.50, 5291.00, 
+    #         5291.75, 5292.00, 5291.50, 5292.25, 5292.50, 5293.00, 5293.75, 5294.75, 
+    #         5296.25, 5297.00, 5298.50, 5298.75
+    #     ],
+    #     "Close": [
+    #         5302.75, 5301.50, 5294.25, 5294.00, 5292.75, 5291.00, 5292.00, 5292.50, 
+    #         5292.75, 5292.00, 5293.00, 5292.50, 5293.25, 5294.25, 5294.50, 5297.00, 
+    #         5297.25, 5299.00, 5298.75, 5299.25
+    #     ],
+    #     "Volume": [
+    #         0, 691, 2133, 1044, 552, 792, 311, 276, 214, 99, 293, 75, 243, 202, 215, 625, 296, 682, 172, 283
+    #     ]
+    # }
+
+    # # Create DataFrame
+    # df = pd.DataFrame(data)
+    # df["Datetime"] = pd.to_datetime(df["Datetime"])
+    # df.set_index("Datetime", inplace=True)
+
+    # print(df.head(20))
+    
+    # Example usage:
+    ticker_symbols = [ "MES=F" ]
+    # Data interval
+    t_interval="1m"
+
+    # Fetch the historical data from the first day it started trading
+    stock_data = yf.Ticker("MES=F")
+    #stock_hist = stock_data.history(period="max", auto_adjust=False)
+    df = stock_data.history(period="max", interval=t_interval, auto_adjust=False)
+    # Drop the 'Dividends' and 'Stock Splits' columns
+    if 'Dividends' in df.columns:
+        df = df.drop(columns=['Dividends'])
+    if 'Stock Splits' in df.columns:
+        df = df.drop(columns=['Stock Splits'])
+    if 'Adj Close' in df.columns:
+        df = df.drop(columns=['Adj Close'])    
+                            
+                    
+    print(df.head(20))
 
     # ZigZag parameters
-    deviation = 5 / 100.0  # Percentage
+    deviation = 0.0002  # Percentage
 
     # Calculate ZigZag
     zigzag = calculate_zigzag(df, deviation)
+    print(zigzag)
 
     # Plot ZigZag
     plot_zigzag(df, zigzag)
 
     # Detect patterns
     patterns = detect_patterns(df[df['Close'].isin(zigzag)])
-    for pattern in patterns:
-        print(f"Point: {pattern[0]}, Label: {pattern[1]}")
+    #for pattern in patterns:
+    #    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
+    print(patterns)
+    
+    patterns_df = convert_list_to_df(patterns)
+    print(patterns_df)  # Print to verify DataFrame structure
 
+    plot_patterns(df, patterns_df)
+    
     # Generate alerts
     alerts = generate_alerts(df[df['Close'].isin(zigzag)])
     for alert in alerts:
