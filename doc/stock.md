@@ -51,6 +51,17 @@
   3. day trading or swing trading
   4. 20 or 30 points as base rule
   5. try Zigzag get training data long/short points
+
+最近两个月以来我一直为选择理想的买卖点而苦恼，尝试过多种方法都不理想。到现在我们用的都是“dirty and quick"的方法选择出来的点：在初选出来的最低最高点中选相邻的五点，向前看两步，向后看三步，如果当前点是初选出来的低点里面的相对最低，就选作买点；反之，如果是初选出来的高点里面的相对最高，则选择出来做卖点。
+这种选法会出现这样的问题：
+
+![A区与B区相比较，A区不合理](images/SPYHighLow0409-0531.jpg)
+
+看A窗和B窗。因为选择标准是在相邻的初选高低点里面选择，在A区，矮子里面选将军选出的那些点在B区其实是完全不会入选的。在增加了不作为的HOLD点后让事情更加困惑：在B区随便选出来的几个不作为的HOLD点其实都会比A区里面中选的更合适买卖。
+我又尝试过用MACD加RSI等等方法来选择买卖的，效果也不理想。单单用MACD选择依然太粗糙，不理想；增加RSI后约束条件又过严，几年时间段里面居然都很难找到几个买卖点。
+我因此反思： 无论是现在用的哪种方法，依然都是我常说的AI前的“古典方法”，这些都不是事物的本质，而只是在为了帮助交易而总结出的一些方法，如同几何学里面画的辅助线，不是本质，只是辅助。如果我们回归事物的本质，交易中“低买高卖”，差额越大越好，如此而已。
+如果完全等我用”古典方法“来选点做教材来训练AI模型，那完全没有发挥机器学习的效率和优势，应该换思路，给出最基本的“公理”“规则rule”后放手让机器自己去挖掘学习。
+
 >
 ### Data Normalization
 
@@ -361,6 +372,33 @@ Saved PyTorch Model State to stock_model_200_10_100_linearWeighted.pth
 1. between long and short, evenly select 3 or 5 points as hold points.
 
 * [add hold to classify long and short](../src/stock8.py)
+* [training data with row=196, window=50, column=6](../stockdata/SPY_TrainingData_50_13.csv)
+* [testing data with row=196, window=50, column=6](../stockdata/SPY_TestingData_50_13.csv)
+
+```
+Epoch 20********************
+loss: 1.341251  [    4/  196]
+loss: 1.352880  [   20/  196]
+loss: 1.736566  [   36/  196]
+loss: 1.582978  [   52/  196]
+loss: 0.872862  [   68/  196]
+loss: 0.565427  [   84/  196]
+loss: 0.624644  [  100/  196]
+loss: 0.593255  [  116/  196]
+loss: 0.521536  [  132/  196]
+loss: 0.528101  [  148/  196]
+loss: 0.471056  [  164/  196]
+loss: 0.508025  [  180/  196]
+loss: 0.434915  [  196/  196]
+Test Error:
+ Accuracy: 67.4%, Avg loss: 0.844671
+
+Done with training.
+Saved PyTorch Model State to best_stock_model_69.pth
+```
+修改了程序，把最高精度的模型保存在文件中。
+
+第13套数据只获得最高69%的精度。
 
 ## Available Models
 
