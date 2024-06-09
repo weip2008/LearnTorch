@@ -60,7 +60,8 @@ def plot_patterns(df, patterns_df):
     # and then accessing the index of those rows
     ax.scatter(patterns_df.loc[patterns_df['Label'] == 'HH'].index, patterns_df.loc[patterns_df['Label'] == 'HH', 'Point'], color='green', label='HH', marker='^', alpha=1)
     ax.scatter(patterns_df.loc[patterns_df['Label'] == 'LL'].index, patterns_df.loc[patterns_df['Label'] == 'LL', 'Point'], color='red', label='LL', marker='v', alpha=1)
-    ax.scatter(patterns_df.loc[(patterns_df['Label'] == 'LH') | (patterns_df['Label'] == 'HL')].index, patterns_df.loc[(patterns_df['Label'] == 'LH') | (patterns_df['Label'] == 'HL'), 'Point'], color='black', label='LH/HL', marker='o', alpha=1)
+    ax.scatter(patterns_df.loc[patterns_df['Label'] == 'LH'].index, patterns_df.loc[patterns_df['Label'] == 'LH', 'Point'], color='black', label='LH', marker='o', alpha=1)
+    ax.scatter(patterns_df.loc[patterns_df['Label'] == 'HL'].index, patterns_df.loc[patterns_df['Label'] == 'HL', 'Point'], color='orange', label='HL', marker='o', alpha=1)
 
     # 2. 
     # patterns_df.index[patterns_df['Label'] == 'HH']
@@ -78,6 +79,7 @@ def plot_patterns(df, patterns_df):
     plt.show()
     return
 
+
 def detect_patterns(zigzag_points):
     """
     Detect patterns like Higher Highs, Higher Lows, Lower Highs, and Lower Lows.
@@ -89,19 +91,99 @@ def detect_patterns(zigzag_points):
     for i in range(1, len(zigzag_points)):
         current_point = zigzag_points.iloc[i]
         previous_point = zigzag_points.iloc[i-1]
+        previous_previous_point = zigzag_points.iloc[i-2]
+    
+        if current_point['Close'] > previous_previous_point['Close']:
+            label = "H"
+        else:
+            label = "L"
+        
+        if current_point['Close'] > previous_point['Close']: 
+            label += "H"  
+        else:
+            label += "L"  
+        
+        label
+        #patterns.append((current_point['Close'], label))
+        patterns.append((current_point.name, current_point['Close'], label))
+    return patterns
+
+def detect_patterns2(zigzag_points):
+    """
+    Detect patterns like Higher Highs, Higher Lows, Lower Highs, and Lower Lows.
+
+    :param zigzag_points: DataFrame with ZigZag points.
+    :return: List of detected patterns.
+    """
+    patterns = []
+    for i in range(1, len(zigzag_points)):
+        current_point = zigzag_points.iloc[i]
+        previous_point = zigzag_points.iloc[i-1]
+        previous_previous_point = zigzag_points.iloc[i-2]
+        # 1. Higher High (HH):
+        #   If the current closing price is higher than the previous closing price.
+        #   Additionally, if the previous closing price is higher than the closing price before it.
+        # 2. Higher Low (HL):
+        #   If the current closing price is higher than the previous closing price.
+        #   However, the previous closing price is lower than the closing price before it.
+        # 3. Lower High (LH):
+        #   If the current closing price is lower than the previous closing price.
+        #   Additionally, if the previous closing price is lower than the closing price before it.
+        # 4. Lower Low (LL):
+        #   If the current closing price is lower than the previous closing price.
+        #   However, the previous closing price is higher than the closing price before it.
         if current_point['Close'] > previous_point['Close']:
-            if previous_point['Close'] > zigzag_points.iloc[i-2]['Close']:
+            if previous_point['Close'] > previous_previous_point['Close']:
                 label = "HH"  # Higher High
             else:
                 label = "HL"  # Higher Low
         else:
-            if previous_point['Close'] < zigzag_points.iloc[i-2]['Close']:
+            if previous_point['Close'] < previous_previous_point['Close']:
                 label = "LL"  # Lower Low
             else:
                 label = "LH"  # Lower High
         #patterns.append((current_point['Close'], label))
         patterns.append((current_point.name, current_point['Close'], label))
     return patterns
+
+def detect_patterns3(zigzag_points):
+    """
+    Detect patterns like Higher Highs, Higher Lows, Lower Highs, and Lower Lows.
+
+    :param zigzag_points: DataFrame with ZigZag points.
+    :return: List of detected patterns.
+    """
+    patterns = []
+    for i in range(2, len(zigzag_points)):
+        current_point = zigzag_points.iloc[i]
+        previous_point = zigzag_points.iloc[i - 1]
+        previous_previous_point = zigzag_points.iloc[i - 2]
+
+        # Find the valley points
+        valleys = zigzag_points[(zigzag_points['Type'] == 'valley') & (zigzag_points.index <= current_point.name)]
+        # Find the peak points
+        peaks = zigzag_points[(zigzag_points['Type'] == 'peak') & (zigzag_points.index <= current_point.name)]
+
+        if len(valleys) >= 2 and len(peaks) >= 2:
+            previous_valley = valleys.iloc[-2]  # Previous valley
+            previous_previous_valley = valleys.iloc[-1]  # Previous previous valley
+            previous_peak = peaks.iloc[-2]  # Previous peak
+            previous_previous_peak = peaks.iloc[-1]  # Previous previous peak
+
+            if current_point['Close'] < previous_valley['Close'] and previous_valley['Close'] < previous_previous_valley['Close']:
+                label = "LL"  # Lower Low
+            elif current_point['Close'] > previous_peak['Close'] and previous_peak['Close'] > previous_previous_peak['Close']:
+                label = "HH"  # Higher High
+            elif current_point['Close'] < previous_peak['Close'] and previous_peak['Close'] > previous_previous_peak['Close']:
+                label = "LH"  # Lower High
+            elif current_point['Close'] > previous_valley['Close'] and previous_valley['Close'] < previous_previous_valley['Close']:
+                label = "HL"  # Higher Low
+
+            patterns.append((current_point.name, current_point['Close'], label))
+
+    return patterns
+
+
 
 def generate_alerts(zigzag_points):
     """
@@ -196,11 +278,11 @@ if __name__ == "__main__":
     print(df.head(20))
 
     # ZigZag parameters
-    deviation = 0.0002  # Percentage
+    deviation = 0.0001  # Percentage
 
     # Calculate ZigZag
     zigzag = calculate_zigzag(df, deviation)
-    print(zigzag)
+    print("Zigzag list:\n",zigzag)
 
     # Plot ZigZag
     plot_zigzag(df, zigzag)
@@ -209,7 +291,7 @@ if __name__ == "__main__":
     patterns = detect_patterns(df[df['Close'].isin(zigzag)])
     #for pattern in patterns:
     #    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
-    print(patterns)
+    #print("Patterns list:\n", patterns)
     
     patterns_df = convert_list_to_df(patterns)
     print(patterns_df)  # Print to verify DataFrame structure
@@ -217,6 +299,6 @@ if __name__ == "__main__":
     plot_patterns(df, patterns_df)
     
     # Generate alerts
-    alerts = generate_alerts(df[df['Close'].isin(zigzag)])
-    for alert in alerts:
-        print(alert)
+    # alerts = generate_alerts(df[df['Close'].isin(zigzag)])
+    # for alert in alerts:
+    #     print(alert)
