@@ -26,7 +26,7 @@ df["Datetime"] = pd.to_datetime(df["Datetime"])
 df.set_index("Datetime", inplace=True)
 
 # Try different deviation values
-deviation_values = [0.001, 0.0005, 0.0002, 0.0001]
+deviation_values = [0.001, 0.0001, 0.00005, 0.000001]
 
 for deviation in deviation_values:
     pivots = peak_valley_pivots(df['Close'].values, deviation, -deviation)
