@@ -88,7 +88,9 @@ def detect_patterns(zigzag_points):
     :return: List of detected patterns.
     """
     patterns = []
-    for i in range(1, len(zigzag_points)):
+    zigzag_len = len(zigzag_points)
+    
+    for i in range(1, zigzag_len):
         current_point = zigzag_points.iloc[i]
         previous_point = zigzag_points.iloc[i-1]
         previous_previous_point = zigzag_points.iloc[i-2]
@@ -278,23 +280,35 @@ if __name__ == "__main__":
     print(df.head(20))
 
     # ZigZag parameters
-    deviation = 0.0001  # Percentage
+    deviation = 0.0008  # Percentage
 
     # Calculate ZigZag
     zigzag = calculate_zigzag(df, deviation)
-    print("Zigzag list:\n",zigzag)
+    print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
+
+    # zigzag_counts = df['Close'].value_counts()
+    # zigzag_value_counts = zigzag_counts[zigzag_counts.index.isin(zigzag)]
+    # print("Zigzag value counts:\n", zigzag_value_counts)
+
+    # Filter the original DataFrame using the indices
+    filtered_zigzag_df = df.loc[zigzag.index]
+    print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
 
     # Plot ZigZag
     plot_zigzag(df, zigzag)
-
+    
     # Detect patterns
-    patterns = detect_patterns(df[df['Close'].isin(zigzag)])
+    # df[df['Close'].isin(zigzag)] creates a new DataFrame 
+    # that contains only the rows from df 
+    # where the 'Close' value is in the zigzag list.
+    # patterns = detect_patterns(df[df['Close'].isin(zigzag)])
+    patterns = detect_patterns(filtered_zigzag_df)
     #for pattern in patterns:
     #    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
     #print("Patterns list:\n", patterns)
     
     patterns_df = convert_list_to_df(patterns)
-    print(patterns_df)  # Print to verify DataFrame structure
+    print(f"Patterns length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
 
     plot_patterns(df, patterns_df)
     
