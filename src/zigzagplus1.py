@@ -90,7 +90,7 @@ def detect_patterns(zigzag_points):
     patterns = []
     zigzag_len = len(zigzag_points)
     
-    for i in range(1, zigzag_len):
+    for i in range(2, zigzag_len):
         current_point = zigzag_points.iloc[i]
         previous_point = zigzag_points.iloc[i-1]
         previous_previous_point = zigzag_points.iloc[i-2]
