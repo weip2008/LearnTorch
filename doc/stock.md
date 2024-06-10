@@ -51,6 +51,7 @@
   3. day trading or swing trading
   4. 20 or 30 points as base rule
   5. try Zigzag get training data long/short points
+  6. another way to find valley and peak is find edge between MACD cross.
 
 最近两个月以来我一直为选择理想的买卖点而苦恼，尝试过多种方法都不理想。到现在我们用的都是“dirty and quick"的方法选择出来的点：在初选出来的最低最高点中选相邻的五点，向前看两步，向后看三步，如果当前点是初选出来的低点里面的相对最低，就选作买点；反之，如果是初选出来的高点里面的相对最高，则选择出来做卖点。
 这种选法会出现这样的问题：
