@@ -28,20 +28,19 @@ periods = [[Interval.in_1_minute, "1M"],
 merged = [[future] + period for future in futures for period in periods]
 # print(merged)
 
-# prepare csv file name and append list 
-for sublist in merged:
-    today = datetime.now().strftime("%Y-%m-%d")
-    csv_file_name = f'{sublist[0]}_{today}_{sublist[2]}.csv'
-    #print(csv_file_name)
-    sublist.append(csv_file_name)
+# df = tv.get_hist(symbol='NQ1!', exchange='CME_MINI', interval=Interval.in_1_minute, n_bars=100000)
+# print(df)
 
-#print(merged)
-
-# nq_data = tv.get_hist(symbol='NQ1!', exchange='CME_MINI', interval=Interval.in_1_minute, n_bars=100000)
-# print(nq_data)
 # invoke get history data from tradingview and save it to csv files
-for sublist in merged:
-    nq_data = tv.get_hist(symbol=sublist[0], exchange='CME_MINI', interval=sublist[1], n_bars=100000)
-    nq_data.to_csv(f'stockdata/{sublist[3]}')
 
-# nq_data.to_csv("nq_1m.csv")
+for sublist in merged:
+    df = tv.get_hist(symbol=sublist[0], exchange='CME_MINI', interval=sublist[1], n_bars=100000)
+
+    first_row = df.index[0] # Get the first row of the DataFrame 
+    last_row = df.index[-1] # Get the last row of the DataFrame
+    # prpare file name based on start time and end time of dataframe
+    dateRange = f'{first_row} to {last_row}'
+    file_name = f'{sublist[0]}_{dateRange}_{sublist[2]}.csv'
+    print(file_name)
+
+    df.to_csv(f'stockdata/{file_name}')
