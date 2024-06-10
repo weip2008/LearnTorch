@@ -36,11 +36,11 @@ merged = [[future] + period for future in futures for period in periods]
 for sublist in merged:
     df = tv.get_hist(symbol=sublist[0], exchange='CME_MINI', interval=sublist[1], n_bars=100000)
 
-    first_row = df.index[0] # Get the first row of the DataFrame 
-    last_row = df.index[-1] # Get the last row of the DataFrame
+    first_row = df.index[0].strftime("%Y-%m-%d") # Get the first row of the DataFrame 
+    last_row = df.index[-1].strftime("%Y-%m-%d") # Get the last row of the DataFrame
     # prpare file name based on start time and end time of dataframe
-    dateRange = f'{first_row} to {last_row}'
-    file_name = f'{sublist[0]}_{dateRange}_{sublist[2]}.csv'
+    dateRange = f'{first_row}_{last_row}'
+    file_name = f'{sublist[0][:2]}_{dateRange}_{sublist[2]}.csv'
     print(file_name)
 
     df.to_csv(f'stockdata/{file_name}')

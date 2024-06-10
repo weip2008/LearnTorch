@@ -1,14 +1,59 @@
 import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import signal
+
 df = pd.read_csv("stockdata/NQ1!_2024-06-08_1M.csv")
 print(df)
 print(df.shape)
 
-df.rename(columns=lambda x: x.lower(), inplace=True)
-# convert string datetime to datetime type and set 'datetime' as index
-df['datetime'] = pd.to_datetime(df['datetime']) 
-df.set_index('datetime', inplace=True)
-print(df.high.median())
-print(df.describe())
+def filter(values, percentage):
+    previous = values[0]
+    mask = [True]
+    for value in values[1:]:
+        relative_difference = np.abs(value - previous)/previous
+        if relative_difference > percentage:
+            previous = value
+            mask.append(True)
+        else:
+            mask.append(False)
+    return mask
+
+# Assuming 'df' is your DataFrame
+data_y = df['close'].values
+
+# Find peaks(max).
+peak_indexes = signal.argrelextrema(data_y, np.greater)[0]
+
+# Find valleys(min).
+valley_indexes = signal.argrelextrema(data_y, np.less)[0]
+
+# Merge peaks and valleys data points using pandas.
+df_peaks = pd.DataFrame({'date': df.index[peak_indexes], 'zigzag_y': data_y[peak_indexes]})
+df_valleys = pd.DataFrame({'date': df.index[valley_indexes], 'zigzag_y': data_y[valley_indexes]})
+df_peaks_valleys = pd.concat([df_peaks, df_valleys], axis=0, ignore_index=True, sort=True)
+
+# Sort peak and valley datapoints by date.
+df_peaks_valleys = df_peaks_valleys.sort_values(by=['date'])
+
+# Filter the peaks and valleys based on a percentage change threshold.
+p = 0.001 # 10%
+filter_mask = filter(df_peaks_valleys.zigzag_y, p)
+filtered = df_peaks_valleys[filter_mask]
+
+# Plot original line and zigzag trendline.
+plt.figure(figsize=(10,10))
+plt.plot(df.index.values, data_y, linestyle='dashed', color='black', label="Original line", linewidth=1)
+plt.plot(filtered['date'].values, filtered['zigzag_y'].values, color='blue', label="ZigZag")
+plt.legend()
+plt.show()
+
+# df.rename(columns=lambda x: x.lower(), inplace=True)
+# # convert string datetime to datetime type and set 'datetime' as index
+# df['datetime'] = pd.to_datetime(df['datetime']) 
+# df.set_index('datetime', inplace=True)
+# print(df.high.median())
+# print(df.describe())
 
 #                open          high           low         close        volume
 # count   6899.000000   6899.000000   6899.000000   6899.000000   6899.000000
