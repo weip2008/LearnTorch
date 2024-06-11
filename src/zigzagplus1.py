@@ -1,6 +1,10 @@
-import yfinance as yf
+import sqlite3
+import logging
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import yfinance as yf
+import os
 from zigzag import peak_valley_pivots
 import matplotlib.pyplot as plt
 
@@ -41,7 +45,7 @@ def plot_zigzag(df, zigzag):
 def convert_list_to_df(patterns):
     # Convert list to DataFrame
     # Specify column names
-    columns = ['Datetime', 'Point', 'Label']
+    columns = ['Datetime', 'Price', 'Label']
     
     # Create DataFrame and set index
     patterns_df = pd.DataFrame(patterns, columns=columns)
@@ -53,23 +57,24 @@ def plot_patterns(df, patterns_df):
     # Plotting to visualize the result
     fig, ax = plt.subplots(figsize=(14, 7))
 
-    ax.plot(df.index, df['Close'], label='Close Price')
+    ax.plot(df.index, df['Close'], label='Close Price', color="blue")
     # 1.
     # patterns_df.loc[patterns_df['Label'] == 'HH'].index
     # you are locating rows in patterns_df where the 'Label' column is 'HH' 
     # and then accessing the index of those rows
-    ax.scatter(patterns_df.loc[patterns_df['Label'] == 'HH'].index, patterns_df.loc[patterns_df['Label'] == 'HH', 'Point'], color='green', label='HH', marker='^', alpha=1)
-    ax.scatter(patterns_df.loc[patterns_df['Label'] == 'LL'].index, patterns_df.loc[patterns_df['Label'] == 'LL', 'Point'], color='red', label='LL', marker='v', alpha=1)
-    ax.scatter(patterns_df.loc[patterns_df['Label'] == 'LH'].index, patterns_df.loc[patterns_df['Label'] == 'LH', 'Point'], color='black', label='LH', marker='o', alpha=1)
-    ax.scatter(patterns_df.loc[patterns_df['Label'] == 'HL'].index, patterns_df.loc[patterns_df['Label'] == 'HL', 'Point'], color='orange', label='HL', marker='o', alpha=1)
+    # ax.scatter(patterns_df.loc[patterns_df['Label'] == 'HH'].index, patterns_df.loc[patterns_df['Label'] == 'HH', 'Point'], color='green', label='HH', marker='^', alpha=1)
+    # ax.scatter(patterns_df.loc[patterns_df['Label'] == 'LL'].index, patterns_df.loc[patterns_df['Label'] == 'LL', 'Point'], color='red', label='LL', marker='v', alpha=1)
+    # ax.scatter(patterns_df.loc[patterns_df['Label'] == 'LH'].index, patterns_df.loc[patterns_df['Label'] == 'LH', 'Point'], color='black', label='LH', marker='o', alpha=1)
+    # ax.scatter(patterns_df.loc[patterns_df['Label'] == 'HL'].index, patterns_df.loc[patterns_df['Label'] == 'HL', 'Point'], color='orange', label='HL', marker='o', alpha=1)
 
     # 2. 
     # patterns_df.index[patterns_df['Label'] == 'HH']
     # This method first creates a boolean mask with patterns_df['Label'] == 'HH' 
     # and then uses this mask to index patterns_df.index.
-    #ax.scatter(patterns_df.index[patterns_df['Label'] == 'HH'], patterns_df['Point'][patterns_df['Label'] == 'HH'], color='green', label='HH', marker='^', alpha=1)
-    #ax.scatter(patterns_df.index[patterns_df['Label'] == 'LL'], patterns_df['Point'][patterns_df['Label'] == 'LL'], color='red', label='LL', marker='v', alpha=1)
-    #ax.scatter(patterns_df.index[(patterns_df['Label'] == 'LH') | (patterns_df['Label'] == 'HL')], patterns_df['Point'][(patterns_df['Label'] == 'LH') | (patterns_df['Label'] == 'HL')], color='black', label='LH/HL', marker='o', alpha=1)
+    ax.scatter(patterns_df.index[patterns_df['Label'] == 'HH'], patterns_df['Price'][patterns_df['Label'] == 'HH'], color='green', label='HH', marker='^', alpha=1)
+    ax.scatter(patterns_df.index[patterns_df['Label'] == 'LL'], patterns_df['Price'][patterns_df['Label'] == 'LL'], color='red', label='LL', marker='v', alpha=1)
+    ax.scatter(patterns_df.index[patterns_df['Label'] == 'LH'], patterns_df['Price'][patterns_df['Label'] == 'LH'], color='black', label='LH', marker='o', alpha=1)
+    ax.scatter(patterns_df.index[patterns_df['Label'] == 'HL'], patterns_df['Price'][patterns_df['Label'] == 'HL'], color='orange', label='HL', marker='o', alpha=1)
 
     ax.set_title('Points with Labels')
     ax.set_xlabel('Datetime')
@@ -108,6 +113,7 @@ def detect_patterns(zigzag_points):
         label
         #patterns.append((current_point['Close'], label))
         patterns.append((current_point.name, current_point['Close'], label))
+        #patterns.append((current_point['Datetime'], current_point['Close'], label))
     return patterns
 
 def detect_patterns2(zigzag_points):
@@ -186,7 +192,6 @@ def detect_patterns3(zigzag_points):
     return patterns
 
 
-
 def generate_alerts(zigzag_points):
     """
     Generate alerts based on detected patterns.
@@ -213,8 +218,6 @@ if __name__ == "__main__":
     #     'Close': [0.8, 1.5, 2.5, 3.5, 4.5, 3.5, 2.5, 3, 3.5, 2]
     # }
     # df = pd.DataFrame(data)
-
-    import pandas as pd
 
     # Data to convert to DataFrame
     # data = {
@@ -259,7 +262,7 @@ if __name__ == "__main__":
 
     # print(df.head(20))
     
-    # Example usage:
+    ''' # Example usage:
     ticker_symbols = [ "MES=F" ]
     # Data interval
     t_interval="1m"
@@ -275,28 +278,88 @@ if __name__ == "__main__":
         df = df.drop(columns=['Stock Splits'])
     if 'Adj Close' in df.columns:
         df = df.drop(columns=['Adj Close'])    
-                            
-                    
-    print(df.head(20))
+                                        
+    print(df.head(20)) '''
 
+
+    #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
+    logging.basicConfig(
+        level=logging.INFO,  # Set the logging level to DEBUG
+        #format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format=' %(levelname)s => %(message)s'
+    )
+            
+    IsDebug = True
+     
     # ZigZag parameters
-    deviation = 0.0008  # Percentage
+    deviation = 0.001  # Percentage
+       
+    symbol = "SPY"
+    #symbol = "MES=F"
 
+    # Define the table name as a string variable
+    #table_name = "AAPL_1m"
+    table_name = "SPY_1m"
+    # Define the SQLite database file
+    data_dir = "stockdata"
+    db_file = os.path.join(data_dir, "stock_data.db")
+
+    # Define the query date range
+    training_start_date = "2024-04-11"
+    #query_end = "2024-04-19"
+    query_end = "2024-05-26"
+
+    # Connect to the SQLite database
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    print("\n\n==========================4===Query==========================\n\n")
+
+
+    # Query the data between May 6th, 2024, and May 12th, 2024
+    query_range = f'''
+    SELECT * FROM {table_name}
+    WHERE Datetime BETWEEN ? AND ?
+    '''
+    # Save the query result into a DataFrame object named query_result_df
+    query_result_df = pd.read_sql_query(query_range, conn, params=(training_start_date, query_end))
+
+    # print("Length of query result is:", len(query_result_df))
+    # print("Datatype of query result:", type(query_result_df))
+    # print(query_result_df)
+
+    ohlc_df = query_result_df
+    ohlc_df['Datetime'] = pd.to_datetime(ohlc_df['Datetime'])
+    ohlc_df.set_index('Datetime', inplace=True)
+
+    if IsDebug:
+        #print("Time elapsed:", time_elapsed, "seconds")
+        print("Results dataframe length:", len(ohlc_df))  
+        #print("Data read from :", file_path)
+        print("Data read from table:", table_name)
+        # Print the first few rows of the DataFrame
+        print(ohlc_df.head(10))
+        print(ohlc_df.tail(10))
+
+    
     # Calculate ZigZag
-    zigzag = calculate_zigzag(df, deviation)
+    zigzag = calculate_zigzag(ohlc_df, deviation)
     print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
+    
+    # Plot ZigZag
+    plot_zigzag(ohlc_df, zigzag)
 
     # zigzag_counts = df['Close'].value_counts()
     # zigzag_value_counts = zigzag_counts[zigzag_counts.index.isin(zigzag)]
     # print("Zigzag value counts:\n", zigzag_value_counts)
 
     # Filter the original DataFrame using the indices
-    filtered_zigzag_df = df.loc[zigzag.index]
+    # df.loc[zigzag.index]:
+    # This expression uses the .loc accessor to select rows from the original DataFrame df.
+    # The rows selected are those whose index labels match the index labels of the zigzag DataFrame (or Series).
+    # In other words, it filters df to include only the rows where the index (Date) is present in the zigzag index.
+    filtered_zigzag_df = ohlc_df.loc[zigzag.index]
     print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
 
-    # Plot ZigZag
-    plot_zigzag(df, zigzag)
-    
     # Detect patterns
     # df[df['Close'].isin(zigzag)] creates a new DataFrame 
     # that contains only the rows from df 
@@ -305,12 +368,12 @@ if __name__ == "__main__":
     patterns = detect_patterns(filtered_zigzag_df)
     #for pattern in patterns:
     #    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
-    #print("Patterns list:\n", patterns)
+    print("Patterns list:\n", patterns)
     
     patterns_df = convert_list_to_df(patterns)
-    print(f"Patterns length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
+    print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
 
-    plot_patterns(df, patterns_df)
+    plot_patterns(ohlc_df, patterns_df)
     
     # Generate alerts
     # alerts = generate_alerts(df[df['Close'].isin(zigzag)])
