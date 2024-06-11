@@ -326,7 +326,7 @@ def calculate_acceleration(velocity_list):
     # Example usage:
     # acceleration_data = calculate_acceleration(velocity_list)
 
-def write_training_data(TradePosition, acceleration_list, csvfile):
+def write_testing_data(TradePosition, acceleration_list, csvfile):
     # for testing data, the first number is index of "LONG, HOLD, SHORT" series!
     # so if it's LONG, then it's 0; SHORT is 2;
     
@@ -391,7 +391,7 @@ def generate_testing_data(tddf_highlow_list, position):
             f"{len(tddf_acceleration_list)}\n"
         ) 
         
-        write_training_data(position, tddf_acceleration_list, datafile)
+        write_testing_data(position, tddf_acceleration_list, datafile)
     
     outputfile.close()    
     return
