@@ -15,12 +15,12 @@ from TimeElapsed import read_CSV_file
 from enum import Enum
 #from zigzagplus1 import calculate_zigzag,detect_patterns
 import zigzagplus1 as zz
+import CutSlice as ct
 
 class TradePosition(Enum):
     LONG = 1
     HOLD = 0
     SHORT = -1
-
 
 
 def gen_hold_list_index(df):
@@ -46,40 +46,6 @@ def gen_hold_list_index(df):
 
     return new_index 
 
-def cut_slices(ohlc_df, selected_points_index, window_len):
-    
-    tddf_list = []
-    for index in selected_points_index:
-
-        start_index = index - (window_len+1) 
-        # if we don't have enough long data series for this slice, ignore it
-        if start_index < 0:
-            continue
-        
-        # Adjust end index to include one more element
-        end_index = index+1
-     
-        # Create a copy of the section of the original DataFrame
-        # start from start_index up to but not including end_index!
-        #section_df = ohlc_df.loc[start_index:end_index].copy()  
-        section_df = ohlc_df[start_index:end_index].copy()
-        # if IsDebug:
-        #     print("section_df length:", len(section_df))
-         
-        # Log the modified DataFrame
-        #logging.debug("\nSliced DataFrame:\n%s", section_df)
-
-        # Drop unwanted columns
-        section_df.drop(['Open', 'High', 'Low', 'Close', 'AdjClose'], axis=1, inplace=True)  
-        # Reset the index and drop the old index
-        section_df.reset_index(drop=True, inplace=True)
-        logging.debug("\nSliced DataFrame:\n%s", section_df)
-        
-        tddf_list.append(section_df)  # Append the section DataFrame to the tdohlc_df_list
-        
-    #logging.DEBUG(tddf_list)
-    
-    return tddf_list
 
 def list_to_string(acceleration_list):
     # Convert each tuple to a string with parentheses and join them with newline characters
@@ -125,19 +91,16 @@ def calculate_velocity(processing_df):
     #lowest_price, corresponding_volume = find_lowest_price_with_volume(processing_df)
     
     # Normalize 'Volume' and 'Price'
-    processing_df['Normalized_Volume'] = normalize(processing_df['Volume'])
-    processing_df['Normalized_Price'] = normalize(processing_df['Price'])
+    #processing_df['Normalized_Volume'] = normalize(processing_df['Volume'])
+    processing_df['Normalized_Price'] = normalize(processing_df['Close'])
     
     if IsDebug:
         print(processing_df)
     
     for j in range(0, len(processing_df)-1):
         # Extract Price from the current and previous rows
-        #price_current = processing_df[j]['Price']
-        #price_previous = processing_df[j - 1]['Price']        
-        #price_previous = processing_df.iloc[j - 1]['Price']
-        price_current = processing_df.iloc[j]['Price']
-        price_next = processing_df.iloc[j+1]['Price']
+        price_current = processing_df.iloc[j]['Close']
+        price_next = processing_df.iloc[j+1]['Close']
         normalized_price_current = processing_df.iloc[j]['Normalized_Price']
         normalized_price_next = processing_df.iloc[j+1]['Normalized_Price']
 
@@ -153,22 +116,27 @@ def calculate_velocity(processing_df):
         index_current = processing_df.index[j]
         index_next = processing_df.index[j+1]
         #print("index_current:", index_current)
-        #print("index_previous:", index_previous)
+        #print("index_previous:", index_next)
         
-        #dT = (index_current - index_previous) / pd.Timedelta(minutes=1)  
+        #dT = (index_next - index_current) / pd.Timedelta(minutes=1)  
         #dT = index_current - index_previous 
-        dT = (index_next - index_current) / tdLen
+        #dT = (index_next - index_current) / tdLen
+        loc_current = processing_df.index.get_loc(index_current)
+        loc_next = processing_df.index.get_loc(index_next)
+
+        # Calculate dT based on the difference of locations
+        dT = loc_next - loc_current
         #print("dT:", dT)
-        
+                
         # Calculate the velocity (dY/dT)
         velocity = dY / dT
         #print("velocity:", velocity)
         
-        datetime_current = processing_df.iloc[j]['Datetime']
-        volume_current = processing_df.iloc[j]['Volume']
-        normalized_volum_current = processing_df.iloc[j]['Normalized_Volume']
+        #datetime_current = processing_df.iloc[j]['Datetime']
+        #volume_current = processing_df.iloc[j]['Volume']
+        #normalized_volum_current = processing_df.iloc[j]['Normalized_Volume']
         # Append the tuple with the "Velocity" column to tdohlc_df_high_velocity_list
-        velocity_list.append((datetime_current, normalized_price_current, normalized_volum_current, velocity))
+        velocity_list.append((index_current, normalized_price_current, velocity))
 
     return velocity_list
 
@@ -189,32 +157,22 @@ def calculate_acceleration(velocity_list):
 
     # Iterate over each tuple in velocity_list starting from the second tuple
     for i in range(0, len(velocity_list)-1):
-        # Extract velocity data from the current and previous tuples
+        # Extract velocity data from the current and next tuples
         next_tuple = velocity_list[i+1] 
         current_tuple = velocity_list[i]
         #previous_tuple = velocity_list[i - 1]
 
-        velocity_next = next_tuple[3]
-        velocity_current = current_tuple[3]  # velocity is stored at index 2 in the tuple
-        #velocity_previous = previous_tuple[3]
+        velocity_next = next_tuple[2]
+        velocity_current = current_tuple[2]  # velocity is stored at index 2 in the tuple
+        #velocity_previous = previous_tuple[2]
 
         # Calculate the change in velocity
-        #dV = abs(velocity_current) - abs(velocity_previous)
-        #dV = velocity_current - velocity_previous
         dV = velocity_next - velocity_current 
-
-        ''' 
-        # Convert timestamp strings to datetime objects
-        # then alculate the change in time (dT) in minutes
-        # But when using different time unit, need change code
-        index_current = pd.to_datetime(current_tuple[0])
-        index_previous = pd.to_datetime(previous_tuple[0])
-        dT = (index_current - index_previous) / pd.Timedelta(minutes=1)  # Convert to minutes
-        '''
+        
         #index_current = velocity_list[i].index
         #index_previous = velocity_list[i-1].index
-        index_next = i+1
         index_current = i
+        index_next = i+1
         i#ndex_previous = i-1
         #dT = index_current - index_previous
         dT = index_next - index_current
@@ -222,16 +180,15 @@ def calculate_acceleration(velocity_list):
         # Calculate acceleration (dV/dT)
         acceleration = dV / dT
         
-        current_time = pd.to_datetime(current_tuple[0])
-        #current_volume = current_tuple[2]
+        #current_time = pd.to_datetime(current_tuple[0])
+        current_time = current_tuple[0]
         #day_of_week_numeric, time_float = convert_to_day_and_time(index_current)
         day_of_week_numeric, time_float = convert_to_day_and_time(current_time)
 
         # Append the tuple with the "Acceleration" column to acceleration_list
         #acceleration_list.append((index_current, current_tuple[1], velocity_current, acceleration))
         acceleration_list.append((day_of_week_numeric, time_float, 
-                                  current_tuple[1],  current_tuple[2], current_tuple[3], 
-                                  acceleration))
+                                  current_tuple[1],  current_tuple[2], acceleration))
 
     return acceleration_list
 
@@ -318,24 +275,32 @@ def generate_training_data(tddf_highlow_list, position):
 
 def check_patterns(ohlc_df, patterns_df, tdLen):
     
-    
-    selected_low_points_index = selected_low_points.index.tolist()
-    selected_high_points_index = selected_high_points.index.tolist()
+    # filtered_low_points_index = filtered_low_points.index.tolist()
+    # filtered_high_points_index = filtered_high_points.index.tolist()
 
-    filtered_low_points_index = filtered_low_points.index.tolist()
-    filtered_high_points_index = filtered_high_points.index.tolist()
-
-    
-
+    tddf_low_list = []
+    tddf_high_list = []
     # Loop through the DataFrame and find the first item with the second character of 'L'
     for idx, row in patterns_df.iterrows():
         if row['Label'][1] == 'L':
-            print(f"Found at {idx}")
-            cut_slices(idx)
-            tddf_low_list = cut_slices(ohlc_df, filtered_low_points_index, tdLen)
+            #print(f"L point found at {idx}, {row['Label']}")
+            section_df = ct.cut_slice(ohlc_df, idx, tdLen+1)
+            if (section_df is not None):
+                #print("\nSliced DataFrame:\n", section_df)
+                tddf_low_list.append(section_df) 
             continue
-
-   
+        
+        if row['Label'][1] == 'H':
+            #print(f"H point found at {idx}, {row['Label']}")
+            section_df = ct.cut_slice(ohlc_df, idx, tdLen+1)
+            if (section_df is not None):                
+                #print("\nSliced DataFrame:\n", section_df)
+                tddf_high_list.append(section_df) 
+            continue
+        
+        print("Error: Not sure how to process this point!\n")
+        
+    return tddf_low_list, tddf_high_list
     
 
 #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
@@ -355,7 +320,7 @@ IsDebug = True
 tdLen = 50
 
 # Series Number for output training data
-SN = "13"
+SN = "20"
     
 # ZigZag parameters
 deviation = 0.001  # Percentage
@@ -445,12 +410,14 @@ zz.plot_patterns(ohlc_df, patterns_df)
     
 #=========================================================================#
 
+tddf_low_list, tddf_high_list = check_patterns(ohlc_df, patterns_df, tdLen)
 
 td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
 
 with open(td_file, "w") as datafile:
-    generate_training_data(patterns_df)
-    #generate_training_data(tddf_high_list, TradePosition.SHORT)
+    #generate_training_data(patterns_df)
+    generate_training_data(tddf_low_list, TradePosition.SHORT)
+    generate_training_data(tddf_high_list, TradePosition.SHORT)
     #generate_training_data(tddf_hold_list, TradePosition.HOLD)
 
 
