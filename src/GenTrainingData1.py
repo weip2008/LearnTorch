@@ -234,6 +234,40 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
         
     return
 
+
+def write_testing_data(TradePosition, acceleration_list, csvfile):
+    # for testing data, the first number is index of "LONG, HOLD, SHORT" series!
+    # so if it's LONG, then it's 0; SHORT is 2;
+    
+    trainingdata_str = list_to_string(acceleration_list)
+   
+    if (TradePosition is TradePosition.LONG):
+        result = "0," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+    
+        csvfile.write(result)
+        return
+    
+    if (TradePosition is TradePosition.HOLD):
+        result = "1," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+        
+        csvfile.write(result)        
+        return
+        
+    if (TradePosition is TradePosition.SHORT):        
+        result = "2," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+        
+        csvfile.write(result)
+            
+    return
+
+
+
 def generate_training_data(tddf_highlow_list, position):
     
     filename = 'stockdata/TrainingDataGenLog_'+ str(position)+".log"
@@ -273,13 +307,52 @@ def generate_training_data(tddf_highlow_list, position):
     outputfile.close()    
     return
 
+def generate_testing_data(tddf_highlow_list, position):
+    
+    filename = 'stockdata/TestingDataGenLog_'+ str(position)+".log"
+    # Open a file in write mode
+    outputfile = open(filename, 'w')
+ 
+    # Initialize an empty list to store tuples with the "Velocity" column
+    tddf_velocity_list = []
+    tddf_acceleration_list = []
+     
+    # Iterate over each tuple in tddf_highlow_list starting from the second tuple
+    for i in range(0, len(tddf_highlow_list)):
+        processing_df = tddf_highlow_list[i]
+        if IsDebug:
+            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
+        
+        tddf_velocity_list = calculate_velocity(processing_df)
+        if IsDebug:
+            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
+        
+        tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
+        if IsDebug:
+            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
+        
+        if IsDebug:
+            print("\nGenerate testing data:")
+        
+        # Write lengths to the file in the desired format
+        outputfile.write(
+            f"{len(processing_df)},"
+            f"{len(tddf_velocity_list)},"
+            f"{len(tddf_acceleration_list)}\n"
+        ) 
+        
+        write_testing_data(position, tddf_acceleration_list, datafile)
+    
+    outputfile.close()    
+    return
+
 def check_patterns(ohlc_df, patterns_df, tdLen):
     
     # filtered_low_points_index = filtered_low_points.index.tolist()
     # filtered_high_points_index = filtered_high_points.index.tolist()
 
-    tddf_low_list = []
-    tddf_high_list = []
+    low_list = []
+    high_list = []
     # Loop through the DataFrame and find the first item with the second character of 'L'
     for idx, row in patterns_df.iterrows():
         if row['Label'][1] == 'L':
@@ -287,7 +360,7 @@ def check_patterns(ohlc_df, patterns_df, tdLen):
             section_df = ct.cut_slice(ohlc_df, idx, tdLen+1)
             if (section_df is not None):
                 #print("\nSliced DataFrame:\n", section_df)
-                tddf_low_list.append(section_df) 
+                low_list.append(section_df) 
             continue
         
         if row['Label'][1] == 'H':
@@ -295,13 +368,85 @@ def check_patterns(ohlc_df, patterns_df, tdLen):
             section_df = ct.cut_slice(ohlc_df, idx, tdLen+1)
             if (section_df is not None):                
                 #print("\nSliced DataFrame:\n", section_df)
-                tddf_high_list.append(section_df) 
+                high_list.append(section_df) 
             continue
         
         print("Error: Not sure how to process this point!\n")
         
-    return tddf_low_list, tddf_high_list
-    
+    return low_list, high_list
+
+def gen_highlow_list(query_start, query_end):
+    # Connect to the SQLite database
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    print("\n\n==========================4===Query==========================\n\n")
+
+
+    # Query the data between May 6th, 2024, and May 12th, 2024
+    query_range = f'''
+    SELECT * FROM {table_name}
+    WHERE Datetime BETWEEN ? AND ?
+    '''
+    # Save the query result into a DataFrame object named query_result_df
+    query_result_df = pd.read_sql_query(query_range, conn, params=(query_start, query_end))
+
+    # print("Length of query result is:", len(query_result_df))
+    # print("Datatype of query result:", type(query_result_df))
+    # print(query_result_df)
+
+    ohlc_df = query_result_df
+    ohlc_df['Datetime'] = pd.to_datetime(ohlc_df['Datetime'])
+    ohlc_df.set_index('Datetime', inplace=True)
+
+    if IsDebug:
+        #print("Time elapsed:", time_elapsed, "seconds")
+        print("Results dataframe length:", len(ohlc_df))  
+        #print("Data read from :", file_path)
+        print("Data read from table:", table_name)
+        # Print the first few rows of the DataFrame
+        print(ohlc_df.head(10))
+        print(ohlc_df.tail(10))
+
+
+    # Calculate ZigZag
+    zigzag = zz.calculate_zigzag(ohlc_df, deviation)
+    print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
+
+    # Plot ZigZag
+    zz.plot_zigzag(ohlc_df, zigzag)
+
+    # zigzag_counts = df['Close'].value_counts()
+    # zigzag_value_counts = zigzag_counts[zigzag_counts.index.isin(zigzag)]
+    # print("Zigzag value counts:\n", zigzag_value_counts)
+
+    # Filter the original DataFrame using the indices
+    # df.loc[zigzag.index]:
+    # This expression uses the .loc accessor to select rows from the original DataFrame df.
+    # The rows selected are those whose index labels match the index labels of the zigzag DataFrame (or Series).
+    # In other words, it filters df to include only the rows where the index (Date) is present in the zigzag index.
+    filtered_zigzag_df = ohlc_df.loc[zigzag.index]
+    print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
+
+    # Detect patterns
+    # df[df['Close'].isin(zigzag)] creates a new DataFrame 
+    # that contains only the rows from df 
+    # where the 'Close' value is in the zigzag list.
+    # patterns = detect_patterns(df[df['Close'].isin(zigzag)])
+    patterns = zz.detect_patterns(filtered_zigzag_df)
+    #for pattern in patterns:
+    #    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
+    print("Patterns list:\n", patterns)
+
+    patterns_df = zz.convert_list_to_df(patterns)
+    print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
+
+    zz.plot_patterns(ohlc_df, patterns_df)
+        
+    low_list, high_list = check_patterns(ohlc_df, patterns_df, tdLen)
+    return low_list, high_list
+
+#
+# ================================================================================#
 
 #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
 logging.basicConfig(
@@ -335,89 +480,33 @@ table_name = "SPY_1m"
 data_dir = "stockdata"
 db_file = os.path.join(data_dir, "stock_data.db")
 
-# Define the query date range
-training_start_date = "2024-04-11"
-#query_end = "2024-04-19"
-query_end = "2024-05-26"
-
-# Connect to the SQLite database
-conn = sqlite3.connect(db_file)
-cursor = conn.cursor()
-print("\n\n==========================4===Query==========================\n\n")
-
-
-# Query the data between May 6th, 2024, and May 12th, 2024
-query_range = f'''
-SELECT * FROM {table_name}
-WHERE Datetime BETWEEN ? AND ?
-'''
-# Save the query result into a DataFrame object named query_result_df
-query_result_df = pd.read_sql_query(query_range, conn, params=(training_start_date, query_end))
-
-# print("Length of query result is:", len(query_result_df))
-# print("Datatype of query result:", type(query_result_df))
-# print(query_result_df)
-
-ohlc_df = query_result_df
-ohlc_df['Datetime'] = pd.to_datetime(ohlc_df['Datetime'])
-ohlc_df.set_index('Datetime', inplace=True)
-
-if IsDebug:
-    #print("Time elapsed:", time_elapsed, "seconds")
-    print("Results dataframe length:", len(ohlc_df))  
-    #print("Data read from :", file_path)
-    print("Data read from table:", table_name)
-    # Print the first few rows of the DataFrame
-    print(ohlc_df.head(10))
-    print(ohlc_df.tail(10))
-
-
-# Calculate ZigZag
-zigzag = zz.calculate_zigzag(ohlc_df, deviation)
-print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
-
-# Plot ZigZag
-zz.plot_zigzag(ohlc_df, zigzag)
-
-# zigzag_counts = df['Close'].value_counts()
-# zigzag_value_counts = zigzag_counts[zigzag_counts.index.isin(zigzag)]
-# print("Zigzag value counts:\n", zigzag_value_counts)
-
-# Filter the original DataFrame using the indices
-# df.loc[zigzag.index]:
-# This expression uses the .loc accessor to select rows from the original DataFrame df.
-# The rows selected are those whose index labels match the index labels of the zigzag DataFrame (or Series).
-# In other words, it filters df to include only the rows where the index (Date) is present in the zigzag index.
-filtered_zigzag_df = ohlc_df.loc[zigzag.index]
-print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
-
-# Detect patterns
-# df[df['Close'].isin(zigzag)] creates a new DataFrame 
-# that contains only the rows from df 
-# where the 'Close' value is in the zigzag list.
-# patterns = detect_patterns(df[df['Close'].isin(zigzag)])
-patterns = zz.detect_patterns(filtered_zigzag_df)
-#for pattern in patterns:
-#    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
-print("Patterns list:\n", patterns)
-
-patterns_df = zz.convert_list_to_df(patterns)
-print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
-
-zz.plot_patterns(ohlc_df, patterns_df)
-    
-
-    
 #=========================================================================#
+training_start_date = "2024-04-11"
+training_end_date = "2024-05-26"
 
-tddf_low_list, tddf_high_list = check_patterns(ohlc_df, patterns_df, tdLen)
+tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date)
 
 td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
 
 with open(td_file, "w") as datafile:
     #generate_training_data(patterns_df)
-    generate_training_data(tddf_low_list, TradePosition.SHORT)
+    generate_training_data(tddf_low_list, TradePosition.LONG)
     generate_training_data(tddf_high_list, TradePosition.SHORT)
     #generate_training_data(tddf_hold_list, TradePosition.HOLD)
 
+#=========================================================================#
+#query_start = "2024-05-20"
+#query_end = "2024-05-26"
+testing_start_date = "2024-05-20"
+testing_end_date = "2024-05-26"
+
+tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date)
+
+td_file = os.path.join(data_dir, f"{symbol}_TestingData_{tdLen}_{SN}.csv")
+
+with open(td_file, "w") as datafile:
+    #generate_training_data(patterns_df)
+    generate_testing_data(tddf_low_list, TradePosition.LONG)
+    generate_testing_data(tddf_high_list, TradePosition.SHORT)
+    #generate_training_data(tddf_hold_list, TradePosition.HOLD)
 
