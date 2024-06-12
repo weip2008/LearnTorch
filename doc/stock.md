@@ -64,6 +64,12 @@
 如果完全等我用”古典方法“来选点做教材来训练AI模型，那完全没有发挥机器学习的效率和优势，应该换思路，给出最基本的“公理”“规则rule”后放手让机器自己去挖掘学习。
 
 * [Generating training and testing dataset to csv file](../src/GenTrainTestData.py)
+
+```dos
+pip install zigzag
+pip install ta
+需要有stock_data.db文件的支持。❓从哪里获得此文件❓
+```
 useful parameters under main():
 1. SN: Serial number for different dataset-
 2. IsDebug:
