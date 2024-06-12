@@ -447,66 +447,69 @@ def gen_highlow_list(query_start, query_end):
 
 #
 # ================================================================================#
+def main():
+    #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
+    logging.basicConfig(
+        level=logging.INFO,  # Set the logging level to DEBUG
+        #format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format=' %(levelname)s => %(message)s'
+    )
+            
+    IsDebug = True
+    #WindowLen = 5
 
-#logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
-logging.basicConfig(
-    level=logging.INFO,  # Set the logging level to DEBUG
-    #format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    format=' %(levelname)s => %(message)s'
-)
+    #Trainning data lenth
+    # average number of working days in a month is 21.7, based on a five-day workweek
+    # so 45 days is total for two months working days
+    # 200 days is one year working days
+    tdLen = 50
+
+    # Series Number for output training data
+    SN = "100"
         
-IsDebug = True
-#WindowLen = 5
+    # ZigZag parameters
+    deviation = 0.001  # Percentage
+        
+    symbol = "SPY"
+    #symbol = "MES=F"
 
-#Trainning data lenth
-# average number of working days in a month is 21.7, based on a five-day workweek
-# so 45 days is total for two months working days
-# 200 days is one year working days
-tdLen = 50
+    # Define the table name as a string variable
+    #table_name = "AAPL_1m"
+    table_name = "SPY_1m"
+    # Define the SQLite database file
+    data_dir = "stockdata"
+    db_file = os.path.join(data_dir, "stock_data.db")
 
-# Series Number for output training data
-SN = "100"
-    
-# ZigZag parameters
-deviation = 0.001  # Percentage
-    
-symbol = "SPY"
-#symbol = "MES=F"
+    #=========================================================================#
+    training_start_date = "2024-04-11"
+    training_end_date = "2024-05-26"
 
-# Define the table name as a string variable
-#table_name = "AAPL_1m"
-table_name = "SPY_1m"
-# Define the SQLite database file
-data_dir = "stockdata"
-db_file = os.path.join(data_dir, "stock_data.db")
+    tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date)
 
-#=========================================================================#
-training_start_date = "2024-04-11"
-training_end_date = "2024-05-26"
+    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
 
-tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date)
+    with open(td_file, "w") as datafile:
+        #generate_training_data(patterns_df)
+        generate_training_data(tddf_low_list, TradePosition.LONG)
+        generate_training_data(tddf_high_list, TradePosition.SHORT)
+        #generate_training_data(tddf_hold_list, TradePosition.HOLD)
 
-td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
+    #=========================================================================#
+    #query_start = "2024-05-20"
+    #query_end = "2024-05-26"
+    testing_start_date = "2024-05-20"
+    testing_end_date = "2024-05-26"
 
-with open(td_file, "w") as datafile:
-    #generate_training_data(patterns_df)
-    generate_training_data(tddf_low_list, TradePosition.LONG)
-    generate_training_data(tddf_high_list, TradePosition.SHORT)
-    #generate_training_data(tddf_hold_list, TradePosition.HOLD)
+    tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date)
 
-#=========================================================================#
-#query_start = "2024-05-20"
-#query_end = "2024-05-26"
-testing_start_date = "2024-05-20"
-testing_end_date = "2024-05-26"
+    td_file = os.path.join(data_dir, f"{symbol}_TestingData_{tdLen}_{SN}.csv")
 
-tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date)
+    with open(td_file, "w") as datafile:
+        #generate_training_data(patterns_df)
+        generate_testing_data(tddf_low_list, TradePosition.LONG)
+        generate_testing_data(tddf_high_list, TradePosition.SHORT)
+        #generate_training_data(tddf_hold_list, TradePosition.HOLD)
 
-td_file = os.path.join(data_dir, f"{symbol}_TestingData_{tdLen}_{SN}.csv")
 
-with open(td_file, "w") as datafile:
-    #generate_training_data(patterns_df)
-    generate_testing_data(tddf_low_list, TradePosition.LONG)
-    generate_testing_data(tddf_high_list, TradePosition.SHORT)
-    #generate_training_data(tddf_hold_list, TradePosition.HOLD)
-
+if __name__ == "__main__":
+    main()
