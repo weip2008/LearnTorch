@@ -40,28 +40,40 @@ python -m venv env
 ❓ not available module
 ![](images/unavailable%20modue.png)
 📝 close VS Code, reopen, and run all code from the top.
-## AI on Fashion
-![sample fashion images](images/fashionSample.png)
-![](images/neuralNetwork4handwritingDigits.png)
-28X28=784 input, 2 modle layer,  0-9 output
-$$f_{l+1} = \sigma (w_l a_l + b_l) $$
-$w_l$: weight for layer l
-$b_l$: bias for layer l
-$\sigma$: activation function
-$f_{l+1}$: l+1 function of layer l
-the purpose of modeling is find each $w_l$ and $b_l$
-$$f=\sum_{l=0}^{l=n} {f_{l}}$$
 
-### Activation Function
+## Linear Modeling
+
+* [generate linear model with noise](../src/genLinear.py)
+  $$y=f(x)=3\cdot x - 7 + noise$$
+* [read data from file and plot it](../src/plotLinear.py)
+![](images/noiseLinearData.png)
+* [create a linear model based on data](../src/linearModel.py)
+![](images/lr=0.01.png)
+![](images/epoch=20.png)
+
+👍😄 **Conclusion**
+1. linear model does NOT give exactly we expected.
+2. lr (learning rate) is kind of sensitive
+3. epoch make difference
 
 
+### Model class
 
-* [tensor basics](torchBasics.ipynb)
+```py
+# Step 2: Build and Train the Neural Network Model
+# Define the neural network model
+class LinearRegressionModel(nn.Module):
+    def __init__(self):
+        super(LinearRegressionModel, self).__init__()
+        self.linear = nn.Linear(1, 1)
+    
+    def forward(self, x):
+        return self.linear(x)
+```
+![](images/LinearModel.png)
 
-* [Load data from network, Understand image data, and squeeze(), transpose()](../src/fashion01.py)
-* [create model based on all images, and save model into a file](../src/fashion02.py)
-* [load model from file, and predict a given image](../src/fashion03.py)
 
+### Training process
 ```mermaid
 graph LR
 
@@ -106,6 +118,29 @@ class TRAIN,TRAIN_OUTPUT,MODEL,TEST,TRAINED_MODEL,TEST_OUTPUT,REAL start
 class TRAINING,TESTING,PRED js
 class ACCURACY,RESULT html
 ```
+
+## AI on Fashion
+![sample fashion images](images/fashionSample.png)
+![](images/neuralNetwork4handwritingDigits.png)
+28X28=784 input, 2 modle layer,  0-9 output
+$$f_{l+1} = \sigma (w_l a_l + b_l) $$
+$w_l$: weight for layer l
+$b_l$: bias for layer l
+$\sigma$: activation function
+$f_{l+1}$: l+1 function of layer l
+the purpose of modeling is find each $w_l$ and $b_l$
+$$f=\sum_{l=0}^{l=n} {f_{l}}$$
+
+### Activation Function
+
+
+
+* [tensor basics](torchBasics.ipynb)
+
+* [Load data from network, Understand image data, and squeeze(), transpose()](../src/fashion01.py)
+* [create model based on all images, and save model into a file](../src/fashion02.py)
+* [load model from file, and predict a given image](../src/fashion03.py)
+
 
 ## Homework
 * create model for handwriting digits.
