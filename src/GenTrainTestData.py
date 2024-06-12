@@ -16,6 +16,7 @@ from enum import Enum
 #from zigzagplus1 import calculate_zigzag,detect_patterns
 import zigzagplus1 as zz
 import CutSlice as ct
+from stockConsts import *
 
 class TradePosition(Enum):
     LONG = 1
@@ -448,36 +449,6 @@ def gen_highlow_list(query_start, query_end):
 #
 # ================================================================================#
 def main():
-    #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
-    logging.basicConfig(
-        level=logging.INFO,  # Set the logging level to DEBUG
-        #format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        format=' %(levelname)s => %(message)s'
-    )
-            
-    IsDebug = True
-    #WindowLen = 5
-
-    #Trainning data lenth
-    # average number of working days in a month is 21.7, based on a five-day workweek
-    # so 45 days is total for two months working days
-    # 200 days is one year working days
-    tdLen = 50
-
-    # Series Number for output training data
-    SN = "100"
-        
-    # ZigZag parameters
-    deviation = 0.001  # Percentage
-        
-    symbol = "SPY"
-    #symbol = "MES=F"
-
-    # Define the table name as a string variable
-    #table_name = "AAPL_1m"
-    table_name = "SPY_1m"
-    # Define the SQLite database file
-    data_dir = "stockdata"
     db_file = os.path.join(data_dir, "stock_data.db")
 
     #=========================================================================#
