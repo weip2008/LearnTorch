@@ -8,7 +8,7 @@ logging.basicConfig(
 )
 
 datafile = None 
-db_file = None
+#db_file = None
 IsDebug = True
 #WindowLen = 5
 

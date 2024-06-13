@@ -16,7 +16,7 @@ from enum import Enum
 #from zigzagplus1 import calculate_zigzag,detect_patterns
 import zigzagplus1 as zz
 import CutSlice as ct
-from stockConsts import *
+import logging    
 
 class TradePosition(Enum):
     LONG = 1
@@ -380,8 +380,6 @@ def gen_highlow_list(query_start, query_end):
     # Connect to the SQLite database
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
-    print("\n\n==========================4===Query==========================\n\n")
-
 
     # Query the data between May 6th, 2024, and May 12th, 2024
     query_range = f'''
@@ -411,7 +409,8 @@ def gen_highlow_list(query_start, query_end):
 
     # Calculate ZigZag
     zigzag = zz.calculate_zigzag(ohlc_df, deviation)
-    print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
+    if IsDebug:
+        print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
 
     # Plot ZigZag
     zz.plot_zigzag(ohlc_df, zigzag)
@@ -426,7 +425,8 @@ def gen_highlow_list(query_start, query_end):
     # The rows selected are those whose index labels match the index labels of the zigzag DataFrame (or Series).
     # In other words, it filters df to include only the rows where the index (Date) is present in the zigzag index.
     filtered_zigzag_df = ohlc_df.loc[zigzag.index]
-    print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
+    if IsDebug:
+        print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
 
     # Detect patterns
     # df[df['Close'].isin(zigzag)] creates a new DataFrame 
@@ -436,10 +436,12 @@ def gen_highlow_list(query_start, query_end):
     patterns = zz.detect_patterns(filtered_zigzag_df)
     #for pattern in patterns:
     #    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
-    print("Patterns list:\n", patterns)
+    if IsDebug:
+        print("Patterns list:\n", patterns)
 
     patterns_df = zz.convert_list_to_df(patterns)
-    print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
+    if IsDebug:
+        print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
 
     zz.plot_patterns(ohlc_df, patterns_df)
         
@@ -448,7 +450,39 @@ def gen_highlow_list(query_start, query_end):
 
 #
 # ================================================================================#
-def main():
+if __name__ == "__main__":
+    
+    #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
+    logging.basicConfig(
+        level=logging.INFO,  # Set the logging level to DEBUG
+        #format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format=' %(levelname)s => %(message)s'
+        )
+
+    IsDebug = False
+    #WindowLen = 5
+
+    #Trainning data lenth
+    # average number of working days in a month is 21.7, based on a five-day workweek
+    # so 45 days is total for two months working days
+    # 200 days is one year working days
+    tdLen = 50
+
+    # Series Number for output training data
+    SN = "30"
+        
+    # ZigZag parameters
+    deviation = 0.001  # Percentage
+        
+    symbol = "SPY"
+    #symbol = "MES=F"
+
+    # Define the table name as a string variable
+    #table_name = "AAPL_1m"
+    table_name = "SPY_1m"
+    # Define the SQLite database file
+    data_dir = "stockdata"
+
     db_file = os.path.join(data_dir, "stock_data.db")
 
     #=========================================================================#
@@ -480,7 +514,3 @@ def main():
         generate_testing_data(tddf_low_list, TradePosition.LONG)
         generate_testing_data(tddf_high_list, TradePosition.SHORT)
         #generate_training_data(tddf_hold_list, TradePosition.HOLD)
-
-
-if __name__ == "__main__":
-    main()
