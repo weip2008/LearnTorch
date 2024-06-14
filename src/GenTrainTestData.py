@@ -5,18 +5,10 @@ import logging
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import yfinance as yf
 import os
-from ta.utils import dropna
-from FilteredHighLowPoints import filter_points
-from FilteredHighLowPoints import find_point_index_int
-from TimeElapsed import measure_operation_time
-from TimeElapsed import read_CSV_file
 from enum import Enum
-#from zigzagplus1 import calculate_zigzag,detect_patterns
 import zigzagplus1 as zz
-import CutSlice as ct
-import logging    
+import CutSlice as ct  
 
 class TradePosition(Enum):
     LONG = 1
@@ -454,7 +446,7 @@ if __name__ == "__main__":
     
     #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
     logging.basicConfig(
-        level=logging.INFO,  # Set the logging level to DEBUG
+        level=logging.INFO,  # Set the logging level to INFO or DEBUG
         #format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         format=' %(levelname)s => %(message)s'
         )
@@ -462,13 +454,13 @@ if __name__ == "__main__":
     IsDebug = False
     #WindowLen = 5
 
-    #Trainning data lenth
+    #Trainning Data Length
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
     tdLen = 50
 
-    # Series Number for output training data
+    # Series Number for output training/testing data set pairs
     SN = "30"
         
     # ZigZag parameters
@@ -478,9 +470,9 @@ if __name__ == "__main__":
     #symbol = "MES=F"
 
     # Define the table name as a string variable
-    #table_name = "AAPL_1m"
     table_name = "SPY_1m"
-    # Define the SQLite database file
+    #table_name = "MES=F_1m"
+    # Define the SQLite database file directory
     data_dir = "stockdata"
 
     db_file = os.path.join(data_dir, "stock_data.db")
