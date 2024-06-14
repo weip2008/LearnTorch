@@ -67,7 +67,7 @@
 现在的选点很简单，用ZigZag 算法（peak_valley_pivots函数）选出所有的“山峰”和“峡谷”，其中对不同的数据选用合适的deviation (minimum relative change necessary to define a peak/valley) 是非常关键的一步。[举一个例子](../src/TestPeakValleys.py), 选用不同的deviation, 数字越大，被选中的点越少；数字越小，被选中的点越多：
 ![](images/PeakValleyDeviation.jpg)
 
-1） 选中到适当的deviation后，可以选择出合适的peak/valley点，这是第一步
+1） 选中了适当的deviation后，可以选择出合适疏密度的peak/valley点，这是第一步
 ![](images/ZigZag%20sample%2001.jpg)
 
 2） 在此基础上，识别出LL(Lower Low), HH(Higher High), LH(Lower High), HL(Higher Low)模式。
@@ -86,15 +86,15 @@ Useful parameters
 4. symbol: 处理的股票的符号;
 5. table_name: 从数据库中查询数据的表名。
 6. data_dir: 数据文件目录名
-7. training_start_date
-8. training_end_date
-9. testing_start_date
-10. testing_end_date
+7. training_start_date: 训练数据开始日期
+8. training_end_date： 训练数据终止日期
+9. testing_start_date：测试数据开始日期
+10. testing_end_date： 测试数据终止日期
 
 上述的参数设定后，将按照如下格式生成的训练数据：
 td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
 
-实例：SPY窗口宽度为50的第30号测试数据集
+实例：SPY窗口宽度为50的第30号训练数据集
 SPY_TestingData_50_30.csv
 想对应的就有测试数据集
 SPY_TestingData_50_30.csv
