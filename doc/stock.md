@@ -23,7 +23,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -53,27 +53,53 @@
   5. try Zigzag get training data long/short points
   6. another way to find valley and peak is find edge between MACD cross.
 
-最近两个月以来我一直为选择理想的买卖点而苦恼，尝试过多种方法都不理想。到现在我们用的都是“dirty and quick"的方法选择出来的点：在初选出来的最低最高点中选相邻的五点，向前看两步，向后看三步，如果当前点是初选出来的低点里面的相对最低，就选作买点；反之，如果是初选出来的高点里面的相对最高，则选择出来做卖点。
-这种选法会出现这样的问题：
+~~最近两个月以来我一直为选择理想的买卖点而苦恼，尝试过多种方法都不理想。到现在我们用的都是“dirty and quick"的方法选择出来的点：在初选出来的最低最高点中选相邻的五点，向前看两步，向后看三步，如果当前点是初选出来的低点里面的相对最低，就选作买点；反之，如果是初选出来的高点里面的相对最高，则选择出来做卖点。
+这种选法会出现这样的问题：~~
 
 ![A区与B区相比较，A区不合理](images/SPYHighLow0409-0531.jpg)
 
-看A窗和B窗。因为选择标准是在相邻的初选高低点里面选择，在A区，矮子里面选将军选出的那些点在B区其实是完全不会入选的。在增加了不作为的HOLD点后让事情更加困惑：在B区随便选出来的几个不作为的HOLD点其实都会比A区里面中选的更合适买卖。
+~~看A窗和B窗。因为选择标准是在相邻的初选高低点里面选择，在A区，矮子里面选将军选出的那些点在B区其实是完全不会入选的。在增加了不作为的HOLD点后让事情更加困惑：在B区随便选出来的几个不作为的HOLD点其实都会比A区里面中选的更合适买卖。
 我又尝试过用MACD加RSI等等方法来选择买卖的，效果也不理想。单单用MACD选择依然太粗糙，不理想；增加RSI后约束条件又过严，几年时间段里面居然都很难找到几个买卖点。
 我因此反思： 无论是现在用的哪种方法，依然都是我常说的AI前的“古典方法”，这些都不是事物的本质，而只是在为了帮助交易而总结出的一些方法，如同几何学里面画的辅助线，不是本质，只是辅助。如果我们回归事物的本质，交易中“低买高卖”，差额越大越好，如此而已。
-如果完全等我用”古典方法“来选点做教材来训练AI模型，那完全没有发挥机器学习的效率和优势，应该换思路，给出最基本的“公理”“规则rule”后放手让机器自己去挖掘学习。
+如果完全等我用”古典方法“来选点做教材来训练AI模型，那完全没有发挥机器学习的效率和优势，应该换思路，给出最基本的“公理”“规则rule”后放手让机器自己去挖掘学习。~~
+
+现在的新算法选择出来的点比前面用的效果好很多，以前的担心不复存在。
+现在的选点很简单，用ZigZag 算法（peak_valley_pivots函数）选出所有的“山峰”和“峡谷”，其中对不同的数据选用合适的deviation (minimum relative change necessary to define a peak/valley) 是非常关键的一步。[举一个例子](../src/TestPeakValleys.py), 选用不同的deviation, 数字越大，被选中的点越少；数字越小，被选中的点越多：
+![](images/PeakValleyDeviation.jpg)
+
+1） 选中到适当的deviation后，可以选择出合适的peak/valley点，这是第一步
+![](images/ZigZag%20sample%2001.jpg)
+
+2） 在此基础上，识别出LL(Lower Low), HH(Higher High), LH(Lower High), HL(Higher Low)模式。
+![](images/Ziazag%20sample%2002.jpg)
+
+具体操作方法是：找到第一个LL点买入，然后只看模式的第二个字符，只要是H就是卖出点；再往后，只要是L就是买入点；如此往复，直到最终。
 
 * [Generating training and testing dataset to csv file](../src/GenTrainTestData.py)
 
 ```dos
-pip install zigzag
-pip install ta
-需要有stock_data.db文件的支持。❓从哪里获得此文件❓
+Useful parameters 
+
+1. IsDebug:　打开／关闭调试信息。在调试阶段特别有用;
+2. SN: Serial number for different dataset：　生成的训练／测试数据集的序列号;
+3. tdLen:　训练／测试数据的长度;
+4. symbol: 处理的股票的符号;
+5. table_name: 从数据库中查询数据的表名。
+6. data_dir: 数据文件目录名
+7. training_start_date
+8. training_end_date
+9. testing_start_date
+10. testing_end_date
+
+上述的参数设定后，将按照如下格式生成的训练数据：
+td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
+
+实例：SPY窗口宽度为50的第30号测试数据集
+SPY_TestingData_50_30.csv
+想对应的就有测试数据集
+SPY_TestingData_50_30.csv
 ```
-useful parameters under main():
-1. SN: Serial number for different dataset-
-2. IsDebug:
-3. tdLen:
+
 
 
 ### Data Normalization
