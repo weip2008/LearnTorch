@@ -116,6 +116,29 @@ def detect_patterns(zigzag_points):
         #patterns.append((current_point['Datetime'], current_point['Close'], label))
     return patterns
 
+def detect_patterns1(zigzag_points):
+    """
+    Detect patterns like Higher Highs, Higher Lows, Lower Highs, and Lower Lows.
+
+    :param zigzag_points: DataFrame with ZigZag points.
+    :return: List of detected patterns.
+    """
+    patterns = []
+    zigzag_len = len(zigzag_points)
+    
+    for i in range(2, zigzag_len):
+        current_point = zigzag_points.iloc[i]
+        previous_point = zigzag_points.iloc[i-1]
+        previous_previous_point = zigzag_points.iloc[i-2]
+    
+        label = "H" if current_point['Close'] > previous_previous_point['Close'] else "L"
+        label += "H" if current_point['Close'] > previous_point['Close'] else "L"  
+        
+        #patterns.append((current_point['Close'], label))
+        patterns.append((current_point.name, current_point['Close'], label))
+        #patterns.append((current_point['Datetime'], current_point['Close'], label))
+    return patterns
+
 def detect_patterns2(zigzag_points):
     """
     Detect patterns like Higher Highs, Higher Lows, Lower Highs, and Lower Lows.
