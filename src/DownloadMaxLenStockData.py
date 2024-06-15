@@ -4,7 +4,7 @@ import os
 
 # Define the list of ticker symbols
 #ticker_symbols = ["^GSPC", "^NDX", "QQQ", "MSFT", "AAPL", "NVDA", "AMZN", "TSLA", "COST", "AVGO", "LULU"]
-ticker_symbols = ["NQ=F", "QQQ", "MES=F" ]
+ticker_symbols = ["NQ=F", "QQQ", "MES=F", "SPY" ]
 # MES=F stands for Micro E-mini S&P 500 Index Futu. It is a contract offered by the CME Group 
 #   that is one-tenth the size of the E-mini futures on the S&P 500 index. 
 #   The contract is designed to help manage exposure to the 500 large-cap stocks 
