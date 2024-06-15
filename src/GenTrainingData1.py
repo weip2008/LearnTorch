@@ -15,12 +15,12 @@ from TimeElapsed import read_CSV_file
 from enum import Enum
 #from zigzagplus1 import calculate_zigzag,detect_patterns
 import zigzagplus1 as zz
+import CutSlice as ct
 
 class TradePosition(Enum):
     LONG = 1
     HOLD = 0
     SHORT = -1
-
 
 
 def gen_hold_list_index(df):
@@ -46,40 +46,6 @@ def gen_hold_list_index(df):
 
     return new_index 
 
-def cut_slices(ohlc_df, selected_points_index, window_len):
-    
-    tddf_list = []
-    for index in selected_points_index:
-
-        start_index = index - (window_len+1) 
-        # if we don't have enough long data series for this slice, ignore it
-        if start_index < 0:
-            continue
-        
-        # Adjust end index to include one more element
-        end_index = index+1
-     
-        # Create a copy of the section of the original DataFrame
-        # start from start_index up to but not including end_index!
-        #section_df = ohlc_df.loc[start_index:end_index].copy()  
-        section_df = ohlc_df[start_index:end_index].copy()
-        # if IsDebug:
-        #     print("section_df length:", len(section_df))
-         
-        # Log the modified DataFrame
-        #logging.debug("\nSliced DataFrame:\n%s", section_df)
-
-        # Drop unwanted columns
-        section_df.drop(['Open', 'High', 'Low', 'Close', 'AdjClose'], axis=1, inplace=True)  
-        # Reset the index and drop the old index
-        section_df.reset_index(drop=True, inplace=True)
-        logging.debug("\nSliced DataFrame:\n%s", section_df)
-        
-        tddf_list.append(section_df)  # Append the section DataFrame to the tdohlc_df_list
-        
-    #logging.DEBUG(tddf_list)
-    
-    return tddf_list
 
 def list_to_string(acceleration_list):
     # Convert each tuple to a string with parentheses and join them with newline characters
@@ -125,19 +91,16 @@ def calculate_velocity(processing_df):
     #lowest_price, corresponding_volume = find_lowest_price_with_volume(processing_df)
     
     # Normalize 'Volume' and 'Price'
-    processing_df['Normalized_Volume'] = normalize(processing_df['Volume'])
-    processing_df['Normalized_Price'] = normalize(processing_df['Price'])
+    #processing_df['Normalized_Volume'] = normalize(processing_df['Volume'])
+    processing_df['Normalized_Price'] = normalize(processing_df['Close'])
     
     if IsDebug:
         print(processing_df)
     
     for j in range(0, len(processing_df)-1):
         # Extract Price from the current and previous rows
-        #price_current = processing_df[j]['Price']
-        #price_previous = processing_df[j - 1]['Price']        
-        #price_previous = processing_df.iloc[j - 1]['Price']
-        price_current = processing_df.iloc[j]['Price']
-        price_next = processing_df.iloc[j+1]['Price']
+        price_current = processing_df.iloc[j]['Close']
+        price_next = processing_df.iloc[j+1]['Close']
         normalized_price_current = processing_df.iloc[j]['Normalized_Price']
         normalized_price_next = processing_df.iloc[j+1]['Normalized_Price']
 
@@ -153,22 +116,27 @@ def calculate_velocity(processing_df):
         index_current = processing_df.index[j]
         index_next = processing_df.index[j+1]
         #print("index_current:", index_current)
-        #print("index_previous:", index_previous)
+        #print("index_previous:", index_next)
         
-        #dT = (index_current - index_previous) / pd.Timedelta(minutes=1)  
+        #dT = (index_next - index_current) / pd.Timedelta(minutes=1)  
         #dT = index_current - index_previous 
-        dT = (index_next - index_current) / tdLen
+        #dT = (index_next - index_current) / tdLen
+        loc_current = processing_df.index.get_loc(index_current)
+        loc_next = processing_df.index.get_loc(index_next)
+
+        # Calculate dT based on the difference of locations
+        dT = loc_next - loc_current
         #print("dT:", dT)
-        
+                
         # Calculate the velocity (dY/dT)
         velocity = dY / dT
         #print("velocity:", velocity)
         
-        datetime_current = processing_df.iloc[j]['Datetime']
-        volume_current = processing_df.iloc[j]['Volume']
-        normalized_volum_current = processing_df.iloc[j]['Normalized_Volume']
+        #datetime_current = processing_df.iloc[j]['Datetime']
+        #volume_current = processing_df.iloc[j]['Volume']
+        #normalized_volum_current = processing_df.iloc[j]['Normalized_Volume']
         # Append the tuple with the "Velocity" column to tdohlc_df_high_velocity_list
-        velocity_list.append((datetime_current, normalized_price_current, normalized_volum_current, velocity))
+        velocity_list.append((index_current, normalized_price_current, velocity))
 
     return velocity_list
 
@@ -189,32 +157,22 @@ def calculate_acceleration(velocity_list):
 
     # Iterate over each tuple in velocity_list starting from the second tuple
     for i in range(0, len(velocity_list)-1):
-        # Extract velocity data from the current and previous tuples
+        # Extract velocity data from the current and next tuples
         next_tuple = velocity_list[i+1] 
         current_tuple = velocity_list[i]
         #previous_tuple = velocity_list[i - 1]
 
-        velocity_next = next_tuple[3]
-        velocity_current = current_tuple[3]  # velocity is stored at index 2 in the tuple
-        #velocity_previous = previous_tuple[3]
+        velocity_next = next_tuple[2]
+        velocity_current = current_tuple[2]  # velocity is stored at index 2 in the tuple
+        #velocity_previous = previous_tuple[2]
 
         # Calculate the change in velocity
-        #dV = abs(velocity_current) - abs(velocity_previous)
-        #dV = velocity_current - velocity_previous
         dV = velocity_next - velocity_current 
-
-        ''' 
-        # Convert timestamp strings to datetime objects
-        # then alculate the change in time (dT) in minutes
-        # But when using different time unit, need change code
-        index_current = pd.to_datetime(current_tuple[0])
-        index_previous = pd.to_datetime(previous_tuple[0])
-        dT = (index_current - index_previous) / pd.Timedelta(minutes=1)  # Convert to minutes
-        '''
+        
         #index_current = velocity_list[i].index
         #index_previous = velocity_list[i-1].index
-        index_next = i+1
         index_current = i
+        index_next = i+1
         i#ndex_previous = i-1
         #dT = index_current - index_previous
         dT = index_next - index_current
@@ -222,16 +180,15 @@ def calculate_acceleration(velocity_list):
         # Calculate acceleration (dV/dT)
         acceleration = dV / dT
         
-        current_time = pd.to_datetime(current_tuple[0])
-        #current_volume = current_tuple[2]
+        #current_time = pd.to_datetime(current_tuple[0])
+        current_time = current_tuple[0]
         #day_of_week_numeric, time_float = convert_to_day_and_time(index_current)
         day_of_week_numeric, time_float = convert_to_day_and_time(current_time)
 
         # Append the tuple with the "Acceleration" column to acceleration_list
         #acceleration_list.append((index_current, current_tuple[1], velocity_current, acceleration))
         acceleration_list.append((day_of_week_numeric, time_float, 
-                                  current_tuple[1],  current_tuple[2], current_tuple[3], 
-                                  acceleration))
+                                  current_tuple[1],  current_tuple[2], acceleration))
 
     return acceleration_list
 
@@ -277,6 +234,40 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
         
     return
 
+
+def write_testing_data(TradePosition, acceleration_list, csvfile):
+    # for testing data, the first number is index of "LONG, HOLD, SHORT" series!
+    # so if it's LONG, then it's 0; SHORT is 2;
+    
+    trainingdata_str = list_to_string(acceleration_list)
+   
+    if (TradePosition is TradePosition.LONG):
+        result = "0," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+    
+        csvfile.write(result)
+        return
+    
+    if (TradePosition is TradePosition.HOLD):
+        result = "1," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+        
+        csvfile.write(result)        
+        return
+        
+    if (TradePosition is TradePosition.SHORT):        
+        result = "2," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+        
+        csvfile.write(result)
+            
+    return
+
+
+
 def generate_training_data(tddf_highlow_list, position):
     
     filename = 'stockdata/TrainingDataGenLog_'+ str(position)+".log"
@@ -316,27 +307,146 @@ def generate_training_data(tddf_highlow_list, position):
     outputfile.close()    
     return
 
+def generate_testing_data(tddf_highlow_list, position):
+    
+    filename = 'stockdata/TestingDataGenLog_'+ str(position)+".log"
+    # Open a file in write mode
+    outputfile = open(filename, 'w')
+ 
+    # Initialize an empty list to store tuples with the "Velocity" column
+    tddf_velocity_list = []
+    tddf_acceleration_list = []
+     
+    # Iterate over each tuple in tddf_highlow_list starting from the second tuple
+    for i in range(0, len(tddf_highlow_list)):
+        processing_df = tddf_highlow_list[i]
+        if IsDebug:
+            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
+        
+        tddf_velocity_list = calculate_velocity(processing_df)
+        if IsDebug:
+            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
+        
+        tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
+        if IsDebug:
+            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
+        
+        if IsDebug:
+            print("\nGenerate testing data:")
+        
+        # Write lengths to the file in the desired format
+        outputfile.write(
+            f"{len(processing_df)},"
+            f"{len(tddf_velocity_list)},"
+            f"{len(tddf_acceleration_list)}\n"
+        ) 
+        
+        write_testing_data(position, tddf_acceleration_list, datafile)
+    
+    outputfile.close()    
+    return
+
 def check_patterns(ohlc_df, patterns_df, tdLen):
     
-    
-    selected_low_points_index = selected_low_points.index.tolist()
-    selected_high_points_index = selected_high_points.index.tolist()
+    # filtered_low_points_index = filtered_low_points.index.tolist()
+    # filtered_high_points_index = filtered_high_points.index.tolist()
 
-    filtered_low_points_index = filtered_low_points.index.tolist()
-    filtered_high_points_index = filtered_high_points.index.tolist()
-
-    
-
+    low_list = []
+    high_list = []
     # Loop through the DataFrame and find the first item with the second character of 'L'
     for idx, row in patterns_df.iterrows():
         if row['Label'][1] == 'L':
-            print(f"Found at {idx}")
-            cut_slices(idx)
-            tddf_low_list = cut_slices(ohlc_df, filtered_low_points_index, tdLen)
+            #print(f"L point found at {idx}, {row['Label']}")
+            section_df = ct.cut_slice(ohlc_df, idx, tdLen+1)
+            if (section_df is not None):
+                #print("\nSliced DataFrame:\n", section_df)
+                low_list.append(section_df) 
             continue
+        
+        if row['Label'][1] == 'H':
+            #print(f"H point found at {idx}, {row['Label']}")
+            section_df = ct.cut_slice(ohlc_df, idx, tdLen+1)
+            if (section_df is not None):                
+                #print("\nSliced DataFrame:\n", section_df)
+                high_list.append(section_df) 
+            continue
+        
+        print("Error: Not sure how to process this point!\n")
+        
+    return low_list, high_list
 
-   
-    
+def gen_highlow_list(query_start, query_end):
+    # Connect to the SQLite database
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    print("\n\n==========================4===Query==========================\n\n")
+
+
+    # Query the data between May 6th, 2024, and May 12th, 2024
+    query_range = f'''
+    SELECT * FROM {table_name}
+    WHERE Datetime BETWEEN ? AND ?
+    '''
+    # Save the query result into a DataFrame object named query_result_df
+    query_result_df = pd.read_sql_query(query_range, conn, params=(query_start, query_end))
+
+    # print("Length of query result is:", len(query_result_df))
+    # print("Datatype of query result:", type(query_result_df))
+    # print(query_result_df)
+
+    ohlc_df = query_result_df
+    ohlc_df['Datetime'] = pd.to_datetime(ohlc_df['Datetime'])
+    ohlc_df.set_index('Datetime', inplace=True)
+
+    if IsDebug:
+        #print("Time elapsed:", time_elapsed, "seconds")
+        print("Results dataframe length:", len(ohlc_df))  
+        #print("Data read from :", file_path)
+        print("Data read from table:", table_name)
+        # Print the first few rows of the DataFrame
+        print(ohlc_df.head(10))
+        print(ohlc_df.tail(10))
+
+
+    # Calculate ZigZag
+    zigzag = zz.calculate_zigzag(ohlc_df, deviation)
+    print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
+
+    # Plot ZigZag
+    zz.plot_zigzag(ohlc_df, zigzag)
+
+    # zigzag_counts = df['Close'].value_counts()
+    # zigzag_value_counts = zigzag_counts[zigzag_counts.index.isin(zigzag)]
+    # print("Zigzag value counts:\n", zigzag_value_counts)
+
+    # Filter the original DataFrame using the indices
+    # df.loc[zigzag.index]:
+    # This expression uses the .loc accessor to select rows from the original DataFrame df.
+    # The rows selected are those whose index labels match the index labels of the zigzag DataFrame (or Series).
+    # In other words, it filters df to include only the rows where the index (Date) is present in the zigzag index.
+    filtered_zigzag_df = ohlc_df.loc[zigzag.index]
+    print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
+
+    # Detect patterns
+    # df[df['Close'].isin(zigzag)] creates a new DataFrame 
+    # that contains only the rows from df 
+    # where the 'Close' value is in the zigzag list.
+    # patterns = detect_patterns(df[df['Close'].isin(zigzag)])
+    patterns = zz.detect_patterns(filtered_zigzag_df)
+    #for pattern in patterns:
+    #    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
+    print("Patterns list:\n", patterns)
+
+    patterns_df = zz.convert_list_to_df(patterns)
+    print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
+
+    zz.plot_patterns(ohlc_df, patterns_df)
+        
+    low_list, high_list = check_patterns(ohlc_df, patterns_df, tdLen)
+    return low_list, high_list
+
+#
+# ================================================================================#
 
 #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
 logging.basicConfig(
@@ -355,7 +465,7 @@ IsDebug = True
 tdLen = 50
 
 # Series Number for output training data
-SN = "13"
+SN = "20"
     
 # ZigZag parameters
 deviation = 0.001  # Percentage
@@ -370,87 +480,33 @@ table_name = "SPY_1m"
 data_dir = "stockdata"
 db_file = os.path.join(data_dir, "stock_data.db")
 
-# Define the query date range
-training_start_date = "2024-04-11"
-#query_end = "2024-04-19"
-query_end = "2024-05-26"
-
-# Connect to the SQLite database
-conn = sqlite3.connect(db_file)
-cursor = conn.cursor()
-print("\n\n==========================4===Query==========================\n\n")
-
-
-# Query the data between May 6th, 2024, and May 12th, 2024
-query_range = f'''
-SELECT * FROM {table_name}
-WHERE Datetime BETWEEN ? AND ?
-'''
-# Save the query result into a DataFrame object named query_result_df
-query_result_df = pd.read_sql_query(query_range, conn, params=(training_start_date, query_end))
-
-# print("Length of query result is:", len(query_result_df))
-# print("Datatype of query result:", type(query_result_df))
-# print(query_result_df)
-
-ohlc_df = query_result_df
-ohlc_df['Datetime'] = pd.to_datetime(ohlc_df['Datetime'])
-ohlc_df.set_index('Datetime', inplace=True)
-
-if IsDebug:
-    #print("Time elapsed:", time_elapsed, "seconds")
-    print("Results dataframe length:", len(ohlc_df))  
-    #print("Data read from :", file_path)
-    print("Data read from table:", table_name)
-    # Print the first few rows of the DataFrame
-    print(ohlc_df.head(10))
-    print(ohlc_df.tail(10))
-
-
-# Calculate ZigZag
-zigzag = zz.calculate_zigzag(ohlc_df, deviation)
-print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
-
-# Plot ZigZag
-zz.plot_zigzag(ohlc_df, zigzag)
-
-# zigzag_counts = df['Close'].value_counts()
-# zigzag_value_counts = zigzag_counts[zigzag_counts.index.isin(zigzag)]
-# print("Zigzag value counts:\n", zigzag_value_counts)
-
-# Filter the original DataFrame using the indices
-# df.loc[zigzag.index]:
-# This expression uses the .loc accessor to select rows from the original DataFrame df.
-# The rows selected are those whose index labels match the index labels of the zigzag DataFrame (or Series).
-# In other words, it filters df to include only the rows where the index (Date) is present in the zigzag index.
-filtered_zigzag_df = ohlc_df.loc[zigzag.index]
-print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
-
-# Detect patterns
-# df[df['Close'].isin(zigzag)] creates a new DataFrame 
-# that contains only the rows from df 
-# where the 'Close' value is in the zigzag list.
-# patterns = detect_patterns(df[df['Close'].isin(zigzag)])
-patterns = zz.detect_patterns(filtered_zigzag_df)
-#for pattern in patterns:
-#    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
-print("Patterns list:\n", patterns)
-
-patterns_df = zz.convert_list_to_df(patterns)
-print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
-
-zz.plot_patterns(ohlc_df, patterns_df)
-    
-
-    
 #=========================================================================#
+training_start_date = "2024-04-11"
+training_end_date = "2024-05-26"
 
+tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date)
 
 td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
 
 with open(td_file, "w") as datafile:
-    generate_training_data(patterns_df)
-    #generate_training_data(tddf_high_list, TradePosition.SHORT)
+    #generate_training_data(patterns_df)
+    generate_training_data(tddf_low_list, TradePosition.LONG)
+    generate_training_data(tddf_high_list, TradePosition.SHORT)
     #generate_training_data(tddf_hold_list, TradePosition.HOLD)
 
+#=========================================================================#
+#query_start = "2024-05-20"
+#query_end = "2024-05-26"
+testing_start_date = "2024-05-20"
+testing_end_date = "2024-05-26"
+
+tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date)
+
+td_file = os.path.join(data_dir, f"{symbol}_TestingData_{tdLen}_{SN}.csv")
+
+with open(td_file, "w") as datafile:
+    #generate_training_data(patterns_df)
+    generate_testing_data(tddf_low_list, TradePosition.LONG)
+    generate_testing_data(tddf_high_list, TradePosition.SHORT)
+    #generate_training_data(tddf_hold_list, TradePosition.HOLD)
 
