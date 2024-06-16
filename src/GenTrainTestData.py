@@ -368,7 +368,7 @@ def check_patterns(ohlc_df, patterns_df, tdLen):
         
     return low_list, high_list
 
-def gen_highlow_list(query_start, query_end):
+def gen_highlow_list(query_start, query_end, db_file):
     # Connect to the SQLite database
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
@@ -475,13 +475,13 @@ if __name__ == "__main__":
     # Define the SQLite database file directory
     data_dir = "stockdata"
 
-    db_file = os.path.join(data_dir, "stock_data.db")
+    db_file = os.path.join(data_dir, "../data/stock_data.db")
 
     #=========================================================================#
     training_start_date = "2024-04-11"
     training_end_date = "2024-05-26"
 
-    tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date)
+    tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date,db_file)
 
     td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
 
@@ -497,7 +497,7 @@ if __name__ == "__main__":
     testing_start_date = "2024-05-20"
     testing_end_date = "2024-05-26"
 
-    tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date)
+    tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date,db_file)
 
     td_file = os.path.join(data_dir, f"{symbol}_TestingData_{tdLen}_{SN}.csv")
 

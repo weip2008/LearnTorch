@@ -23,7 +23,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -80,8 +80,13 @@ However, the specific choice of normalization method can depend on the character
 
 ## Create datasets
 
-
 * [create datasets from stock raw data](../src/datasets.py)
+* [Generating training and test data save to ...](../src/GenTrainTestData.py)
+![](images/genTrainTestData-1.png)
+![](images/genTrainTestData-2.png)
+![](images/genTrainTestData-3.png)
+![](images/genTrainTestData-4.png)
+
 
 ## save and load datasets from file
 
