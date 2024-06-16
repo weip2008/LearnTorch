@@ -19,9 +19,10 @@ futures = ["NQ1!", "ES1!"]
 # periods enum and short string list 
 periods = [[Interval.in_1_minute, "1M"], 
             [Interval.in_5_minute, "5M"],
-            [Interval.in_30_minute, "30M"],
-            [Interval.in_4_hour, "4H"],
-            [Interval.in_daily,"1D"]]
+            # [Interval.in_30_minute, "30M"],
+            # [Interval.in_4_hour, "4H"],
+            # [Interval.in_daily,"1D"]
+            ]
 # print(periods[3][1])
 # this design make it more flexible to add more symbol and interval.
 # merge them to new list
