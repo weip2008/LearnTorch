@@ -470,11 +470,11 @@ if __name__ == "__main__":
     # ZigZag parameters
     deviation = 0.005  # Percentage
         
-    symbol = "SPY"
+    symbol = "SPX"
     #symbol = "MES=F"
 
     # Define the table name as a string variable
-    table_name = "SPY_1m"
+    table_name = "SPX_1m"
     #table_name = "MES=F_1m"
     # Define the SQLite database file directory
     data_dir = "data"
