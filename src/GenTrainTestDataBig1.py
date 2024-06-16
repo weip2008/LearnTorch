@@ -11,6 +11,7 @@ import zigzagplus1 as zz
 
 class TradePosition(Enum):
     LONG = 1
+    HOLD = 0
     SHORT = -1
 
 def cut_slice(ohlc_df, datetime_index, window_len):
@@ -220,7 +221,7 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
     #     result += ",".join(map(str, acceleration_tuple)) 
     
     if (TradePosition is TradePosition.SHORT):        
-        result = "0,1," + trainingdata_str + "\n"
+        result = "0,0,1," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
@@ -229,13 +230,22 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
         return
     
     if (TradePosition is TradePosition.LONG):
-        result = "1,0," + trainingdata_str + "\n"
+        result = "1,0,0," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
         #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
         csvfile.write(result)
-
+        return
+    
+    if (TradePosition is TradePosition.HOLD):
+        result = "0,1,0," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+        # Parse the input string into separate fields
+        #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
+        csvfile.write(result)
+        
     return
 
 
@@ -252,10 +262,17 @@ def write_testing_data(TradePosition, acceleration_list, csvfile):
     
         csvfile.write(result)
         return
-
+    
+    if (TradePosition is TradePosition.HOLD):
+        result = "1," + trainingdata_str + "\n"
+        if IsDebug:
+            print(result)
+        
+        csvfile.write(result)        
+        return
         
     if (TradePosition is TradePosition.SHORT):        
-        result = "1," + trainingdata_str + "\n"
+        result = "2," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         
@@ -465,7 +482,7 @@ if __name__ == "__main__":
     tdLen = 50
 
     # Series Number for output training/testing data set pairs
-    SN = "101"
+    SN = "100"
         
     # ZigZag parameters
     deviation = 0.005  # Percentage
@@ -493,7 +510,7 @@ if __name__ == "__main__":
         #generate_training_data(patterns_df)
         generate_training_data(tddf_low_list, TradePosition.LONG)
         generate_training_data(tddf_high_list, TradePosition.SHORT)
-
+        #generate_training_data(tddf_hold_list, TradePosition.HOLD)
 
     #=========================================================================#
     #query_start = "2024-05-20"
@@ -509,4 +526,4 @@ if __name__ == "__main__":
         #generate_training_data(patterns_df)
         generate_testing_data(tddf_low_list, TradePosition.LONG)
         generate_testing_data(tddf_high_list, TradePosition.SHORT)
-
+        #generate_training_data(tddf_hold_list, TradePosition.HOLD)
