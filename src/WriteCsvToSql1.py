@@ -34,9 +34,20 @@ def read_CSV_file(csv_file_path):
 
 
 # Define the path to the CSV file
-#csv_file_path = os.path.join("stockdata", "DAT_ASCII_SPXUSD_M1_2010.csv")
-#csv_file_path = os.path.join("stockdata", "DAT_ASCII_SPXUSD_M1_2011.csv")
-csv_file_path = os.path.join("stockdata", "DAT_ASCII_SPXUSD_M1_2012.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2010.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2011.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2012.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2013.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2014.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2015.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2016.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2017.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2018.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2019.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2020.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2021.csv")
+#csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2022.csv")
+csv_file_path = os.path.join("data", "DAT_ASCII_SPXUSD_M1_2023.csv")
 
 # Define the table name as a string variable
 table_name = "SPY_1m"
@@ -49,7 +60,7 @@ print(ohlcv)
 print("\n\n=============================1===Create/Insert=======================\n\n")
 
 # Define the SQLite database file
-db_file = os.path.join("stockdata", "stock__bigdata.db")
+db_file = os.path.join("data", "stock_bigdata.db")
 
 # Connect to the SQLite database
 conn = sqlite3.connect(db_file)
@@ -78,9 +89,6 @@ for index, row in ohlcv.iterrows():
 
 # Commit the changes
 conn.commit()
-
-
-print("\n\n=============================2===Query/Count=======================\n\n")
 
 count_query = f'''
 SELECT COUNT(*) FROM {table_name}
