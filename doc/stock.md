@@ -24,7 +24,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -107,6 +107,7 @@ SPY_TestingData_50_30.csv
 2. 对MACD数据做EMA(9)的曲线；
 3. 增加训练数据column： MACD- EMA(9)
 4. 过滤： box / 箱体 （幅度不到20的点过滤掉）
+5. 使用卷积模型完成训练
 
 >
 ### Data Normalization
@@ -123,6 +124,13 @@ However, the specific choice of normalization method can depend on the character
 ![](images/genTrainTestData-2.png)
 ![](images/genTrainTestData-3.png)
 ![](images/genTrainTestData-4.png)
+
+[](../src/GenTrainTestDataBig.py)
+1. data/stock_bigdata_2019-2023.db
+![](images/genTrainTestDataBig-1.png)
+![alt text](images/genTrainTestDataBig-2.png)
+![alt text](images/genTrainTestDataBig-3.png)
+![alt text](images/genTrainTestDataBig-4.png)
 
 
 ## save and load datasets from file
