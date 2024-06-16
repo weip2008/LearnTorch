@@ -7,6 +7,9 @@
 ![](images/how-to-multiply-2-matrices-demo.gif)
 * [tensor dot product](../src/dotProduct.py)
 
+👍😄 **Conclusion**:
+> $$(k,m)\cdot (m,l)⟹(k,l)$$
+
 好的，让我们通过鸡兔同笼的问题来学习如何用矩阵解线性方程组。
 
 ### 问题描述
@@ -100,4 +103,4 @@ c & d
 4
 \end{pmatrix} \)，即鸡的数量为6只，兔子的数量为4只。
 
-* []()
+* [鸡兔同笼](../src/chickenRabit.py)
