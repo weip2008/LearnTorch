@@ -17,6 +17,7 @@
 <!-- code_chunk_output -->
 
 - [Idea of selecting long,short,hold points](#idea-of-selecting-longshorthold-points)
+- [To-do list:](#to-do-list)
   - [Data Normalization](#data-normalization)
 - [Create datasets](#create-datasets)
 - [save and load datasets from file](#save-and-load-datasets-from-file)
@@ -101,6 +102,11 @@ SPY_TestingData_50_30.csv
 SPY_TestingData_50_30.csv
 ```
 
+## To-do list:
+1. 增加训练数据的column: （ MACD = EMA（12）- EMA(26)；
+2. 对MACD数据做EMA(9)的曲线；
+3. 增加训练数据column： MACD- EMA(9)
+4. 过滤： box / 箱体 （幅度不到20的点过滤掉）
 
 >
 ### Data Normalization
