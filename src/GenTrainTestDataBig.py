@@ -240,8 +240,8 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
 
 
 def write_testing_data(TradePosition, acceleration_list, csvfile):
-    # for testing data, the first number is index of "LONG, HOLD, SHORT" series!
-    # so if it's LONG, then it's 0; SHORT is 2;
+    # for testing data, the first number is index of "LONG, SHORT" series!
+    # so if it's LONG, SHORT is 1;
     
     trainingdata_str = list_to_string(acceleration_list)
    
