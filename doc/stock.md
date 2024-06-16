@@ -23,7 +23,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -59,10 +59,18 @@
 ![A区与B区相比较，A区不合理](images/SPYHighLow0409-0531.jpg)
 
 看A窗和B窗。因为选择标准是在相邻的初选高低点里面选择，在A区，矮子里面选将军选出的那些点在B区其实是完全不会入选的。在增加了不作为的HOLD点后让事情更加困惑：在B区随便选出来的几个不作为的HOLD点其实都会比A区里面中选的更合适买卖。
+
+🔔⚡️ 周浩，希望你有运行结果的chart支持你的上述观点。
+
 我又尝试过用MACD加RSI等等方法来选择买卖的，效果也不理想。单单用MACD选择依然太粗糙，不理想；增加RSI后约束条件又过严，几年时间段里面居然都很难找到几个买卖点。
+
+🔔⚡️ 周浩，希望你有运行结果的chart支持你的上述观点。
+
 我因此反思： 无论是现在用的哪种方法，依然都是我常说的AI前的“古典方法”，这些都不是事物的本质，而只是在为了帮助交易而总结出的一些方法，如同几何学里面画的辅助线，不是本质，只是辅助。如果我们回归事物的本质，交易中“低买高卖”，差额越大越好，如此而已。
+
 如果完全等我用”古典方法“来选点做教材来训练AI模型，那完全没有发挥机器学习的效率和优势，应该换思路，给出最基本的“公理”“规则rule”后放手让机器自己去挖掘学习。
 
+❓📌 周浩，为什么这么想？到选择选择数据为止，我们尚且没有用到AI学习！❗️
 >
 ### Data Normalization
 
@@ -72,8 +80,13 @@ However, the specific choice of normalization method can depend on the character
 
 ## Create datasets
 
-
 * [create datasets from stock raw data](../src/datasets.py)
+* [Generating training and test data save to ...](../src/GenTrainTestData.py)
+![](images/genTrainTestData-1.png)
+![](images/genTrainTestData-2.png)
+![](images/genTrainTestData-3.png)
+![](images/genTrainTestData-4.png)
+
 
 ## save and load datasets from file
 
@@ -89,7 +102,7 @@ long,short,[(weekdays,time,close,slope,accelerate,volume),(...)]
 
 ## velocity and acceleration
 
-~~$$v_i=\frac {c_{i+1}-c_{i-1}} {t_{i+1}-t_{i-1}}$$~~
+$$v_i=\frac {c_{i+1}-c_{i-1}} {t_{i+1}-t_{i-1}}$$
 i.e. the velocity at $t_i$ equals the difference of the "close" at $t_{i+1}$ and $t_{i-1}$. same as accelerate as below:
 $$a_i=\frac {v_{i+1}-v_{i-1}} {t_{i+1}-t_{i-1}}$$
 
