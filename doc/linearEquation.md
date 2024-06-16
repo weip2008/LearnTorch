@@ -5,6 +5,7 @@
 ❓📌 为什么在矩阵相乘时，需要**内维**相同呢？
 
 ![](images/how-to-multiply-2-matrices-demo.gif)
+* [tensor dot product](../src/dotProduct.py)
 
 好的，让我们通过鸡兔同笼的问题来学习如何用矩阵解线性方程组。
 
