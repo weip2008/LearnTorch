@@ -464,7 +464,7 @@ def gen_highlow_list(query_start, query_end):
 #
 # ================================================================================#
 if __name__ == "__main__":
-    
+    print(pd.__version__)
     #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
     logging.basicConfig(
         level=logging.INFO,  # Set the logging level to INFO or DEBUG
