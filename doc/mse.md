@@ -22,4 +22,4 @@ Standard deviation gives an indication of how spread out the values in a dataset
 
 * [calculate MSE](../src/mse.py)
 * [Understand Gradient to zerro](../src/mse1.py)
-* 
+* [](../src/mse2.py)
