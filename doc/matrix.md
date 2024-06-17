@@ -31,3 +31,6 @@ Here's an example of a matrix:
 \[ A = \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{bmatrix} \]
 
 This is a \( 2 \times 3 \) matrix with 2 rows and 3 columns.
+
+## 矩阵乘法
+![](images/how-to-multiply-2-matrices-demo.gif)

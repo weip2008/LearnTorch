@@ -21,5 +21,5 @@ where:
 Standard deviation gives an indication of how spread out the values in a dataset are. A smaller standard deviation indicates that the values are closer to the mean, while a larger standard deviation indicates that the values are more spread out.
 
 * [calculate MSE](../src/mse.py)
-* [Understand Gradient to zerro](../src/mse1.py)
+* [Understand Gradient descending, and learning rate](../src/mse1.py)
 * [](../src/mse2.py)

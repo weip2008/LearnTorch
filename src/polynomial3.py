@@ -29,7 +29,7 @@ criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
 # Training the model
-num_epochs = 500
+num_epochs = 1000
 for epoch in range(num_epochs):
     optimizer.zero_grad()
     outputs = model(x_train_tensor)
