@@ -95,6 +95,7 @@ class AC accuracy
 ❓What is Accuracy of a model?
 [Accuracy](accuracy.md)
 
+[Mean Square Error](mse.md)
 
 ## Data Preprocessing
 - **Articles and Tutorials**:

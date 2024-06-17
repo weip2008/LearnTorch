@@ -143,6 +143,9 @@ $$f(x) = x^3 + \frac 1 2 x^2 - 4 x -2$$
 * [wikipedia Backpropagation Explain](https://en.wikipedia.org/wiki/Backpropagation)
 $$y_j=relu\left( \sum_{k=1}^n w_{kj}\cdot x_{k} + b_j\right)$$
 wher relu() is activation function, and $y_j$ is layer j output.
+![](images/backpropagation.png)
+![](images/learningRate.png)
+[Understand Learning Rate](../src/mse1.py)
 
 ## Translator Project
 
