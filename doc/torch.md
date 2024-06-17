@@ -143,8 +143,17 @@ $$y(x,w)=w_0+w_1x+w_2x^2+...+w_Mx^M=\sum_{j=0}^M w_jx^j$$
 
 * [create a quadratic equation](../src/polynomial.py)
 * [Use Polynomial model find coefficients](../src/polynomial1.py)
-* [create sin wave](../src/polynomial2.py)
-* [create sin wave](../src/polynomial3.py)
+* [create sin wave and training data](../src/polynomial2.py)
+* [use training data to fit a polynomial](../src/polynomial3.py)
+* [fit to polinomial with weighted data](../src/polynomial4.py)
+
+$$sin(x)=x−\frac 1 {3!}x^3 +\frac 1 {5!}x^5−\frac 1 {7!}x^7+⋯$$
+
+Not all functions can be written exactly as a polynomial, but many functions can be approximated by polynomials to a high degree of accuracy within a certain range. This is primarily due to the concept of Taylor series and polynomial interpolation. Here are some key points:
+
+Taylor Series:
+
+$$f(x)=\sum_{n=0}^\infin \frac {f^{(n)}(a)} {n!} (x-a)^n$$
 
 ## backpropagation
 * [wikipedia Backpropagation Explain](https://en.wikipedia.org/wiki/Backpropagation)

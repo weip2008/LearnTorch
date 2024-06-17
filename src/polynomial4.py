@@ -16,6 +16,9 @@ class PolynomialModel(nn.Module):
         self.degree = degree
         self.linear = nn.Linear(degree + 1, 1)
         nn.init.xavier_uniform_(self.linear.weight)  # Initialize weights
+        # Initialize biases if needed
+        if self.linear.bias is not None:
+            nn.init.zeros_(self.linear.bias)
 
     def forward(self, x):
         x_poly = x ** torch.arange(self.degree + 1, dtype=torch.float32).unsqueeze(0)
