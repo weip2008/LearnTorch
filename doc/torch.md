@@ -138,6 +138,13 @@ $$f(x) = x^3 + \frac 1 2 x^2 - 4 x -2$$
 * [use relu activate function to train our model](../src/nonlinear06.py)
 * [save our model to file relu_model.pth](../src/nonlinear07.py)
 * [what are weights and bias look like](../src/nonlinear08.py)
+  
+$$y(x,w)=w_0+w_1x+w_2x^2+...+w_Mx^M=\sum_{j=0}^M w_jx^j$$
+
+* [create a quadratic equation](../src/polynomial.py)
+* [Use Polynomial model find coefficients](../src/polynomial1.py)
+* [create sin wave](../src/polynomial2.py)
+* [create sin wave](../src/polynomial3.py)
 
 ## backpropagation
 * [wikipedia Backpropagation Explain](https://en.wikipedia.org/wiki/Backpropagation)
