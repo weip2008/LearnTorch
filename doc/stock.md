@@ -24,7 +24,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -109,6 +109,8 @@ SPY_TestingData_50_30.csv
 4. 过滤： box / 箱体 （幅度不到20的点过滤掉）
 5. 使用卷积模型完成训练
 
+![](images/ml.png)
+![](images/ml_process.png)
 >
 ### Data Normalization
 
