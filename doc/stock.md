@@ -24,7 +24,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -467,7 +467,9 @@ Saved PyTorch Model State to best_stock_model_69.pth
 
 ### 卷积神经网络
 
-* [卷积神经网络](../src/cnn.py)
+* [卷积神经网络does NOT work](../src/cnn.py)
+* [卷积神经网络works from ChatGPT directly](../src/cnn1.py)
+* [卷积神经网络with data SPY_TrainingData_200_10.csv works](../src/stock_cnn_wang.py)
 
 ### Recurrent Neural Network
 
