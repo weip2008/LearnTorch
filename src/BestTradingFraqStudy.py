@@ -274,7 +274,10 @@ if __name__ == "__main__":
     #deviation_values = [0.0015, 0.001, 0.0009]
     #deviation_values = [0.001, 0.0008, 0.0006]
     #deviation_values = [0.0005, 0.0004, 0.0003]
-    deviation_values = [0.00055, 0.0005, 0.00045]
+    #deviation_values = [0.00055, 0.0005, 0.00045]
+    #deviation_values = [0.00040, 0.00035, 0.00030]
+    #deviation_values = [0.00048, 0.00045, 0.00042]
+    deviation_values = [0.00049, 0.00047, 0.00046]
 
     # for deviation in deviation_values:
     #     pivots = peak_valley_pivots(df['Close'].values, deviation, -deviation)
@@ -306,5 +309,7 @@ if __name__ == "__main__":
 
         # Append the temporary DataFrame to the list
         temp_dfs.append(temp_df)
-
+    # Concatenate all temporary DataFrames into the main DataFrame
+    df = pd.concat(temp_dfs, ignore_index=True)
+    
     print(df)
