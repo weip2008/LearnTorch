@@ -171,13 +171,10 @@ def filter_zigzag_rough2(zigzag_1min, cross_signals, tolerance='5min'):
     
 
 def filter_zigzag_rough(zigzag_1min, zigzag_5min, tolerance='5min'):
-    print("Starting function")
 
     # Ensure the indices are datetime if not already
-    zigzag_1min.index = pd.to_datetime(zigzag_1min.index)
-    zigzag_5min.index = pd.to_datetime(zigzag_5min.index)
-    
-    print("Indices converted to datetime")
+    #zigzag_1min.index = pd.to_datetime(zigzag_1min.index)
+    #zigzag_5min.index = pd.to_datetime(zigzag_5min.index)
     
     # Create a new DataFrame to store the filtered zigzag points
     try:
@@ -640,7 +637,7 @@ def gen_highlow_list(query_start, query_end):
     zz.plot_zigzag(ohlc_1min_df, zigzag_1min)
 
             
-    cross_signals = calculate_macd(ohlc_1min_df)
+    #cross_signals = calculate_macd(ohlc_1min_df)
     
     # zigzag_counts = df['Close'].value_counts()
     # zigzag_value_counts = zigzag_counts[zigzag_counts.index.isin(zigzag_1min)]
@@ -654,10 +651,10 @@ def gen_highlow_list(query_start, query_end):
     #filtered_zigzag_df = ohlc_1min_df.loc[zigzag_1min.index]
     
     #filtered_zigzag_df = filter_zigzag_exacttime(zigzag_1min, cross_signals)
-    filtered_zigzag_df = filter_zigzag_exacttime(zigzag_1min, zigzag_5min)
+    # filtered_zigzag_df = filter_zigzag_exacttime(zigzag_1min, zigzag_5min)
     
-    if IsDebug:
-        print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
+    # if IsDebug:
+    #     print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
 
     #filtered_zigzag_df = filter_zigzag_rough(zigzag_1min, cross_signals)
     filtered_zigzag_df = filter_zigzag_rough(zigzag_1min, zigzag_5min)
