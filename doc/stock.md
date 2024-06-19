@@ -24,7 +24,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -68,6 +68,49 @@
 现在的新算法选择出来的点比前面用的效果好很多，以前的担心不复存在。
 现在的选点很简单，用ZigZag 算法（peak_valley_pivots函数）选出所有的“山峰”和“峡谷”，其中对不同的数据选用合适的deviation (minimum relative change necessary to define a peak/valley) 是非常关键的一步。[举一个例子](../src/TestPeakValleys.py), 选用不同的deviation, 数字越大，被选中的点越少；数字越小，被选中的点越多：
 ![](images/PeakValleyDeviation.jpg)
+
+这里有一个完整的寻找最佳的deviation的例子：采用2023年SPX一分钟数据，数据总量近30万，假定只单纯的买低卖高，每一单的成本2美元。不断的调整deviation的值，最后找到最佳的deviation值在万分之4.7左右，盈利近3万5千美元。
+[参考源程序](../src/BestTradingFraqStudy.py)
+注意： 本程序中只单纯的用了1分钟的数据算出zigzag点，并没有用5分钟的zigzag点来过滤！
+
+```dos
+
+Deviation: 0.01         OHLC len:291380         Zigzag points:158       Total:7030.18
+Deviation: 0.001        OHLC len:291380         Zigzag points:6888      Total:29806.09
+Deviation: 0.0001       OHLC len:291380         Zigzag points:80882     Total:1173.18
+Deviation: 0.00005      OHLC len:291380         Zigzag points:116714    Total:-29882.00
+
+Deviation: 0.0015       OHLC len:291380         Zigzag points:3702      Total:24816.72
+Deviation: 0.001        OHLC len:291380         Zigzag points:6888      Total:29806.09
+Deviation: 0.0009       OHLC len:291380         Zigzag points:8030      Total:30948.83
+
+Deviation: 0.001        OHLC len:291380         Zigzag points:6888      Total:29806.09
+Deviation: 0.0008       OHLC len:291380         Zigzag points:9456      Total:32075.92
+Deviation: 0.0006       OHLC len:291380         Zigzag points:14058     Total:34218.01
+
+Deviation: 0.0005       OHLC len:291380         Zigzag points:17778     Total:34809.02
+Deviation: 0.0004       OHLC len:291380         Zigzag points:23028     Total:34551.48
+Deviation: 0.0003       OHLC len:291380         Zigzag points:31648     Total:32293.35
+
+
+Deviation: 0.00055      OHLC len:291380         Zigzag points:15774     Total:34583.17
+Deviation: 0.0005       OHLC len:291380         Zigzag points:17778     Total:34809.02
+Deviation: 0.00045      OHLC len:291380         Zigzag points:20088     Total:34833.88
+
+Deviation: 0.00049      OHLC len:291380         Zigzag points:18288     Total:34836.92
+Deviation: 0.00048      OHLC len:291380         Zigzag points:18818     Total:34846.13
+Deviation: 0.00047      OHLC len:291380         Zigzag points:19188     Total:34849.77
+Deviation: 0.00046      OHLC len:291380         Zigzag points:19566     Total:34846.55
+
+Deviation: 0.00048      OHLC len:291380         Zigzag points:18818     Total:34846.13
+Deviation: 0.00045      OHLC len:291380         Zigzag points:20088     Total:34833.88
+Deviation: 0.00042      OHLC len:291380         Zigzag points:21932     Total:34688.60
+
+Deviation: 0.0004       OHLC len:291380         Zigzag points:23028     Total:34551.48
+Deviation: 0.00035      OHLC len:291380         Zigzag points:26940     Total:33754.56
+Deviation: 0.0003       OHLC len:291380         Zigzag points:31648     Total:32293.35
+
+```
 
 1） 选中了适当的deviation后，可以选择出合适疏密度的peak/valley点，这是第一步
 ![](images/ZigZag%20sample%2001.jpg)
