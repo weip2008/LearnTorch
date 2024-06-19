@@ -17,7 +17,7 @@ m = 100  # number of instances
 theta = np.random.randn(2,1)
 
 for iteration in range(n_iterations):
-    gradients = 2/m * X_b.T.dot(X_b.dot(theta) - y)
+    gradients = 2/m * X_b.T.dot(X_b.dot(theta) - y) # MSE 的 一阶导数
     theta = theta - eta * gradients
     
     # Calculate MSE
