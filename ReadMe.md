@@ -12,11 +12,11 @@ grad[gradient.md]
 lr[learningRate.md]
 matrix[matrix.md]
 
-torch-->accuracy & mse & grad & lr & matrix
+torch-->matrix & mse & grad & lr & accuracy
 
 ```  
-* [Understand Accuracy](doc/accuracy.md)
+* [Understand basic operation on matrix](doc/matrix.md)
 * [Understand Mean Square Error](doc/mse.md)
 * [Understand Gradient Descending](doc/gradient.md)
 * [Understand Learning Rate](doc/learningRate.md)
-* [Understand basic operation on matrix](doc/matrix.md)
+* [Understand Accuracy](doc/accuracy.md)

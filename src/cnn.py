@@ -26,6 +26,6 @@ class CNN(nn.Module):
 
 # Example usage
 model = CNN()
-input_data = torch.randn(50, 1, 1200)  # Assuming batch size 1, 1 channel, 1200 input points
+input_data = torch.randn(50, 1, 200*6)  # Assuming batch size 1, 1 channel, 1200 input points
 output = model(input_data)
 print(output.size())  # Output shape should be [batch_size, num_classes]
