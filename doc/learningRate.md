@@ -1,3 +1,21 @@
+The learning rate in a neural network (NN) is a hyperparameter that controls how much to change the model in response to the estimated error each time the model weights are updated. It determines the step size at each iteration while moving toward a minimum of the loss function.
+
+Here's a more detailed explanation:
+
+1. **Gradient Descent**: Neural networks are trained using an optimization algorithm called gradient descent. The objective is to minimize the loss function, which measures how well the model's predictions match the actual data.
+[Gradient Descent](gradient.md)
+
+2. **Updating Weights**: During training, the model's weights are adjusted based on the gradients of the loss function with respect to the weights. These gradients indicate the direction and magnitude of the steepest ascent in the loss function. To minimize the loss, the weights are updated in the opposite direction.
+
+3. **Role of Learning Rate**: The learning rate controls the size of these updates. A higher learning rate means larger updates, while a lower learning rate means smaller updates.
+
+   - **High Learning Rate**: If the learning rate is too high, the model might overshoot the optimal solution, causing it to diverge or oscillate.
+   - **Low Learning Rate**: If the learning rate is too low, the model will converge very slowly, potentially getting stuck in local minima and taking a long time to reach the optimal solution.
+
+4. **Choosing the Learning Rate**: Selecting the right learning rate is crucial for efficient training. It often requires experimentation and tuning. Some advanced techniques, like learning rate schedules and adaptive learning rate methods (e.g., Adam, RMSprop), can help automatically adjust the learning rate during training.
+
+In summary, the learning rate is a key parameter in the training process of a neural network, influencing how quickly and effectively the model learns from the data.
+
 The learning rate is a hyperparameter in machine learning and optimization algorithms that controls the size of the steps taken during the gradient descent process. It determines how quickly or slowly a model learns by adjusting its weights during training. The learning rate is denoted by \(\eta\) or \(\alpha\).
 
 ### Key Concepts:
@@ -12,6 +30,8 @@ The learning rate is a hyperparameter in machine learning and optimization algor
      w_{t+1} = w_t - \eta \nabla L(w_t)
      \]
      where \( w_t \) are the weights at iteration \( t \), \(\eta\) is the learning rate, and \(\nabla L(w_t)\) is the gradient of the loss function with respect to the weights.
+$L(w_t)$ is Loss function (MSE, Entropy,...)
+$\nabla L(w_t)$ is the gradient of Loss function respect to weight at iteration t.
 
 3. **Choosing the Right Learning Rate**:
    - **Too High**: If the learning rate is too high, the model may take large steps that cause it to overshoot the minimum of the loss function, leading to divergent behavior and unstable training.
@@ -25,50 +45,13 @@ The learning rate is a hyperparameter in machine learning and optimization algor
 
 Here’s a simple example demonstrating the impact of the learning rate on gradient descent using PyTorch:
 
-[](../src/learningRate.py)
+[👍😄Understand learning rate by sin(x)](../src/learningRate.py)
+![](images/learningRate.png)
+$$f(x)=(x-2)^2$$
+$$f'(x)=\frac {df} {dx}=\frac {df} {du}\frac {du} {dx}=2u \cdot 1 = 2(x-2)$$
+where $u(x)=x2$
+[Understand learning rate by (x-2)^2](../src/learningRate1.py)
 
-```python
-import torch
-
-# Define a simple quadratic function f(x) = (x - 2)^2
-def f(x):
-    return (x - 2) ** 2
-
-# Function to perform gradient descent
-def gradient_descent(initial_x, learning_rate, num_iterations):
-    x = torch.tensor(initial_x, requires_grad=True)
-    for i in range(num_iterations):
-        # Compute the loss
-        loss = f(x)
-        
-        # Compute gradients (backward pass)
-        loss.backward()
-        
-        # Update the variable using gradient descent
-        with torch.no_grad():
-            x -= learning_rate * x.grad
-        
-        # Zero the gradients after updating
-        x.grad.zero_()
-        
-        print(f'Iteration {i+1}: x = {x.item()}, f(x) = {loss.item()}, grad = {x.grad.item()}')
-        
-    return x
-
-# Initial value
-initial_x = 10.0
-
-# Number of iterations
-num_iterations = 20
-
-# Different learning rates
-learning_rates = [0.01, 0.1, 0.5]
-
-# Perform gradient descent with different learning rates
-for lr in learning_rates:
-    print(f'\nLearning Rate: {lr}')
-    gradient_descent(initial_x, lr, num_iterations)
-```
 
 ### Explanation of the Example:
 
@@ -83,3 +66,6 @@ for lr in learning_rates:
    - The script tests gradient descent with different learning rates (0.01, 0.1, and 0.5) and prints the results.
 
 By running this script, you can observe how different learning rates affect the convergence of the gradient descent algorithm. The goal is to find a learning rate that allows the model to converge quickly and stably to the minimum of the loss function.
+
+[Understand learning rate by (x-2)^2](../src/learningRate2.py)
+![](images/learningRate2.png)
