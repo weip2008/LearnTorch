@@ -1,41 +1,40 @@
-import torch
+import numpy as np
+import matplotlib.pyplot as plt
 
-# Define a simple quadratic function f(x) = (x - 2)^2
+# Define the function we want to minimize (in this case, a simple quadratic function)
 def f(x):
-    return (x - 2) ** 2
+    return x**2 + 10*np.sin(x)
 
-# Function to perform gradient descent
-def gradient_descent(initial_x, learning_rate, num_iterations):
-    x = torch.tensor(initial_x, requires_grad=True)
-    for i in range(num_iterations):
-        # Compute the loss
-        loss = f(x)
-        
-        # Compute gradients (backward pass)
-        loss.backward()
-        
-        # Update the variable using gradient descent
-        with torch.no_grad():
-            x -= learning_rate * x.grad
-        
-        print(f'Iteration {i+1}: x = {x.item()}, f(x) = {loss.item()}, grad = {x.grad.item()}')
-        
-        # Zero the gradients after updating
-        x.grad.zero_()
-        
-        
-    return x
+# Define the derivative of the function
+def df(x):
+    return 2*x + 10*np.cos(x)
 
-# Initial value
-initial_x = 10.0
+# Define the gradient descent function
+def gradient_descent(x0, alpha, eps, max_iter):
+    x = x0
+    x_history = [x]
+    for i in range(max_iter):
+        grad = df(x)
+        x -= alpha * grad
+        x_history.append(x)
+        if np.abs(grad) < eps:
+            break
+    return x, np.array(x_history)
 
-# Number of iterations
-num_iterations = 20
+# Set the initial point, learning rate, and stopping criteria
+x0 = 3
+alpha = 0.37
+eps = 1e-8
+max_iter = 1000
 
-# Different learning rates
-learning_rates = [0.01, 0.1, 0.5]
+# Run gradient descent
+x_min, x_history = gradient_descent(x0, alpha, eps, max_iter)
 
-# Perform gradient descent with different learning rates
-for lr in learning_rates:
-    print(f'\nLearning Rate: {lr}')
-    gradient_descent(initial_x, lr, num_iterations)
+# Plot the function and the path taken by gradient descent
+x_vals = np.linspace(-10, 10, 1000)
+y_vals = f(x_vals)
+plt.plot(x_vals, y_vals)
+plt.plot(x_history, f(x_history), 'r.')
+plt.xlabel('x')
+plt.ylabel('Mean Square Error')
+plt.show()
