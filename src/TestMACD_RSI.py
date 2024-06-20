@@ -67,8 +67,8 @@ print(signals.tail())
 
 
 # Define dynamic thresholds for MACD histogram
-buy_threshold = 0.05
-sell_threshold = -0.05
+buy_threshold = 0.01
+sell_threshold = -0.01
 
 # Generate buy/sell signals based on combined criteria
 signals['Buy Signal'] = (

@@ -13,10 +13,215 @@ class TradePosition(Enum):
     LONG = 1
     SHORT = -1
 
-def cut_slice(ohlc_df, datetime_index, window_len):
+
+# Calculate MACD and Signal Line
+def calculate_macd(stock_hist):
+    short_ema = stock_hist['Close'].ewm(span=12, adjust=False).mean()
+    long_ema = stock_hist['Close'].ewm(span=26, adjust=False).mean()
+    macd = short_ema - long_ema
+    signal = macd.ewm(span=9, adjust=False).mean()
+    macd_histogram = macd - signal
+    print(f"MACD list length:{len(macd_histogram)}\n", macd_histogram)
+
+    # Calculate Relative Strength Index (RSI)
+    delta = stock_hist['Close'].diff(1)
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    avg_gain = gain.rolling(window=14).mean()
+    avg_loss = loss.rolling(window=14).mean()
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    print(f"RSI list length:{len(rsi)}\n", rsi)
+
+    # Calculate a long-term moving average for trend confirmation
+    long_ma = stock_hist['Close'].rolling(window=50).mean()
+
+    # Create a DataFrame to store signals
+    signals = pd.DataFrame(index=stock_hist.index)
+    signals['MACD'] = macd
+    signals['Signal Line'] = signal
+    signals['MACD Histogram'] = macd_histogram
+    signals['RSI'] = rsi
+    signals['Long MA'] = long_ma
+    
+        
+    # Define dynamic thresholds for MACD histogram
+    buy_threshold = 0.005
+    sell_threshold = -0.005
+
+    # Generate buy/sell signals based on combined criteria
+    #based on the MACD Histogram and specific thresholds:
+    
+    #This is generated when the MACD Histogram crosses above a defined buy_threshold 
+    #It indicates a bullish signal based on the MACD histogram moving from below the threshold to above it
+    signals['Buy Signal'] = (
+        (signals['MACD Histogram'] > buy_threshold) & 
+        (signals['MACD Histogram'].shift(1) <= buy_threshold) 
+        # shift(1) is previous position
+    )
+    
+    #This is generated when the MACD Histogram crosses below a defined sell_threshold
+    #It indicates a bearish signal based on the MACD histogram moving from above the threshold to below it.
+    signals['Sell Signal'] = (
+        (signals['MACD Histogram'] < sell_threshold) & 
+        (signals['MACD Histogram'].shift(1) >= sell_threshold) 
+    )
+    
+    # Add Golden Cross and Death Cross signals using short_ema and long_ema
+    signals['Golden Cross'] = (
+        (short_ema > long_ema) & 
+        (short_ema.shift(1) <= long_ema.shift(1))
+    )
+
+    signals['Death Cross'] = (
+        (short_ema < long_ema) & 
+        (short_ema.shift(1) >= long_ema.shift(1))
+    )
+    
+    if IsDebug:
+        print("Combined criteria:\n")
+        print(signals.head(10))
+        print(signals.tail(10))
+        
+        # Filter and print Golden Cross and Death Cross signals
+        #cross_signals = signals[(signals['Golden Cross']) | (signals['Death Cross'])]
+        cross_signals = signals.loc[(signals['Golden Cross']) | (signals['Death Cross']), ['Golden Cross', 'Death Cross']]
+        print(f"Golden Cross and Death Cross signals length:{len(cross_signals)}\n", cross_signals)
+    
+    return cross_signals
+
+def filter_zigzag_exacttime1(zigzag_1min, cross_signals):
+    # Ensure the index is datetime if not already
+    zigzag_1min.index = pd.to_datetime(zigzag_1min.index)
+    cross_signals.index = pd.to_datetime(cross_signals.index)
+    
+    # Merge the zigzag_1min and cross_signals DataFrames on the Datetime index
+    # merge the two DataFrames on their 'Datetime' indices using an inner join, 
+    # which ensures only the matching rows are kept.
+    merged_df = pd.merge(zigzag_1min, cross_signals, how='inner', left_index=True, right_index=True)
+    if IsDebug:
+        print(f"Inner join merged dataframe length:{len(merged_df)}\n", merged_df)
+    
+    # Filter rows where 'Golden Cross' or 'Death Cross' is True
+    # filter the merged DataFrame to keep only rows where either 'Golden Cross' or 'Death Cross' is True.
+    filtered_zigzag = merged_df[(merged_df['Golden Cross']) | (merged_df['Death Cross'])]
+    #print(filtered_zigzag)
+    
+    # Drop unnecessary columns (Golden Cross and Death Cross)
+    filtered_zigzag = filtered_zigzag.drop(columns=['Golden Cross', 'Death Cross'])
+    #print(filtered_zigzag)
+    
+    return filtered_zigzag
+
+def filter_zigzag_exacttime(zigzag_1min, zigzag_5min):
+    merged_df = pd.merge(zigzag_1min, zigzag_5min, how='inner', left_index=True, right_index=True)
+    if IsDebug:
+        print(f"Inner join merged dataframe length:{len(merged_df)}\n", merged_df)
+        
+    return merged_df
+
+def filter_zigzag_rough2(zigzag_1min, cross_signals, tolerance='5min'):
+    print("Starting function")
+
+    # Ensure the indices are datetime if not already
+    zigzag_1min.index = pd.to_datetime(zigzag_1min.index)
+    cross_signals.index = pd.to_datetime(cross_signals.index)
+    
+    print("Indices converted to datetime")
+    
+    # Create a new DataFrame to store the filtered zigzag points
+    try:
+        # Check if the input is a Series, and convert it to a DataFrame if necessary
+        if isinstance(zigzag_1min, pd.Series):
+            zigzag_1min = zigzag_1min.to_frame()
+        if isinstance(cross_signals, pd.Series):
+            cross_signals = cross_signals.to_frame()
+
+        # Check the structure of the DataFrames
+        print("zigzag_1min DataFrame:")
+        print(zigzag_1min.head())
+        print("cross_signals DataFrame:")
+        print(cross_signals.head())
+
+        # Create a new DataFrame to store the filtered zigzag points
+        filtered_zigzag = pd.DataFrame(columns=zigzag_1min.columns)
+
+        # Iterate through each row in cross_signals
+        for cross_time in cross_signals.index:
+            print(f"Processing cross signal at {cross_time}")
+            
+            # Find the closest zigzag point within the tolerance range
+            time_window = zigzag_1min.loc[cross_time - pd.Timedelta(tolerance): cross_time + pd.Timedelta(tolerance)]
+            print(f"Time window for {cross_time} has {len(time_window)} rows")
+            
+            if not time_window.empty:
+                closest_time = time_window.index[np.argmin(np.abs(time_window.index - cross_time))]
+                filtered_zigzag = pd.concat([filtered_zigzag, zigzag_1min.loc[[closest_time]]])
+                print(f"Closest zigzag time to {cross_time} is {closest_time}")
+
+        # Remove Duplicates. Ensure unique index after appending
+        filtered_zigzag = filtered_zigzag[~filtered_zigzag.index.duplicated(keep='first')]
+        
+        print("Function completed successfully")
+        
+        return filtered_zigzag
+
+    except Exception as e:
+            print(f"An error occurred: {e}")
+    
+
+def filter_zigzag_rough(zigzag_1min, zigzag_5min, tolerance='5min'):
+
+    # Ensure the indices are datetime if not already
+    #zigzag_1min.index = pd.to_datetime(zigzag_1min.index)
+    #zigzag_5min.index = pd.to_datetime(zigzag_5min.index)
+    
+    # Create a new DataFrame to store the filtered zigzag points
+    try:
+        # Check if the input is a Series, and convert it to a DataFrame if necessary
+        if isinstance(zigzag_1min, pd.Series):
+            zigzag_1min = zigzag_1min.to_frame()
+        if isinstance(zigzag_5min, pd.Series):
+            zigzag_5min = zigzag_5min.to_frame()
+
+        # Check the structure of the DataFrames
+        print("zigzag_1min DataFrame:")
+        print(zigzag_1min.head())
+        print("zigzag_5min DataFrame:")
+        print(zigzag_5min.head())
+
+        # Create a new DataFrame to store the filtered zigzag points
+        filtered_zigzag = pd.DataFrame(columns=zigzag_1min.columns)
+
+        # Iterate through each row in cross_signals
+        for cross_time in zigzag_5min.index:
+            print(f"Processing cross signal at {cross_time}")
+            
+            # Find the closest zigzag point within the tolerance range
+            time_window = zigzag_1min.loc[cross_time - pd.Timedelta(tolerance): cross_time + pd.Timedelta(tolerance)]
+            print(f"Time window for {cross_time} has {len(time_window)} rows")
+            
+            if not time_window.empty:
+                closest_time = time_window.index[np.argmin(np.abs(time_window.index - cross_time))]
+                filtered_zigzag = pd.concat([filtered_zigzag, zigzag_1min.loc[[closest_time]]])
+                print(f"Closest zigzag time to {cross_time} is {closest_time}")
+
+        # Remove Duplicates. Ensure unique index after appending
+        filtered_zigzag = filtered_zigzag[~filtered_zigzag.index.duplicated(keep='first')]
+        
+        print("Function completed successfully")
+        
+        return filtered_zigzag
+
+    except Exception as e:
+            print(f"An error occurred: {e}")
+    
+
+
+def cut_slice(ohlc_1min_df, datetime_index, window_len):
     # Convert the datetime_index to a positional index
     try:
-        index = ohlc_df.index.get_loc(datetime_index)
+        index = ohlc_1min_df.index.get_loc(datetime_index)
     except KeyError:
         # If the datetime_index is not found in the DataFrame index, return None
         return None
@@ -31,7 +236,7 @@ def cut_slice(ohlc_df, datetime_index, window_len):
     
     # Create a copy of the section of the original DataFrame
     # Start from start_index up to but not including end_index!
-    section_df = ohlc_df.iloc[start_index:end_index].copy()
+    section_df = ohlc_1min_df.iloc[start_index:end_index].copy()
     section_df.drop(['Open', 'High', 'Low', 'Volume' ], axis=1, inplace=True) 
     return section_df
 
@@ -343,7 +548,7 @@ def generate_testing_data(tddf_highlow_list, position):
     outputfile.close()    
     return
 
-def check_patterns(ohlc_df, patterns_df, tdLen):
+def check_patterns(ohlc_1min_df, patterns_df, tdLen):
     
     # filtered_low_points_index = filtered_low_points.index.tolist()
     # filtered_high_points_index = filtered_high_points.index.tolist()
@@ -354,7 +559,7 @@ def check_patterns(ohlc_df, patterns_df, tdLen):
     for idx, row in patterns_df.iterrows():
         if row['Label'][1] == 'L':
             #print(f"L point found at {idx}, {row['Label']}")
-            section_df = cut_slice(ohlc_df, idx, tdLen+1)
+            section_df = cut_slice(ohlc_1min_df, idx, tdLen+1)
             if (section_df is not None):
                 #print("\nSliced DataFrame:\n", section_df)
                 low_list.append(section_df) 
@@ -362,7 +567,7 @@ def check_patterns(ohlc_df, patterns_df, tdLen):
         
         if row['Label'][1] == 'H':
             #print(f"H point found at {idx}, {row['Label']}")
-            section_df = cut_slice(ohlc_df, idx, tdLen+1)
+            section_df = cut_slice(ohlc_1min_df, idx, tdLen+1)
             if (section_df is not None):                
                 #print("\nSliced DataFrame:\n", section_df)
                 high_list.append(section_df) 
@@ -383,52 +588,84 @@ def gen_highlow_list(query_start, query_end):
     WHERE Datetime BETWEEN ? AND ?
     '''
     # Save the query result into a DataFrame object named query_result_df
-    query_result_df = pd.read_sql_query(query_range, conn, params=(query_start, query_end))
+    ohlc_1min_df = pd.read_sql_query(query_range, conn, params=(query_start, query_end))
 
     # print("Length of query result is:", len(query_result_df))
     # print("Datatype of query result:", type(query_result_df))
     # print(query_result_df)
 
-    ohlc_df = query_result_df
-    ohlc_df['Datetime'] = pd.to_datetime(ohlc_df['Datetime'])
-    ohlc_df.set_index('Datetime', inplace=True)
+    #ohlc_1min_df = query_result_df
+    ohlc_1min_df['Datetime'] = pd.to_datetime(ohlc_1min_df['Datetime'])
+    ohlc_1min_df.set_index('Datetime', inplace=True)
 
     if IsDebug:
         #print("Time elapsed:", time_elapsed, "seconds")
-        print("Results dataframe length:", len(ohlc_df))  
+        print("Results dataframe length:", len(ohlc_1min_df))  
         #print("Data read from :", file_path)
         print("Data read from table:", table_name)
         # Print the first few rows of the DataFrame
-        print(ohlc_df.head(10))
-        print(ohlc_df.tail(10))
+        print(ohlc_1min_df.head(10))
+        print(ohlc_1min_df.tail(10))
 
 
-    # Calculate ZigZag
-    zigzag = zz.calculate_zigzag(ohlc_df, deviation)
+    # Calculate zigzag_1min
+    zigzag_1min = zz.calculate_zigzag(ohlc_1min_df, deviation)
     if IsDebug:
-        print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
+        print(f"zigzag_1min list length:{len(zigzag_1min)}\n",zigzag_1min)
+        
+    ohlc_5min_df = ohlc_1min_df.resample('5min').agg({
+        'Open': 'first',
+        'High': 'max',
+        'Low': 'min',
+        'Close': 'last'
+    })
+    
+    if IsDebug:
+        #print("Time elapsed:", time_elapsed, "seconds")
+        print("Results dataframe length:", len(ohlc_5min_df))  
+        #print("Data read from :", file_path)
+        print(ohlc_5min_df.head(10))
+        print(ohlc_5min_df.tail(10))
 
-    # Plot ZigZag
-    zz.plot_zigzag(ohlc_df, zigzag)
 
+    # Calculate zigzag_1min
+    zigzag_5min = zz.calculate_zigzag(ohlc_5min_df, deviation)
+    if IsDebug:
+        print(f"zigzag_5min list length:{len(zigzag_5min)}\n",zigzag_5min)
+        
+    # Plot zigzag_1min
+    zz.plot_zigzag(ohlc_1min_df, zigzag_1min)
+
+            
+    #cross_signals = calculate_macd(ohlc_1min_df)
+    
     # zigzag_counts = df['Close'].value_counts()
-    # zigzag_value_counts = zigzag_counts[zigzag_counts.index.isin(zigzag)]
-    # print("Zigzag value counts:\n", zigzag_value_counts)
+    # zigzag_value_counts = zigzag_counts[zigzag_counts.index.isin(zigzag_1min)]
+    # print("zigzag_1min value counts:\n", zigzag_value_counts)
 
     # Filter the original DataFrame using the indices
-    # df.loc[zigzag.index]:
+    # df.loc[zigzag_1min.index]:
     # This expression uses the .loc accessor to select rows from the original DataFrame df.
-    # The rows selected are those whose index labels match the index labels of the zigzag DataFrame (or Series).
-    # In other words, it filters df to include only the rows where the index (Date) is present in the zigzag index.
-    filtered_zigzag_df = ohlc_df.loc[zigzag.index]
+    # The rows selected are those whose index labels match the index labels of the zigzag_1min DataFrame (or Series).
+    # In other words, it filters df to include only the rows where the index (Date) is present in the zigzag_1min index.
+    #filtered_zigzag_df = ohlc_1min_df.loc[zigzag_1min.index]
+    
+    #filtered_zigzag_df = filter_zigzag_exacttime(zigzag_1min, cross_signals)
+    # filtered_zigzag_df = filter_zigzag_exacttime(zigzag_1min, zigzag_5min)
+    
+    # if IsDebug:
+    #     print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
+
+    #filtered_zigzag_df = filter_zigzag_rough(zigzag_1min, cross_signals)
+    filtered_zigzag_df = filter_zigzag_rough(zigzag_1min, zigzag_5min)
     if IsDebug:
         print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
-
+              
     # Detect patterns
-    # df[df['Close'].isin(zigzag)] creates a new DataFrame 
+    # df[df['Close'].isin(zigzag_1min)] creates a new DataFrame 
     # that contains only the rows from df 
-    # where the 'Close' value is in the zigzag list.
-    # patterns = detect_patterns(df[df['Close'].isin(zigzag)])
+    # where the 'Close' value is in the zigzag_1min list.
+    # patterns = detect_patterns(df[df['Close'].isin(zigzag_1min)])
     patterns = zz.detect_patterns(filtered_zigzag_df)
     #for pattern in patterns:
     #    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
@@ -437,11 +674,13 @@ def gen_highlow_list(query_start, query_end):
 
     patterns_df = zz.convert_list_to_df(patterns)
     if IsDebug:
-        print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
+        # Print to verify DataFrame structure
+        print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  
 
-    zz.plot_patterns(ohlc_df, patterns_df)
+    zz.plot_patterns(ohlc_1min_df, patterns_df)
         
-    low_list, high_list = check_patterns(ohlc_df, patterns_df, tdLen)
+    low_list, high_list = check_patterns(ohlc_1min_df, patterns_df, tdLen)
+    
     return low_list, high_list
 
 #
@@ -467,7 +706,7 @@ if __name__ == "__main__":
     # Series Number for output training/testing data set pairs
     SN = "101"
         
-    # ZigZag parameters
+    # zigzag_1min parameters
     deviation = 0.005  # Percentage
         
     symbol = "SPX"
