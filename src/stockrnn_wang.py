@@ -12,6 +12,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import numpy as np
 import torch.nn.functional as F
 from modellib import *
+import os
 
 # Define the file path
 file_train = 'stockdata/SPY_TrainingData_200_11.csv' # 价格归一
@@ -207,5 +208,6 @@ if __name__ == "__main__":
         test(test_dataloader, model, loss_fn)
     print("Done with training.")
 
-    torch.save(model.state_dict(), "stock_model.pth")
+    filepath = os.path.join("outputs","stock_model.pth")
+    torch.save(model.state_dict(), filepath)
     print("Saved PyTorch Model State to stock_model.pth")
