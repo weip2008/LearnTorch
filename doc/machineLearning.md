@@ -95,6 +95,7 @@ class AC accuracy
 ❓What is Learning Rate?
 ![](images/learningRate.png)
 * [Understand learning rate](../src/mse1.py)
+* [Understand learning rate](../src/mse2.py)
 
 ## Data Preprocessing
 - **Articles and Tutorials**:

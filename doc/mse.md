@@ -24,6 +24,7 @@ Standard deviation gives an indication of how spread out the values in a dataset
 * [Understand Gradient descending, and learning rate](../src/mse1.py)
 * [plot y=3x+4+noise](../src/mse2.py)
 ![](images/scatter4Line.png)
+黑线是目标model，其他分散数据组是w，b调整中的数据，红，蓝，黑。其中只有蓝色的数据的MSE最小。
 
 ### Mean Squared Error (MSE)
 
@@ -80,6 +81,60 @@ where:
 and t is iteration at t (epoch)
 
 ![](images/scatter4Line.png)
+
+### Matrix Form
+Let's represent the variables in matrix form:
+- \( \mathbf{X} \) is the matrix of input features, where each row is a feature vector \( x_i \).
+- \( \mathbf{w_t} \) is the vector of weights.
+- \( \mathbf{b_t} \) is the bias term (a scalar).
+- \( \mathbf{y} \) is the vector of true values.
+- \( \hat{\mathbf{y}} \) is the vector of predicted values.
+
+In matrix notation, the predictions are:
+\[ \hat{\mathbf{y}} = \mathbf{X} \mathbf{w_t} + \mathbf{b_t} \]
+
+The MSE can be written as:
+\[ \text{MSE} = \frac{1}{n} (\mathbf{y} - \hat{\mathbf{y}})^2 \]
+
+### Partial Derivatives
+1. **Partial Derivative with respect to \( \mathbf{w_t} \)**:
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{w_t}} \]
+
+Let's first expand the MSE:
+\[ \text{MSE} = \frac{1}{n} (\mathbf{y} - \mathbf{X} \mathbf{w_t} - \mathbf{b_t})^T (\mathbf{y} - \mathbf{X} \mathbf{w_t} - \mathbf{b_t}) \]
+
+Taking the partial derivative with respect to \( \mathbf{w_t} \):
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{w_t}} = \frac{1}{n} \frac{\partial}{\partial \mathbf{w_t}} (\mathbf{y} - \mathbf{X} \mathbf{w_t} - \mathbf{b_t})^T (\mathbf{y} - \mathbf{X} \mathbf{w_t} - \mathbf{b_t}) \]
+
+Using the chain rule and matrix differentiation properties:
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{w_t}} = \frac{2}{n} \mathbf{X}^T (\mathbf{X} \mathbf{w_t} + \mathbf{b_t} - \mathbf{y}) \]
+
+2. **Partial Derivative with respect to \( \mathbf{b_t} \)**:
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{b_t}} \]
+
+Taking the partial derivative with respect to \( \mathbf{b_t} \):
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{b_t}} = \frac{1}{n} \frac{\partial}{\partial \mathbf{b_t}} (\mathbf{y} - \mathbf{X} \mathbf{w_t} - \mathbf{b_t})^T (\mathbf{y} - \mathbf{X} \mathbf{w_t} - \mathbf{b_t}) \]
+
+Again, using the chain rule and matrix differentiation properties:
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{b_t}} = \frac{2}{n} (\mathbf{X} \mathbf{w_t} + \mathbf{b_t} - \mathbf{y})^T \mathbf{1} \]
+
+Here, \( \mathbf{1} \) is a vector of ones, to account for the sum of the residuals across all data points.
+
+### Summary
+The partial derivatives of the Mean Squared Error (MSE) with respect to the weights \( \mathbf{w_t} \) and bias \( \mathbf{b_t} \) are:
+
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{w_t}} = \frac{2}{n} \mathbf{X}^T (\mathbf{X} \mathbf{w_t} + \mathbf{b_t} - \mathbf{y}) \]
+
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{b_t}} = \frac{2}{n} (\mathbf{X} \mathbf{w_t} + \mathbf{b_t} - \mathbf{y})^T \mathbf{1} \]
+
+
+Certainly! Let's derive the partial derivatives of the Mean Squared Error (MSE) with respect to the weights \( w_t \) and bias \( b_t \) for a linear regression model.
+
+Given:
+\[ \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \]
+
+where:
+\[ \hat{y}_i = w_t x_i + b_t \]
 
 ### Matrix Form
 Let's represent the variables in matrix form:

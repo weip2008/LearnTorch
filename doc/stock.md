@@ -538,6 +538,8 @@ get 93% accuracy easily.
 ### Recurrent Neural Network
 
 * [Recurrent Neural Network](../src/rnn.py)
+* [Recurrent with data SPY_TrainingData_200_10.csv works](../src/stockrnn_wang.py)
+* 
 
 ### Attension Machanics
 
