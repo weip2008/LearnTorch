@@ -20,13 +20,11 @@ def calculate_zigzag(df, deviation):
     zigzag = df['Close'][pivots != 0]
     # Create zigzag DataFrame with 'Datetime' and 'Close'
     # zigzag = df[pivots != 0].copy()
-   
-    # zigzag = zigzag.drop(columns=['Open'])
-    # zigzag = zigzag.drop(columns=['High'])
-    # zigzag = zigzag.drop(columns=['Low'])
-    # zigzag = zigzag.drop(columns=['Volume'])    
-                            
-    return zigzag
+    
+    # Convert to DataFrame and rename the column to 'Close'
+    zigzag_df = zigzag.to_frame(name='Close')
+    
+    return zigzag_df
 
 def plot_zigzag(df, zigzag):
     """

@@ -60,55 +60,6 @@ def filter_zigzag_rough(zigzag_1min, zigzag_5min, tolerance='5min'):
         print(f"An error occurred: {e}")
 
 
-def filter_zigzag_rough2(zigzag_1min, zigzag_5min, tolerance='5min'):
-    
-    # Create a new DataFrame to store the filtered zigzag points
-    try:
-        # Check if the input is a Series, and convert it to a DataFrame if necessary
-        if isinstance(zigzag_1min, pd.Series):
-            zigzag_1min = zigzag_1min.to_frame()
-        if isinstance(zigzag_5min, pd.Series):
-            zigzag_5min = zigzag_5min.to_frame()
-
-        # Check the structure of the DataFrames
-        if IsDebug:
-            print("zigzag_1min DataFrame:")
-            print(zigzag_1min.head())
-            print("zigzag_5min DataFrame:")
-            print(zigzag_5min.head())
-
-        # Create a new DataFrame to store the filtered zigzag points
-        filtered_zigzag = pd.DataFrame(columns=zigzag_1min.columns)
-
-        # Iterate through each row in cross_signals
-        for cross_time in zigzag_5min.index:
-            if IsDebug:
-                print(f"Processing cross signal at {cross_time}")
-            
-            # Find the closest zigzag point within the tolerance range
-            time_window = zigzag_1min.loc[cross_time - pd.Timedelta(tolerance): cross_time + pd.Timedelta(tolerance)]
-            if IsDebug:
-                print(f"Time window for {cross_time} has {len(time_window)} rows")
-            
-            if not time_window.empty:
-                closest_time = time_window.index[np.argmin(np.abs(time_window.index - cross_time))]
-                filtered_zigzag = pd.concat([filtered_zigzag, zigzag_1min.loc[[closest_time]]])
-                if IsDebug:
-                    print(f"Closest zigzag time to {cross_time} is {closest_time}")
-
-        # Remove Duplicates. Ensure unique index after appending
-        filtered_zigzag = filtered_zigzag[~filtered_zigzag.index.duplicated(keep='first')]
-        
-        if IsDebug:
-            print("Function completed successfully")
-        
-        return filtered_zigzag
-
-    except Exception as e:
-            print(f"An error occurred: {e}")
-
-
-
 def check_patterns(patterns_df):
     # Initialize variables
     in_position = False  # Track whether we are in a buy position
@@ -155,6 +106,7 @@ def check_patterns(patterns_df):
     
     return total
 
+
 def get_total_earning(query_start, query_end, deviation):
     # Connect to the SQLite database
     conn = sqlite3.connect(db_file)
@@ -186,13 +138,13 @@ def get_total_earning(query_start, query_end, deviation):
 
 
     # Calculate zigzag_1min
-    zigzag_1min = zz.calculate_zigzag(ohlc_1min_df, deviation)
+    zigzag_1min_df = zz.calculate_zigzag(ohlc_1min_df, deviation)
     if IsDebug:
-        print(f"zigzag_1min list length:{len(zigzag_1min)}\n",zigzag_1min)
+        print(f"zigzag_1min list length:{len(zigzag_1min_df)}\n",zigzag_1min_df)
         
     
     # Plot zigzag_1min
-    zz.plot_zigzag(ohlc_1min_df, zigzag_1min)
+    zz.plot_zigzag(ohlc_1min_df, zigzag_1min_df)
 
     ''' ohlc_5min_df = ohlc_1min_df.resample('5min').agg({
             'Open': 'first',
@@ -211,13 +163,13 @@ def get_total_earning(query_start, query_end, deviation):
     zigzag_5min = zz.calculate_zigzag(ohlc_5min_df, deviation)
     if IsDebug:
         print(f"zigzag_5min list length:{len(zigzag_5min)}\n",zigzag_5min)
-    '''
-    # Use 5 minutes Zigzag points filter out some 1 minutes points    
+   
+    #Use 5 minutes Zigzag points filter out some 1 minutes points    
     filtered_zigzag_df = filter_zigzag_rough(zigzag_1min, zigzag_1min)
     zigzag_len = len(filtered_zigzag_df)
     if IsDebug:
         print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df) 
-              
+     '''          
     # filtered_zigzag_df = zigzag_1min
     # filtered_zigzag_df.index = pd.to_datetime(filtered_zigzag_df.index)
     
@@ -230,7 +182,9 @@ def get_total_earning(query_start, query_end, deviation):
     # that contains only the rows from df 
     # where the 'Close' value is in the zigzag_1min list.
     # patterns = detect_patterns(df[df['Close'].isin(zigzag_1min)])
-    patterns = zz.detect_patterns(filtered_zigzag_df)
+    #patterns = zz.detect_patterns(filtered_zigzag_df)
+    zigzag_len = len(zigzag_1min_df)
+    patterns = zz.detect_patterns(zigzag_1min_df)
     #for pattern in patterns:
     #    print(f"Datetime: {pattern[0]}, Point: {pattern[1]}, Label: {pattern[2]}")
     if IsDebug:
@@ -266,18 +220,18 @@ if __name__ == "__main__":
     db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
 
     # Fee for each trade
-    cost = 2.00
+    cost = 3.00
     
     # zigzag_1min parameters
     deviation = 0.01  # Percentage
     # Try different deviation values
     #deviation_values = [0.0015, 0.001, 0.0009]
     #deviation_values = [0.0008, 0.0007, 0.0006]
+    deviation_values = [0.00065, 0.0006, 0.00055, 0.0005, 0.00045]
     #deviation_values = [0.0005, 0.0004, 0.0003]
-    #deviation_values = [0.00055, 0.0005, 0.00045]
     #deviation_values = [0.00040, 0.00035, 0.00030]
     #deviation_values = [0.00048, 0.00045, 0.00042]
-    deviation_values = [0.00049, 0.00048, 0.00047, 0.00046]
+    #deviation_values = [0.00049, 0.00048, 0.00047, 0.00046]
 
     # for deviation in deviation_values:
     #     pivots = peak_valley_pivots(df['Close'].values, deviation, -deviation)
@@ -297,7 +251,7 @@ if __name__ == "__main__":
     
     for deviation in deviation_values:
         ohlc_len, zigzag_len, total = get_total_earning(start_date, end_date, deviation)
-        print(f"Deviation: {deviation}\tOHLC len:{ohlc_len}\t\tZigzag points:{zigzag_len}\tTotal:{total:.2f}")
+        print(f"Deviation: {deviation}\tOHLC len:{ohlc_len}\tZigzag:{zigzag_len}\tTotal:{total:.2f}")
         
         # Create a temporary DataFrame with the results
         temp_df = pd.DataFrame({
