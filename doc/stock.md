@@ -75,42 +75,61 @@
 
 ```dos
 
-Deviation: 0.01         OHLC len:291380         Zigzag points:158       Total:7030.18
-Deviation: 0.001        OHLC len:291380         Zigzag points:6888      Total:29806.09
-Deviation: 0.0001       OHLC len:291380         Zigzag points:80882     Total:1173.18
-Deviation: 0.00005      OHLC len:291380         Zigzag points:116714    Total:-29882.00
+Deviation: 0.01         OHLC len:291380     Zigzag points:158       Total:7030.18
+Deviation: 0.001        OHLC len:291380     Zigzag points:6888      Total:29806.09
+Deviation: 0.0001       OHLC len:291380     Zigzag points:80882     Total:1173.18
+Deviation: 0.00005      OHLC len:291380     Zigzag points:116714    Total:-29882.00
 
-Deviation: 0.0015       OHLC len:291380         Zigzag points:3702      Total:24816.72
-Deviation: 0.001        OHLC len:291380         Zigzag points:6888      Total:29806.09
-Deviation: 0.0009       OHLC len:291380         Zigzag points:8030      Total:30948.83
+Deviation: 0.0015       OHLC len:291380     Zigzag points:3702      Total:24816.72
+Deviation: 0.001        OHLC len:291380     Zigzag points:6888      Total:29806.09
+Deviation: 0.0009       OHLC len:291380     Zigzag points:8030      Total:30948.83
 
-Deviation: 0.001        OHLC len:291380         Zigzag points:6888      Total:29806.09
-Deviation: 0.0008       OHLC len:291380         Zigzag points:9456      Total:32075.92
-Deviation: 0.0006       OHLC len:291380         Zigzag points:14058     Total:34218.01
+Deviation: 0.001        OHLC len:291380     Zigzag points:6888      Total:29806.09
+Deviation: 0.0008       OHLC len:291380     Zigzag points:9456      Total:32075.92
+Deviation: 0.0006       OHLC len:291380     Zigzag points:14058     Total:34218.01
 
-Deviation: 0.0005       OHLC len:291380         Zigzag points:17778     Total:34809.02
-Deviation: 0.0004       OHLC len:291380         Zigzag points:23028     Total:34551.48
-Deviation: 0.0003       OHLC len:291380         Zigzag points:31648     Total:32293.35
+Deviation: 0.0005       OHLC len:291380     Zigzag points:17778     Total:34809.02
+Deviation: 0.0004       OHLC len:291380     Zigzag points:23028     Total:34551.48
+Deviation: 0.0003       OHLC len:291380     Zigzag points:31648     Total:32293.35
 
 
-Deviation: 0.00055      OHLC len:291380         Zigzag points:15774     Total:34583.17
-Deviation: 0.0005       OHLC len:291380         Zigzag points:17778     Total:34809.02
-Deviation: 0.00045      OHLC len:291380         Zigzag points:20088     Total:34833.88
+Deviation: 0.00055      OHLC len:291380     Zigzag points:15774     Total:34583.17
+Deviation: 0.0005       OHLC len:291380     Zigzag points:17778     Total:34809.02
+Deviation: 0.00045      OHLC len:291380     Zigzag points:20088     Total:34833.88
 
-Deviation: 0.00049      OHLC len:291380         Zigzag points:18288     Total:34836.92
-Deviation: 0.00048      OHLC len:291380         Zigzag points:18818     Total:34846.13
-Deviation: 0.00047      OHLC len:291380         Zigzag points:19188     Total:34849.77
-Deviation: 0.00046      OHLC len:291380         Zigzag points:19566     Total:34846.55
+Deviation: 0.00049      OHLC len:291380     Zigzag points:18288     Total:34836.92
+Deviation: 0.00048      OHLC len:291380     Zigzag points:18818     Total:34846.13
+Deviation: 0.00047      OHLC len:291380     Zigzag points:19188     Total:34849.77
+Deviation: 0.00046      OHLC len:291380     Zigzag points:19566     Total:34846.55
 
-Deviation: 0.00048      OHLC len:291380         Zigzag points:18818     Total:34846.13
-Deviation: 0.00045      OHLC len:291380         Zigzag points:20088     Total:34833.88
-Deviation: 0.00042      OHLC len:291380         Zigzag points:21932     Total:34688.60
+Deviation: 0.00048      OHLC len:291380     Zigzag points:18818     Total:34846.13
+Deviation: 0.00045      OHLC len:291380     Zigzag points:20088     Total:34833.88
+Deviation: 0.00042      OHLC len:291380     Zigzag points:21932     Total:34688.60
 
-Deviation: 0.0004       OHLC len:291380         Zigzag points:23028     Total:34551.48
-Deviation: 0.00035      OHLC len:291380         Zigzag points:26940     Total:33754.56
-Deviation: 0.0003       OHLC len:291380         Zigzag points:31648     Total:32293.35
+Deviation: 0.0004       OHLC len:291380     Zigzag points:23028     Total:34551.48
+Deviation: 0.00035      OHLC len:291380     Zigzag points:26940     Total:33754.56
+Deviation: 0.0003       OHLC len:291380     Zigzag points:31648     Total:32293.35
 
 ```
+
+对于2022年的SPX一分钟数据，数据总量34万， 同等的情况，最佳deviation是万分之4.9, 盈利9万多。
+
+```dos
+
+Deviation: 0.0008       OHLC len:341611     Zigzag points:24549     Total:85548.25
+Deviation: 0.0007       OHLC len:341611     Zigzag points:28645     Total:87702.47
+Deviation: 0.0006       OHLC len:341611     Zigzag points:34023     Total:89393.88
+
+Deviation: 0.00055      OHLC len:341611     Zigzag points:37281     Total:89958.20
+Deviation: 0.0005       OHLC len:341611     Zigzag points:41170     Total:90209.82
+Deviation: 0.00045      OHLC len:341611     Zigzag points:45526     Total:90064.73
+
+Deviation: 0.00049      OHLC len:341611     Zigzag points:41966     Total:90224.18
+Deviation: 0.00048      OHLC len:341611     Zigzag points:42792     Total:90218.15
+Deviation: 0.00047      OHLC len:341611     Zigzag points:43650     Total:90189.25
+Deviation: 0.00046      OHLC len:341611     Zigzag points:44508     Total:90140.42
+```
+
 
 1） 选中了适当的deviation后，可以选择出合适疏密度的peak/valley点，这是第一步
 ![](images/ZigZag%20sample%2001.jpg)
