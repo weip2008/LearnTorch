@@ -24,7 +24,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -69,7 +69,17 @@
 现在的选点很简单，用ZigZag 算法（peak_valley_pivots函数）选出所有的“山峰”和“峡谷”，其中对不同的数据选用合适的deviation (minimum relative change necessary to define a peak/valley) 是非常关键的一步。[举一个例子](../src/TestPeakValleys.py), 选用不同的deviation, 数字越大，被选中的点越少；数字越小，被选中的点越多：
 ![](images/PeakValleyDeviation.jpg)
 
-这里有一个完整的寻找最佳的deviation的例子：采用2023年SPX一分钟数据，数据总量近30万，假定只单纯的买低卖高，每一单的成本2美元。不断的调整deviation的值，最后找到最佳的deviation值在万分之4.7左右，盈利近3万5千美元。
+1） 选中了适当的deviation后，可以选择出合适疏密度的peak/valley点，这是第一步
+![](images/ZigZag%20sample%2001.jpg)
+
+2） 在此基础上，识别出LL(Lower Low), HH(Higher High), LH(Lower High), HL(Higher Low)模式。
+![](images/Ziazag%20sample%2002.jpg)
+
+具体操作方法是：找到第一个LL点买入，然后只看模式的第二个字符，只要是H就是卖出点；再往后，只要是L就是买入点；如此往复，直到最终。
+
+
+
+这里有一个完整的寻找最佳的deviation的例子：采用2023年SPX一分钟数据，数据总量近30万，假定只单纯的买低卖高，每一单的成本2美元。不断的调整deviation的值，最后找到最佳的deviation值在万分之4.7左右，盈利近3万5千点。
 [参考源程序](../src/BestTradingFraqStudy.py)
 注意： 本程序中只单纯的用了1分钟的数据算出zigzag点，并没有用5分钟的zigzag点来过滤！
 
@@ -112,7 +122,7 @@ Deviation: 0.0003       OHLC len:291380     Zigzag points:31648     Total:32293.
 
 ```
 
-对于2022年的SPX一分钟数据，数据总量34万， 同等的情况，最佳deviation是万分之4.9, 盈利9万多。
+对于2022年的SPX一分钟数据，数据总量34万， 同等的情况，最佳deviation是万分之4.9, 盈利9万多点。
 
 ```dos
 
@@ -130,14 +140,31 @@ Deviation: 0.00047      OHLC len:341611     Zigzag points:43650     Total:90189.
 Deviation: 0.00046      OHLC len:341611     Zigzag points:44508     Total:90140.42
 ```
 
+对于2021年SPX一分钟数据，数据总量33万，最近deviation是万分之4.5
 
-1） 选中了适当的deviation后，可以选择出合适疏密度的peak/valley点，这是第一步
-![](images/ZigZag%20sample%2001.jpg)
+```dos
 
-2） 在此基础上，识别出LL(Lower Low), HH(Higher High), LH(Lower High), HL(Higher Low)模式。
-![](images/Ziazag%20sample%2002.jpg)
+Deviation: 0.00065      OHLC len:332576     Zigzag:14989    Total:38757.90
+Deviation: 0.0006       OHLC len:332576     Zigzag:16589    Total:39274.09
+Deviation: 0.00055      OHLC len:332576     Zigzag:18515    Total:39689.07
+Deviation: 0.0005       OHLC len:332576     Zigzag:21037    Total:39938.19
+Deviation: 0.00045      OHLC len:332576     Zigzag:23859    Total:39944.20
+Deviation: 0.0004       OHLC len:332576     Zigzag:27103    Total:39642.27
+Deviation: 0.0003       OHLC len:332576     Zigzag:37175    Total:36961.69
+```
 
-具体操作方法是：找到第一个LL点买入，然后只看模式的第二个字符，只要是H就是卖出点；再往后，只要是L就是买入点；如此往复，直到最终。
+在交易成本稳定的情况下，3年的deviation也相当的稳定，在万分之5到4.5之间。
+
+在交易成本固定的情况下，计算机如果真的能每笔交易都成功，它自然会采取相当频繁交易的办法，聚沙成塔。我们可以看一看按万分之5左右的值产生的Zigzag点，非常非常密集，远比前面例子里面我选择的要密集。这是非常自然的选择。
+
+![alt text](images/ZigZag_dense_patterns_01.jpg)
+
+![alt text](images/ZigZag_dense_patterns_02.jpg)
+
+![alt text](images/ZigZag_dense_patterns_03.jpg)
+
+![alt text](images/ZigZag_dense_patterns_05.jpg)
+
 
 * [Generating training and testing dataset to csv file](../src/GenTrainTestData.py)
 
