@@ -22,9 +22,9 @@ b = np.random.rand(1)
 
 # Define the learning rate
 learning_rate = 0.1
-
+epoch = 1000
 # Training the linear model
-for epoch in range(1000):
+for i in range(epoch):
     # Forward pass: compute the predicted output
     y_pred = np.dot(X, W) + b
     
@@ -38,6 +38,7 @@ for epoch in range(1000):
     # Update weights and biases
     W -= learning_rate * W_grad
     b -= learning_rate * b_grad
+    # print(f"{i}: w={W}\n{b}") # demo w,b changes when epoch<20
 
 # Print final weights, biases, and outputs
 print("Final weights:", W)

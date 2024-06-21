@@ -53,7 +53,7 @@ The gradient of MSE with respect to the predicted value \( \hat{y}_i \) is given
 Let's derive the gradient of MSE respect to w, b step by step:
 
 ### Chain Rule
-$$\frac {df(g(x))} {dx}=f'(g)\frac {dg} {dx}$$
+$$\frac {df(g(x))} {dx}=\frac {df} {dg}\frac {dg} {dx}$$
 
 ### Matrix Form
 Let's represent the variables in matrix form:
@@ -94,7 +94,7 @@ Again, using the chain rule and matrix differentiation properties:
 Here, \( \mathbf{1} \) is a vector of ones, to account for the sum of the residuals across all data points.
 
 ### Summary
-The partial derivatives of the Mean Squared Error (MSE) with respect to the weights \( \mathbf{w_t} \) and bias \( \mathbf{b_t} \) are:
+The partial derivatives of the Mean Squared Error (MSE) with respect to the weights \( \mathbf{w_t} \) and bias \( \mathbf{b_t} \) for different iterations are:
 
 \[ \frac{\partial \text{MSE}}{\partial \mathbf{w_t}} = \frac{2}{n} \mathbf{X}^T (\mathbf{X} \mathbf{w_t} + \mathbf{b_t} - \mathbf{y}) \]
 
@@ -102,3 +102,26 @@ The partial derivatives of the Mean Squared Error (MSE) with respect to the weig
 
 * [Use matrix to optimize MSE](../src/mse1.py)
 * [adjust w and b at same iterate](../src/gradient1.py)
+* [adjust w and b by loss function and optimizer](../src/gradient2.py)
+* [Understand dMSE_dw, and dMSE_db](../src/mse2.py)
+![](images/scatter4Line.png)
+
+To print out the MSE for each dataset based on different iterations, we can simulate an optimization process where we iteratively update the weights and bias to minimize the MSE.
+[different initial w,b, give samilar result](../src/mse_iterations.py)
+
+```text
+Iteration 98: MSE of y1 = 0.8066, MSE of y2 = 0.8066, MSE of y3 = 0.8066
+Iteration 99: MSE of y1 = 0.8066, MSE of y2 = 0.8066, MSE of y3 = 0.8066
+Iteration 100: MSE of y1 = 0.8066, MSE of y2 = 0.8066, MSE of y3 = 0.8066
+[[[2.77098632]],4.214107500930169]
+[[[2.76695282]],4.218675727653008]
+[[[2.77859456]],4.20549061365153]
+```
+
+👍😄 **Conclusion**
+
+- **Initial value of \( w \) and \( b \) is not crucial**: The starting values for weights and biases do not significantly impact the final result, as gradient descent will adjust these values to minimize the MSE.
+  
+- **Learning rate is sensitive**: The choice of learning rate is critical. If it's too high, the algorithm may overshoot the minimum. If it's too low, the convergence will be slow.
+  
+- **Iteration count should be limited once MSE minimum is approached**: Increasing the number of iterations beyond the point where the MSE is nearly minimized does not significantly improve the model and can be computationally inefficient.
