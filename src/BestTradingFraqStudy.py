@@ -60,11 +60,12 @@ def filter_zigzag_rough(zigzag_1min, zigzag_5min, tolerance='5min'):
         print(f"An error occurred: {e}")
 
 
-def check_patterns(patterns_df):
+def check_patterns2(patterns_df):
     # Initialize variables
     in_position = False  # Track whether we are in a buy position
     buy_price = 0
     total = 0
+    trade_count = 0
 
     # Loop through the DataFrame and process each row
     for idx, row in patterns_df.iterrows():
@@ -89,6 +90,7 @@ def check_patterns(patterns_df):
                 sell_price = price
                 profit = sell_price - buy_price - cost
                 total += profit
+                trade_count += 1
                 in_position = False
                 if IsDebug:
                     print(f"Sell at {idx}, Price: {sell_price:.2f}, Profit: {profit:.2f}")
@@ -107,6 +109,88 @@ def check_patterns(patterns_df):
     return total
 
 
+def check_patterns(patterns_df):
+    # Initialize variables
+    in_position = False  # Track whether we are in a buy position
+    buy_price = 0
+    buy_time = None
+    sell_time = None
+    total = 0
+    trade_count = 0
+    total_hold_time = pd.Timedelta(0)
+    hold_times = []  # List to store hold times
+    wait_times = []
+
+    # Loop through the DataFrame and process each row
+    for idx, row in patterns_df.iterrows():
+        label = row['Label']
+        price = row['Price']
+        time = idx  # Access the time from the index directly
+        
+        if label[1] == 'L':
+            if not in_position:
+                # Buy in at this point
+                buy_price = price
+                buy_time = time
+                if buy_time and sell_time:
+                    wait_time = buy_time - sell_time
+                    wait_times.append(wait_time)
+                in_position = True
+                if IsDebug:
+                    print(f"Buy  at {time}, Price: {buy_price:.2f}")
+            else:
+                if IsDebug:
+                    print(f"Already in position, ignoring buy signal at {time}, {label}")
+                continue
+        
+        elif label[1] == 'H':
+            if in_position:
+                # Sell out at this point
+                sell_price = price
+                sell_time = time
+                hold_time = sell_time - buy_time
+                hold_times.append(hold_time)
+                total_hold_time += hold_time
+                profit = sell_price - buy_price - cost
+                total += profit
+                trade_count += 1
+                in_position = False
+                if IsDebug:
+                    print(f"Sell at {time}, Price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
+            else:
+                if IsDebug:
+                    print(f"Not in position, ignoring sell signal at {time}, {label}")
+                continue
+        
+        else:
+            print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+    
+    # Calculate average hold time in minutes
+    if trade_count > 0:
+        # Convert total hold time to minutes
+        total_hold_time_minutes = total_hold_time.total_seconds() / 60
+        avg_hold_time_minutes = total_hold_time_minutes / trade_count
+        # Calculate median hold time in minutes
+        hold_times_minutes = [ht.total_seconds() / 60 for ht in hold_times]
+        median_hold_time_minutes = pd.Series(hold_times_minutes).median()
+        wait_times_minutes = [ht.total_seconds() / 60 for ht in wait_times]
+        median_wait_time_minutes = pd.Series(wait_times_minutes).median()
+    else:
+        avg_hold_time_minutes = 0
+        median_hold_time_minutes = 0
+        median_wait_time_minutes = 0
+        
+    
+    # Print total profit/loss, average hold time, and median hold time
+    if IsDebug:
+        print(f"Total Profit/Loss: {total:.2f}")
+        print(f"Average Hold Time: {avg_hold_time_minutes:.2f} minutes")
+        print(f"Median Hold Time: {median_hold_time_minutes:.2f} minutes")
+        print(f"Median wait Time: {median_wait_time_minutes:.2f} minutes")
+    
+    return total, median_hold_time_minutes, median_wait_time_minutes, trade_count
+
+    
 def get_total_earning(query_start, query_end, deviation):
     # Connect to the SQLite database
     conn = sqlite3.connect(db_file)
@@ -197,9 +281,9 @@ def get_total_earning(query_start, query_end, deviation):
 
     zz.plot_patterns(ohlc_1min_df, patterns_df)
         
-    total = check_patterns(patterns_df)
+    total, median_hold_time, median_wait_time, trade_count = check_patterns(patterns_df)
         
-    return ohlc_len, zigzag_len, total
+    return ohlc_len, zigzag_len, total, median_hold_time, median_wait_time, trade_count
 
 #
 # ================================================================================#
@@ -217,16 +301,17 @@ if __name__ == "__main__":
     # Define the SQLite database file directory
     data_dir = "data"
 
-    db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
+    db_file = os.path.join(data_dir, "stock_bigdata_2010-2023.db")
 
-    # Fee for each trade
+    # Cost for each trade
     cost = 5.00
     
     # zigzag_1min parameters
     #deviation = 0.01  # Percentage
     # Try different deviation values
+    deviation_values = [0.0035, 0.0030, 0.0025, 0.0020]
     #deviation_values = [0.0025, 0.0020, 0.0015, 0.0010]
-    deviation_values = [0.0017, 0.0016, 0.0015, 0.0014]
+    #deviation_values = [0.0015, 0.0014, 0.0013, 0.0012, 0.0011]
     #deviation_values = [0.001, 0.0008, 0.0007, 0.0006]
     #deviation_values = [0.00065, 0.0006, 0.00055, 0.0005, 0.00045, 0.00040]
     #deviation_values = [0.0005, 0.0004, 0.0003]
@@ -234,8 +319,8 @@ if __name__ == "__main__":
     #deviation_values = [0.00048, 0.00045, 0.00042]
     #deviation_values = [0.00049, 0.00048, 0.00047, 0.00046]
 
-    start_date = "2022-01-01"
-    end_date = "2022-12-31"
+    start_date = "2016-01-01"
+    end_date = "2016-12-31"
 
     #total = get_total_earning(start_date, end_date, deviation)
 
@@ -246,15 +331,21 @@ if __name__ == "__main__":
     temp_dfs = []
     
     for deviation in deviation_values:
-        ohlc_len, zigzag_len, total = get_total_earning(start_date, end_date, deviation)
-        print(f"Deviation: {deviation}\tOHLC len:{ohlc_len}\tZigzag:{zigzag_len}\tTotal:{total:.2f}")
+        ohlc_len, zigzag_count, total, median_hold_time, median_wait_time, trade_count = get_total_earning(start_date, end_date, deviation)
+        #print(f"Deviation: {deviation}\tOHLC Len:{ohlc_len}\tZigzag Cnt:{zigzag_count}\tTotal:{total:.2f}\tAvg Hold:{avg_hold_time:.2f}\tTrade Cnt:{trade_count}")
         
+        print(f"Deviation: {deviation}\tOHLC Len: {ohlc_len}\tZigzag Cnt: {zigzag_count}\tTotal: {total:.2f}\t"
+                f"Median Hold: {median_hold_time:.2f}\tMedian Wait: {median_wait_time:0.2f}\tTrade Cnt: {trade_count}")
         # Create a temporary DataFrame with the results
         temp_df = pd.DataFrame({
             'Deviation': [deviation],
             'OHLC_len': [ohlc_len],
-            'Zigzag_len': [zigzag_len],
+            'Zigzag_cnt': [zigzag_count],
+            'Median_hold':[median_hold_time],
+            'Median_wait':[median_wait_time],
+            'Trade_cnt':[trade_count],
             'Total': [total]
+    
         })
 
         # Append the temporary DataFrame to the list
