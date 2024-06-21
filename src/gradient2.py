@@ -35,6 +35,10 @@ optimizer = optim.SGD(model.parameters(), lr=0.1)
 X = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.float32)
 y = torch.tensor([[0], [1], [1], [0]], dtype=torch.float32)
 
+# Define the input data and target output AND logical
+X = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.float32)
+y = torch.tensor([[0], [0], [0], [1]], dtype=torch.float32)
+
 # Training the neural network
 for epoch in range(800):
     # Forward pass

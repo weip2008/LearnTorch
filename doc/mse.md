@@ -101,8 +101,11 @@ The partial derivatives of the Mean Squared Error (MSE) with respect to the weig
 \[ \frac{\partial \text{MSE}}{\partial \mathbf{b_t}} = \frac{2}{n} (\mathbf{X} \mathbf{w_t} + \mathbf{b_t} - \mathbf{y})^T \mathbf{1} \]
 
 * [Use matrix to optimize MSE](../src/mse1.py)
-* [adjust w and b at same iterate](../src/gradient1.py)
-* [adjust w and b by loss function and optimizer](../src/gradient2.py)
+* [adjust w and b at same iterate manually](../src/gradient1.py)
+* [NN model, adjust w and b by loss function and optimizer](../src/gradient2.py)
+
+<font style="background-color:yellow">Obviously, NN model gives much better result.</font>
+
 * [Understand dMSE_dw, and dMSE_db](../src/mse2.py)
 ![](images/scatter4Line.png)
 
