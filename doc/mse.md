@@ -107,4 +107,21 @@ The partial derivatives of the Mean Squared Error (MSE) with respect to the weig
 ![](images/scatter4Line.png)
 
 To print out the MSE for each dataset based on different iterations, we can simulate an optimization process where we iteratively update the weights and bias to minimize the MSE.
-[](../src/mse_iterations.py)
+[different initial w,b, give samilar result](../src/mse_iterations.py)
+
+```text
+Iteration 98: MSE of y1 = 0.8066, MSE of y2 = 0.8066, MSE of y3 = 0.8066
+Iteration 99: MSE of y1 = 0.8066, MSE of y2 = 0.8066, MSE of y3 = 0.8066
+Iteration 100: MSE of y1 = 0.8066, MSE of y2 = 0.8066, MSE of y3 = 0.8066
+[[[2.77098632]],4.214107500930169]
+[[[2.76695282]],4.218675727653008]
+[[[2.77859456]],4.20549061365153]
+```
+
+👍😄 **Conclusion**
+
+- **Initial value of \( w \) and \( b \) is not crucial**: The starting values for weights and biases do not significantly impact the final result, as gradient descent will adjust these values to minimize the MSE.
+  
+- **Learning rate is sensitive**: The choice of learning rate is critical. If it's too high, the algorithm may overshoot the minimum. If it's too low, the convergence will be slow.
+  
+- **Iteration count should be limited once MSE minimum is approached**: Increasing the number of iterations beyond the point where the MSE is nearly minimized does not significantly improve the model and can be computationally inefficient.
