@@ -94,7 +94,7 @@ Again, using the chain rule and matrix differentiation properties:
 Here, \( \mathbf{1} \) is a vector of ones, to account for the sum of the residuals across all data points.
 
 ### Summary
-The partial derivatives of the Mean Squared Error (MSE) with respect to the weights \( \mathbf{w_t} \) and bias \( \mathbf{b_t} \) are:
+The partial derivatives of the Mean Squared Error (MSE) with respect to the weights \( \mathbf{w_t} \) and bias \( \mathbf{b_t} \) for different iterations are:
 
 \[ \frac{\partial \text{MSE}}{\partial \mathbf{w_t}} = \frac{2}{n} \mathbf{X}^T (\mathbf{X} \mathbf{w_t} + \mathbf{b_t} - \mathbf{y}) \]
 
@@ -102,3 +102,9 @@ The partial derivatives of the Mean Squared Error (MSE) with respect to the weig
 
 * [Use matrix to optimize MSE](../src/mse1.py)
 * [adjust w and b at same iterate](../src/gradient1.py)
+* [adjust w and b by loss function and optimizer](../src/gradient2.py)
+* [Understand dMSE_dw, and dMSE_db](../src/mse2.py)
+![](images/scatter4Line.png)
+
+To print out the MSE for each dataset based on different iterations, we can simulate an optimization process where we iteratively update the weights and bias to minimize the MSE.
+[](../src/mse_iterations.py)

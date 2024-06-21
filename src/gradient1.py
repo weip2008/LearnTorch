@@ -38,7 +38,8 @@ for i in range(epoch):
     # Update weights and biases
     W -= learning_rate * W_grad
     b -= learning_rate * b_grad
-    # print(f"{i}: w={W}\n{b}")
+    # print(f"{i}: w={W}\n{b}") # demo w,b changes when epoch<20
+
 # Print final weights, biases, and outputs
 print("Final weights:", W)
 print("Final biases:", b)
