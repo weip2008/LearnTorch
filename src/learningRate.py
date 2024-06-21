@@ -22,8 +22,8 @@ def gradient_descent(x0, alpha, eps, max_iter):
     return x, np.array(x_history)
 
 # Set the initial point, learning rate, and stopping criteria
-x0 = 3
-alpha = 0.37
+x0 = -5
+alpha = 0.1
 eps = 1e-8
 max_iter = 1000
 
