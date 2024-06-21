@@ -1,4 +1,6 @@
-Mean Square Error (MSE) is a common metric used to evaluate the performance of a regression model. It measures the average of the squares of the errors, that is, the average squared difference between the estimated values and the actual values. The formula for MSE is:
+## Mean Squared Error (MSE)
+
+Mean Squared Error (MSE) is a common loss function used in regression tasks to measure the average squared difference between the predicted values and the actual values.
 
 \[ \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \]
 
@@ -20,53 +22,6 @@ where:
 
 Standard deviation gives an indication of how spread out the values in a dataset are. A smaller standard deviation indicates that the values are closer to the mean, while a larger standard deviation indicates that the values are more spread out.
 
-* [calculate MSE](../src/mse.py)
-* [Understand Gradient descending, and learning rate](../src/mse1.py)
-* [plot y=3x+4+noise](../src/mse2.py)
-![](images/scatter4Line.png)
-
-### Mean Squared Error (MSE)
-
-Mean Squared Error (MSE) is a common loss function used in regression tasks to measure the average squared difference between the predicted values and the actual values.
-
-The formula for MSE is:
-
-\[ \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \]
-
-Where:
-- \( n \) is the number of data points.
-- \( y_i \) is the actual value.
-- \( \hat{y}_i \) is the predicted value.
-
-### Gradient of MSE
-
-To optimize the MSE loss function using gradient descent, we need to compute its gradient with respect to the predicted values.
-
-The gradient of MSE with respect to the predicted value \( \hat{y}_i \) is given by:
-
-\[ \frac{\partial \text{MSE}}{\partial \hat{y}_i} = \frac{2}{n} (\hat{y}_i - y_i) \]
-
-### Derivation of the Gradient
-
-Let's derive the gradient step by step:
-
-1. **MSE formula**:
-   \[ \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \]
-
-2. **Differentiate MSE with respect to \( \hat{y}_i \)**:
-   \[ \frac{\partial \text{MSE}}{\partial \hat{y}_i} = \frac{\partial}{\partial \hat{y}_i} \left( \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \right) \]
-
-3. **Focus on a single term** (since differentiation is linear and summation is a sum of individual derivatives):
-   \[ \frac{\partial}{\partial \hat{y}_i} (y_i - \hat{y}_i)^2 \]
-
-4. **Apply the chain rule**:
-   \[ \frac{\partial}{\partial \hat{y}_i} (y_i - \hat{y}_i)^2 = 2(y_i - \hat{y}_i) \cdot (-1) = -2(y_i - \hat{y}_i) = 2(\hat{y}_i - y_i) \]
-
-5. **Averaging over all data points**:
-   \[ \frac{\partial \text{MSE}}{\partial \hat{y}_i} = \frac{2}{n} \sum_{i=1}^{n} (\hat{y}_i - y_i) \]
-
-Therefore, the gradient of the MSE loss with respect to the predicted values \( \hat{y}_i \) is \( \frac{2}{n} (\hat{y}_i - y_i) \). This gradient is used in gradient descent algorithms to update the model parameters to minimize the MSE loss.
-
 ## Partial derivative of MSE
 👎😱 the MSE above is a scaler number, how to calculate derivative respect to w and b?
 
@@ -79,7 +34,26 @@ where:
 \[ \hat{y}_i = w_t x_i + b_t \]
 and t is iteration at t (epoch)
 
+* [calculate MSE](../src/mse.py)
+* [Understand Gradient descending, and learning rate](../src/mse1.py)
+* [plot y=3x+4+noise](../src/mse2.py)
 ![](images/scatter4Line.png)
+黑线是目标model，其他分散数据组是w，b调整中的数据，红，蓝，黑。其中只有蓝色的数据的MSE最小。
+
+## Gradient of MSE
+
+To optimize the MSE loss function using gradient descent, we need to compute its gradient with respect to the predicted values.
+
+The gradient of MSE with respect to the predicted value \( \hat{y}_i \) is given by:
+
+\[ \frac{\partial \text{MSE}}{\partial \hat{y}_i} = \frac{2}{n} (\hat{y}_i - y_i) \]
+
+### Derivation of the Gradient
+
+Let's derive the gradient of MSE respect to w, b step by step:
+
+### Chain Rule
+$$\frac {df(g(x))} {dx}=f'(g)\frac {dg} {dx}$$
 
 ### Matrix Form
 Let's represent the variables in matrix form:
@@ -125,3 +99,6 @@ The partial derivatives of the Mean Squared Error (MSE) with respect to the weig
 \[ \frac{\partial \text{MSE}}{\partial \mathbf{w_t}} = \frac{2}{n} \mathbf{X}^T (\mathbf{X} \mathbf{w_t} + \mathbf{b_t} - \mathbf{y}) \]
 
 \[ \frac{\partial \text{MSE}}{\partial \mathbf{b_t}} = \frac{2}{n} (\mathbf{X} \mathbf{w_t} + \mathbf{b_t} - \mathbf{y})^T \mathbf{1} \]
+
+* [Use matrix to optimize MSE](../src/mse1.py)
+* [adjust w and b at same iterate](../src/gradient1.py)

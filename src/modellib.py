@@ -8,6 +8,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
 
+# Define model
+class NeuralNetwork(nn.Module):
+    def __init__(self):
+        global window,columns,batch_global
+        super().__init__()
+        self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(columns*window, window),
+            nn.ReLU(),  # Rectified Linear Unit
+            nn.Linear(window, columns),
+            nn.ReLU(),
+            nn.Linear(columns, 2)
+        )
+
+    def forward(self, x):
+        x = self.flatten(x)
+        logits = self.linear_relu_stack(x)
+        return logits
+
 class CNN(nn.Module):
     """
     卷积神经网络
