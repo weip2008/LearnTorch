@@ -48,6 +48,8 @@ Here’s an example of a simple CNN implementation using PyTorch:
 
 [Create a model, and save to file](../src/simpleCNN.py)
 [load model from the file, and test the model](../src/simpleCNN1.py)
+[load model from the file, and test the model](../src/simpleCNN2.py)
+[find best learning rate](../src/simpleCNN4.py)
 
 This code defines a simple CNN with two convolutional layers, two pooling layers, and three fully connected layers. It uses the CIFAR-10 dataset for training, applying standard data transformations. The model is trained for two epochs, printing the training loss every 2000 mini-batches.
 
@@ -151,4 +153,22 @@ print(net)
 
 通过这些改进，你应该能够提高模型在CIFAR-10数据集上的性能。如果你遇到其他问题或需要进一步的优化建议，请随时告诉我！
 
-[identity, edge, sharpen](../src/imageConverlotion.py)
+[show original, identity, edge, sharpen](../src/imageConverlotion.py)
+
+The sharpening convolution kernel you provided is a 3x3 matrix:
+
+```
+[[ 0, -1,  0],
+ [-1,  5, -1],
+ [ 0, -1,  0]]
+```
+
+This kernel is used in image processing to enhance the edges and details in an image, making it appear sharper. Here's how the kernel works:
+
+1. **Center Pixel Weight**: The center pixel of the kernel (5 in this case) has a higher weight, which means it contributes more to the resulting pixel value. This weight emphasizes the importance of the center pixel in the sharpening process.
+
+2. **Neighboring Pixel Weights**: The surrounding pixels (top, bottom, left, right) have a weight of -1. These weights are negative because they are used to subtract the surrounding pixel values from the center pixel value. This subtraction creates a higher contrast between the center pixel and its neighbors, enhancing edges.
+
+3. **Zero Weights**: The pixels in the corners of the kernel have a weight of 0, which means they are not used in the sharpening process. This is because corner pixels do not have direct neighboring pixels in the 3x3 kernel.
+
+When this kernel is applied to an image using convolution, it calculates a new value for each pixel in the image based on the weighted sum of the pixel values in the neighborhood defined by the kernel. The result is a sharpened image with enhanced edges and details.

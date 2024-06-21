@@ -555,6 +555,7 @@ Saved PyTorch Model State to best_stock_model_69.pth
 ![](images/possibleModels.png)
 
 ### 卷积神经网络
+[](ConvolutionalNeuralNetworks.md)
 [李永乐老师讲卷积](https://www.youtube.com/watch?v=AFlIM0jSI9I)
 * [卷积神经网络does NOT work](../src/cnn.py)
 * [卷积神经网络works from ChatGPT directly](../src/cnn1.py)

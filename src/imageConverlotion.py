@@ -1,5 +1,6 @@
 """
 pip install opencv-python
+by given image, use different converlotion to get different effect on the image
 """
 import cv2
 import numpy as np
@@ -7,6 +8,7 @@ import matplotlib.pyplot as plt
 
 # Load the image
 image_path = "data/lady.jpg"
+image_path = "data/flower.jpg"
 image = cv2.imread(image_path)
 
 # Convert the image to grayscale

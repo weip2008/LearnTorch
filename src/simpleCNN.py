@@ -48,7 +48,7 @@ if __name__ == '__main__':
     # Initialize the CNN, loss function, and optimizer
     net = SimpleCNN()
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
+    optimizer = optim.SGD(net.parameters(), lr=2.31E-04, momentum=0.9)
 
     # Train the CNN
     for epoch in range(2):  # Loop over the dataset multiple times

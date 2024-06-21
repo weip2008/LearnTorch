@@ -75,7 +75,7 @@ if __name__ == '__main__':
     # Initialize the improved CNN, loss function, and optimizer
     net = ImprovedCNN()
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(net.parameters(), lr=0.001)
+    optimizer = optim.Adam(net.parameters(), lr=2.31E-04)
 
     # Learning rate scheduler
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
@@ -103,11 +103,11 @@ if __name__ == '__main__':
     print('Finished Training')
 
     # Save the trained model to a file
-    torch.save(net.state_dict(), 'improved_cnn.pth')
+    torch.save(net.state_dict(), 'outputs/improved_cnn.pth')
     print('Model saved to improved_cnn.pth')
 
     # Load the saved model
-    net.load_state_dict(torch.load('improved_cnn.pth'))
+    net.load_state_dict(torch.load('outputs/improved_cnn.pth'))
     print('Model loaded from improved_cnn.pth')
 
     # Test the model
