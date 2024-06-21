@@ -220,24 +220,20 @@ if __name__ == "__main__":
     db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
 
     # Fee for each trade
-    cost = 3.00
+    cost = 5.00
     
     # zigzag_1min parameters
-    deviation = 0.01  # Percentage
+    #deviation = 0.01  # Percentage
     # Try different deviation values
-    #deviation_values = [0.0015, 0.001, 0.0009]
-    #deviation_values = [0.0008, 0.0007, 0.0006]
-    deviation_values = [0.00065, 0.0006, 0.00055, 0.0005, 0.00045]
+    #deviation_values = [0.0025, 0.0020, 0.0015, 0.0010]
+    deviation_values = [0.0017, 0.0016, 0.0015, 0.0014]
+    #deviation_values = [0.001, 0.0008, 0.0007, 0.0006]
+    #deviation_values = [0.00065, 0.0006, 0.00055, 0.0005, 0.00045, 0.00040]
     #deviation_values = [0.0005, 0.0004, 0.0003]
     #deviation_values = [0.00040, 0.00035, 0.00030]
     #deviation_values = [0.00048, 0.00045, 0.00042]
     #deviation_values = [0.00049, 0.00048, 0.00047, 0.00046]
 
-    # for deviation in deviation_values:
-    #     pivots = peak_valley_pivots(df['Close'].values, deviation, -deviation)
-    #     df[f'Pivots_{deviation}'] = pivots
- 
-    #============================= Training Data ============================================#
     start_date = "2022-01-01"
     end_date = "2022-12-31"
 
