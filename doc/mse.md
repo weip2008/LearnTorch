@@ -53,7 +53,7 @@ The gradient of MSE with respect to the predicted value \( \hat{y}_i \) is given
 Let's derive the gradient of MSE respect to w, b step by step:
 
 ### Chain Rule
-$$\frac {df(g(x))} {dx}=f'(g)\frac {dg} {dx}$$
+$$\frac {df(g(x))} {dx}=\frac {df} {dg}\frac {dg} {dx}$$
 
 ### Matrix Form
 Let's represent the variables in matrix form:
