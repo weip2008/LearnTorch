@@ -210,6 +210,8 @@ Putting it all together, the convolution of \( f \) and \( g \) is:
 
 [](../src/convolution2.py)
 
+![](images/convolution.png)
+
 👎😱下面是ChatGPT给出的答案之一，错得离谱。
 
 卷积（Convolution）是数学中一种重要的运算，广泛应用于信号处理、图像处理、统计学、以及深度学习等领域。尽管它的概念有些抽象，但理解其基本原理有助于更好地应用和分析数据。
