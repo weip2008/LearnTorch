@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import zigzagplus1 as zz
+from tabulate import tabulate
+
 
 
 def filter_zigzag_rough(zigzag_1min, zigzag_5min, tolerance='5min'):
@@ -109,7 +111,7 @@ def check_patterns2(patterns_df):
     return total
 
 
-def check_patterns(patterns_df, IsDebug=True):
+def check_patterns(patterns_df, IsDebug=False):
     # Initialize variables
     in_long_position = False  # Track whether we are in a buy position
     in_short_position = False 
@@ -118,6 +120,7 @@ def check_patterns(patterns_df, IsDebug=True):
     sell_time = None
     count_long = 0
     total_profit_long = 0
+    hold_time = pd.Timedelta(0)
     total_hold_time = pd.Timedelta(0)
     hold_times_long = []  # List to store hold times
     wait_times_long = []
@@ -169,9 +172,16 @@ def check_patterns(patterns_df, IsDebug=True):
         # Convert total hold time to minutes
         total_hold_time_minutes = total_hold_time.total_seconds() / 60
         avg_hold_time_minutes_long = total_hold_time_minutes / count_long
-        # Calculate median hold time in minutes
+        # Calculate median hold time in minutes        
         hold_times_minutes_long = [ht.total_seconds() / 60 for ht in hold_times_long]
+        # This list comprehension iterates over each hold_time in hold_times_long
+        # ht.total_seconds() converts each timedelta object to the total number of seconds.
+        # Dividing by 60 converts the seconds into minutes.
+        # The result is a list of hold times in minutes.        
         median_hold_time_minutes_long = pd.Series(hold_times_minutes_long).median()
+        # pd.Series(hold_times_minutes_long) converts the list of hold times in minutes into a Pandas Series, 
+        # which is a one-dimensional array-like object.
+        # .median() calculates the median (the middle value) of the hold times in minutes.
         longest_hold_time_minutes_long = pd.Series(hold_times_minutes_long).max()
         # wait_times_minutes_long = [ht.total_seconds() / 60 for ht in wait_times_long]
         # median_wait_time_minutes_long = pd.Series(wait_times_minutes_long).median()
@@ -196,6 +206,7 @@ def check_patterns(patterns_df, IsDebug=True):
     sell_time = None
     total_profit_short = 0
     count_short = 0
+    hold_time = pd.Timedelta(0)
     total_hold_time = pd.Timedelta(0)
     hold_times_short = []  # List to store hold times
     wait_times_short = []        
@@ -266,20 +277,34 @@ def check_patterns(patterns_df, IsDebug=True):
         #print(f"Median wait Time: {median_wait_time_minutes_short:.2f} minutes")
     
     # Create a temporary DataFrame with the results
-    temp_df = pd.DataFrame({
+    ''' temp_df = pd.DataFrame({
         'Deviation': [0.0],
         'OHLC_len': [0],
         'Zigzag_cnt': [len(patterns_df)],
-        'Avg_hold_long':[avg_hold_time_minutes_long],
-        'Median_hold_long':[median_hold_time_minutes_long],
-        'Longest_hold_long':[longest_hold_time_minutes_long],
-        'Count_long':[count_long],
-        'Profit_long':[total_profit_long],
-        'Avg_hold_short':[avg_hold_time_minutes_short],
-        'Median_hold_short':[median_hold_time_minutes_short],
-         'Longest_hold_short':[longest_hold_time_minutes_short],
-        'Count_short':[count_short],
-        'Profit_short':[total_profit_short]
+        'Avg Hold L':[avg_hold_time_minutes_long],
+        'Median Hold L':[median_hold_time_minutes_long],
+        'Longest Hold L':[longest_hold_time_minutes_long],
+        'Count L':[count_long],
+        'Profit L':[total_profit_long],
+        'Avg Hold S':[avg_hold_time_minutes_short],
+        'Median Hold S':[median_hold_time_minutes_short],
+        'Longest Hold S':[longest_hold_time_minutes_short],
+        'Count S':[count_short],
+        'Profit S':[total_profit_short]
+
+    }) '''
+    
+    temp_df = pd.DataFrame({
+        'Deviation': [0.0],
+        'Zigzag': [len(patterns_df)],
+        'LONG>':[' '],
+        'Median Hold':[median_hold_time_minutes_long],
+        'Count':[count_long],
+        'Profit':[total_profit_long],
+        'SHORT>':[' '],
+        ' Median Hold':[median_hold_time_minutes_short],
+        ' Count':[count_short],
+        ' Profit':[total_profit_short]
 
     })
     
@@ -381,14 +406,11 @@ def get_total_earning(query_start, query_end, deviation):
     
     temp_df = check_patterns(patterns_df)
     
-    if IsDebug:
-        print(temp_df)
-    
     temp_df['Deviation'] = deviation
-    temp_df['OHLC_len'] =  ohlc_len
+    #temp_df['OHLC_len'] =  ohlc_len
      
     #return ohlc_len, zigzag_len, total, median_hold_time, median_wait_time, trade_count
-    return temp_df
+    return temp_df, ohlc_len
 
 #
 # ================================================================================#
@@ -414,11 +436,11 @@ if __name__ == "__main__":
     # zigzag_1min parameters
     #deviation = 0.01  # Percentage
     # Try different deviation values
-    deviation_values = [0.0010]
+    #deviation_values = [0.0010]
     #deviation_values = [0.01, 0.001, 0.002, 0.004, 0.005, 0.006]
     #deviation_values = [0.0035, 0.0030, 0.0025, 0.0020]
     #deviation_values = [0.0025, 0.0020, 0.0015, 0.0010]
-    #deviation_values = [0.0020, 0.0015, 0.0010, 0.0005]
+    deviation_values = [0.0025, 0.0020, 0.0015, 0.0010, 0.0005]
     #deviation_values = [0.001, 0.0008, 0.0007, 0.0006]
     #deviation_values = [0.0007, 0.0006, 0.00060, 0.00055, 0.0005]
     #deviation_values = [0.0009, 0.0008, 0.0007]
@@ -426,8 +448,8 @@ if __name__ == "__main__":
     
     #deviation_values = [0.00049, 0.00048, 0.00047, 0.00046]
 
-    start_date = "2023-01-01"
-    end_date = "2023-12-31"
+    start_date = "2020-01-01"
+    end_date = "2020-12-31"
 
     #total = get_total_earning(start_date, end_date, deviation)
 
@@ -436,6 +458,7 @@ if __name__ == "__main__":
 
     # Initialize an empty list to store temporary DataFrames
     temp_dfs = []
+    ohlc_len = 0
     
     for deviation in deviation_values:
         # ohlc_len, zigzag_count, total, median_hold_time, median_wait_time, trade_count = get_total_earning(start_date, end_date, deviation)
@@ -455,15 +478,19 @@ if __name__ == "__main__":
     
         # })
 
-        temp_df = get_total_earning(start_date, end_date, deviation)
+        temp_df, ohlc_len = get_total_earning(start_date, end_date, deviation)
         # Append the temporary DataFrame to the list
         temp_dfs.append(temp_df)
     # Concatenate all temporary DataFrames into the main DataFrame
     df = pd.concat(temp_dfs, ignore_index=True)
     
-    print("\n======================================================================")
+    print("\n======================================================================\n")
     # Iterating over each column and printing the column name and its content
-    for column in df.columns:
-        print(f"{column}:\t\t{df[column].to_string(index=False)}")
-        #print(df[column].to_string(index=False))
-        #print()
+    # for column in df.columns:
+    #     print(f"{column}:\t\t{df[column].to_string(index=False)}")
+ 
+    # Print the title
+    print(f"Trading Analysis Summary Table from {start_date} to {end_date}")
+    print("OHLC length:", ohlc_len)
+    # Print the DataFrame as a beautiful table
+    print(tabulate(df, headers='keys', tablefmt='psql')) # other formats: grid, plain
