@@ -109,7 +109,7 @@ def check_patterns2(patterns_df):
     return total
 
 
-def check_patterns(patterns_df, IsDebug=True):
+def check_patterns(patterns_df, IsDebug = True):
     # Initialize variables
     in_long_position = False  # Track whether we are in a buy position
     in_short_position = False 
@@ -118,7 +118,7 @@ def check_patterns(patterns_df, IsDebug=True):
     sell_time = None
     count_long = 0
     total_profit_long = 0
-    total_hold_time = pd.Timedelta(0)
+    #total_hold_time = pd.Timedelta(0)
     hold_times_long = []  # List to store hold times
     wait_times_long = []
 
@@ -133,29 +133,34 @@ def check_patterns(patterns_df, IsDebug=True):
                 # Buy in at this point
                 buy_price = price
                 buy_time = time
+                # if buy_time and sell_time:
+                #     wait_time_long = buy_time - sell_time
+                #     wait_times_long.append(wait_time_long)
                 in_long_position = True
                 if IsDebug:
                     print(f"At {time}, buy  price: {buy_price:.2f} at {label} point")
             else:
                 if IsDebug:
-                    print(f"At {time}, already in LONG position, ignoring signal {label} at price: {buy_price:.2f}")
+                    print(f"At {time}, already in long position, ignoring signal {label} at price: {buy_price:.2f}")
                 continue
         
         elif label[1] == 'H':
             if in_long_position:
                 # Sell out at this point
-                sell_price = price
-                sell_time = time
-                hold_time = sell_time - buy_time
-                total_hold_time += hold_time
-                hold_times_long.append(hold_time)                  
-                count_long += 1                
-                profit = sell_price - buy_price - cost                
-                total_profit_long += profit
-                in_long_position = False
-                if IsDebug:
-                    print(f"At {time}, {label} point, sell price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
-                
+                sell_price = price                
+                profit = sell_price - buy_price - cost
+                if profit > 0: 
+                    sell_time = time
+                    hold_time = sell_time - buy_time
+                    hold_times_long.append(hold_time)                  
+                    count_long += 1
+                    total_profit_long += profit
+                    in_long_position = False
+                    if IsDebug:
+                        print(f"At {time}, {label} point, sell price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                else:
+                    if IsDebug:
+                        print(f"At {time}, {label} point, NO sell at price: {sell_price:.2f}, Profit: {profit:.2f}")         
             else:
                 if IsDebug:
                     print(f"Not in position, ignoring sell signal at {time}, {label}")
@@ -167,27 +172,24 @@ def check_patterns(patterns_df, IsDebug=True):
     # Calculate hold time in minute and wait time
     if count_long > 0:
         # Convert total hold time to minutes
-        total_hold_time_minutes = total_hold_time.total_seconds() / 60
-        avg_hold_time_minutes_long = total_hold_time_minutes / count_long
+        #total_hold_time_minutes = total_hold_time.total_seconds() / 60
+        #avg_hold_time_minutes = total_hold_time_minutes / trade_count
         # Calculate median hold time in minutes
         hold_times_minutes_long = [ht.total_seconds() / 60 for ht in hold_times_long]
         median_hold_time_minutes_long = pd.Series(hold_times_minutes_long).median()
-        longest_hold_time_minutes_long = pd.Series(hold_times_minutes_long).max()
         # wait_times_minutes_long = [ht.total_seconds() / 60 for ht in wait_times_long]
         # median_wait_time_minutes_long = pd.Series(wait_times_minutes_long).median()
     else:
-        avg_hold_time_minutes_long = 0
+        avg_hold_time_minutes = 0
         median_hold_time_minutes_long = 0
-        longest_hold_time_minutes_long = 0
         #median_wait_time_minutes_long = 0
         
     
     # Print total profit/loss,  median hold time and median wait time
     if IsDebug:
         print(f"Total Long Profit/Loss: {total_profit_long:.2f}")
-        print(f"Average Hold Time: {avg_hold_time_minutes_long:.2f} minutes")
+        #print(f"Average Hold Time: {avg_hold_time_minutes:.2f} minutes")
         print(f"Median Hold Time: {median_hold_time_minutes_long:.2f} minutes")
-        print(f"Longest Hold Time: {longest_hold_time_minutes_long:.2f} minutes")
         #print(f"Median wait Time: {median_wait_time_minutes_long:.2f} minutes")
     
        
@@ -196,7 +198,6 @@ def check_patterns(patterns_df, IsDebug=True):
     sell_time = None
     total_profit_short = 0
     count_short = 0
-    total_hold_time = pd.Timedelta(0)
     hold_times_short = []  # List to store hold times
     wait_times_short = []        
     # Loop through the DataFrame and process each row for SHORT position (做空)
@@ -210,12 +211,15 @@ def check_patterns(patterns_df, IsDebug=True):
                 # Buy in at this point
                 buy_price = price
                 buy_time = time
+                # if buy_time and sell_time:
+                #     wait_time = buy_time - sell_time
+                #     wait_times_short.append(wait_time)
                 in_short_position = True
                 if IsDebug:
-                    print(f"At {time}, buy  price: {buy_price:.2f} at {label} point")
+                    print(f"Buy  at {time}, Price: {buy_price:.2f}")
             else:
                 if IsDebug:
-                    print(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}")
+                    print(f"Already in position, ignoring short signal at {time}, {label}")
                 continue
         
         elif label[1] == 'L':
@@ -225,13 +229,13 @@ def check_patterns(patterns_df, IsDebug=True):
                 sell_time = time
                 hold_time = sell_time - buy_time
                 hold_times_short.append(hold_time)
-                total_hold_time += hold_time
+                #total_hold_time += hold_time
                 profit = -1 * (sell_price - buy_price) - cost
                 total_profit_short += profit
                 count_short += 1
                 in_short_position = False
                 if IsDebug:
-                    print(f"At {time}, {label} point, sell price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")           
+                    print(f"Sell at {time}, Price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
             else:
                 if IsDebug:
                     print(f"Not in position, ignoring sell signal at {time}, {label}")
@@ -243,16 +247,15 @@ def check_patterns(patterns_df, IsDebug=True):
     # Calculate hold time in minute and wait time
     if count_short > 0:
         # Convert total hold time to minutes
-        total_hold_time_minutes = total_hold_time.total_seconds() / 60
-        avg_hold_time_minutes_short = total_hold_time_minutes / count_short
+        #total_hold_time_minutes = total_hold_time.total_seconds() / 60
+        #avg_hold_time_minutes = total_hold_time_minutes / trade_count
         # Calculate median hold time in minutes
         hold_times_minutes_short = [ht.total_seconds() / 60 for ht in hold_times_short]
         median_hold_time_minutes_short = pd.Series(hold_times_minutes_short).median()
-        longest_hold_time_minutes_short = pd.Series(hold_times_minutes_long).max()
         # wait_times_minutes_short = [ht.total_seconds() / 60 for ht in wait_times_short]
         # median_wait_time_minutes_short = pd.Series(wait_times_minutes_short).median()
     else:
-        avg_hold_time_minutes_short = 0
+        avg_hold_time_minutes = 0
         median_hold_time_minutes_short = 0
         #median_wait_time_minutes_short = 0
         
@@ -260,9 +263,8 @@ def check_patterns(patterns_df, IsDebug=True):
     # Print total profit/loss,  median hold time and median wait time
     if IsDebug:
         print(f"Total Short Profit/Loss: {total_profit_short:.2f}")
-        print(f"Average Hold Time: {avg_hold_time_minutes_short:.2f} minutes")
+        #print(f"Average Hold Time: {avg_hold_time_minutes:.2f} minutes")
         print(f"Median Hold Time: {median_hold_time_minutes_short:.2f} minutes")
-        print(f"Longest Hold Time: {longest_hold_time_minutes_short:.2f} minutes")
         #print(f"Median wait Time: {median_wait_time_minutes_short:.2f} minutes")
     
     # Create a temporary DataFrame with the results
@@ -270,14 +272,10 @@ def check_patterns(patterns_df, IsDebug=True):
         'Deviation': [0.0],
         'OHLC_len': [0],
         'Zigzag_cnt': [len(patterns_df)],
-        'Avg_hold_long':[avg_hold_time_minutes_long],
         'Median_hold_long':[median_hold_time_minutes_long],
-        'Longest_hold_long':[longest_hold_time_minutes_long],
         'Count_long':[count_long],
         'Profit_long':[total_profit_long],
-        'Avg_hold_short':[avg_hold_time_minutes_short],
         'Median_hold_short':[median_hold_time_minutes_short],
-         'Longest_hold_short':[longest_hold_time_minutes_short],
         'Count_short':[count_short],
         'Profit_short':[total_profit_short]
 
@@ -323,8 +321,7 @@ def get_total_earning(query_start, query_end, deviation):
         
     
     # Plot zigzag_1min
-    if IsDebug:
-        zz.plot_zigzag(ohlc_1min_df, zigzag_1min_df)
+    zz.plot_zigzag(ohlc_1min_df, zigzag_1min_df)
 
     ''' ohlc_5min_df = ohlc_1min_df.resample('5min').agg({
             'Open': 'first',
@@ -380,13 +377,7 @@ def get_total_earning(query_start, query_end, deviation):
     #total, median_hold_time, median_wait_time, trade_count = check_patterns(patterns_df)
     
     temp_df = check_patterns(patterns_df)
-    
-    if IsDebug:
-        print(temp_df)
-    
-    temp_df['Deviation'] = deviation
-    temp_df['OHLC_len'] =  ohlc_len
-     
+        
     #return ohlc_len, zigzag_len, total, median_hold_time, median_wait_time, trade_count
     return temp_df
 
@@ -414,16 +405,14 @@ if __name__ == "__main__":
     # zigzag_1min parameters
     #deviation = 0.01  # Percentage
     # Try different deviation values
-    deviation_values = [0.0010]
-    #deviation_values = [0.01, 0.001, 0.002, 0.004, 0.005, 0.006]
     #deviation_values = [0.0035, 0.0030, 0.0025, 0.0020]
     #deviation_values = [0.0025, 0.0020, 0.0015, 0.0010]
-    #deviation_values = [0.0020, 0.0015, 0.0010, 0.0005]
+    #deviation_values = [0.0015, 0.0014, 0.0013, 0.0012, 0.0011]
     #deviation_values = [0.001, 0.0008, 0.0007, 0.0006]
-    #deviation_values = [0.0007, 0.0006, 0.00060, 0.00055, 0.0005]
-    #deviation_values = [0.0009, 0.0008, 0.0007]
+    deviation_values = [0.00055, 0.0005, 0.00045, 0.00040]
+    #deviation_values = [0.0005, 0.0004, 0.0003]
     #deviation_values = [0.00040, 0.00035, 0.00030]
-    
+    #deviation_values = [0.00048, 0.00045, 0.00042]
     #deviation_values = [0.00049, 0.00048, 0.00047, 0.00046]
 
     start_date = "2023-01-01"
@@ -461,9 +450,4 @@ if __name__ == "__main__":
     # Concatenate all temporary DataFrames into the main DataFrame
     df = pd.concat(temp_dfs, ignore_index=True)
     
-    print("\n======================================================================")
-    # Iterating over each column and printing the column name and its content
-    for column in df.columns:
-        print(f"{column}:\t\t{df[column].to_string(index=False)}")
-        #print(df[column].to_string(index=False))
-        #print()
+    print(df)
