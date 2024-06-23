@@ -76,6 +76,8 @@ The MSE can be written as:
 Let's first expand the MSE:
 \[ \text{MSE} = \frac{1}{n} (\mathbf{y} - \mathbf{X} \mathbf{w_t} - \mathbf{b_t})^T (\mathbf{y} - \mathbf{X} \mathbf{w_t} - \mathbf{b_t}) \]
 
+![](images/Matrix_transpose.gif)
+
 Taking the partial derivative with respect to \( \mathbf{w_t} \):
 \[ \frac{\partial \text{MSE}}{\partial \mathbf{w_t}} = \frac{1}{n} \frac{\partial}{\partial \mathbf{w_t}} (\mathbf{y} - \mathbf{X} \mathbf{w_t} - \mathbf{b_t})^T (\mathbf{y} - \mathbf{X} \mathbf{w_t} - \mathbf{b_t}) \]
 
@@ -93,6 +95,12 @@ Again, using the chain rule and matrix differentiation properties:
 
 Here, \( \mathbf{1} \) is a vector of ones, to account for the sum of the residuals across all data points.
 
+```
+np.ones((3, 3))
+array([[1., 1., 1.],
+       [1., 1., 1.],
+       [1., 1., 1.]])
+```
 ### Summary
 The partial derivatives of the Mean Squared Error (MSE) with respect to the weights \( \mathbf{w_t} \) and bias \( \mathbf{b_t} \) for different iterations are:
 
@@ -100,7 +108,7 @@ The partial derivatives of the Mean Squared Error (MSE) with respect to the weig
 
 \[ \frac{\partial \text{MSE}}{\partial \mathbf{b_t}} = \frac{2}{n} (\mathbf{X} \mathbf{w_t} + \mathbf{b_t} - \mathbf{y})^T \mathbf{1} \]
 
-* [Use matrix to optimize MSE](../src/mse1.py)
+* [Use matrix to optimize MSE in Matrix form](../src/mse1.py)
 * [adjust w and b at same iterate manually](../src/gradient1.py)
 * [NN model, adjust w and b by loss function and optimizer](../src/gradient2.py)
 

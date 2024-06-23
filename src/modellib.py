@@ -86,7 +86,7 @@ class Attention(nn.Module):
     def forward(self, x):
         # Apply linear layer to input
         x = self.fc(x)
-        batch_size, seq_len, _ = x.size()
+        batch_size, seq_len, _ ,_= x.size()
 
         # Calculate attention scores
         attn_energies = self.attn(x)

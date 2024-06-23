@@ -6,7 +6,7 @@ X = 2 * np.random.rand(100, 1)
 y = 4 + 3 * X + np.random.randn(100, 1)
 
 # Add bias term to X
-X_b = np.c_[np.ones((100, 1)), X]
+X_b = np.c_[np.ones((100, 1)), X] # add additiona column; X_b is 2X2 matrix
 
 # Set learning rate and number of iterations
 eta = 0.1
