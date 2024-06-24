@@ -93,7 +93,12 @@ class AC accuracy
 [](../src/gradient.py)
 
 ❓What is Learning Rate?
-![](images/learningRate.png)
+* [LR controlling the size of the steps taken during gradient descent。](../src/gradientDescend.py)
+
+![](images/gradientDescend.png)
+The learning rate is a crucial hyperparameter in training neural networks, controlling the size of the steps taken during gradient descent. It directly affects how the gradient updates the model's parameters. If the learning rate is too high, the model may overshoot the optimal parameters, leading to divergence or instability in the training process. On the other hand, if the learning rate is too low, the training process will be slow, and the model may get stuck in local minima or saddle points. Therefore, selecting an appropriate learning rate is essential for efficient and effective training of neural networks.
+[Math on Partial Derivative respect to $\theta_t$](mse1.md)
+
 * [Understand learning rate](../src/mse1.py)
 * [Understand learning rate](../src/mse2.py)
 
