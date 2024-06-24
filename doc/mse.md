@@ -136,3 +136,75 @@ Iteration 100: MSE of y1 = 0.8066, MSE of y2 = 0.8066, MSE of y3 = 0.8066
 - **Learning rate is sensitive**: The choice of learning rate is critical. If it's too high, the algorithm may overshoot the minimum. If it's too low, the convergence will be slow.
   
 - **Iteration count should be limited once MSE minimum is approached**: Increasing the number of iterations beyond the point where the MSE is nearly minimized does not significantly improve the model and can be computationally inefficient.
+
+\[ \mathbf{\theta_t} = \begin{bmatrix} b_t \\ w_t \end{bmatrix} \]
+
+\[ \text{MSE} = \frac{1}{n} ( \mathbf{X} \mathbf{w_t} - \mathbf{b_t}-\mathbf{y})^2 = \frac{1}{n}(\mathbf{X} \theta_t -\mathbf{y})^2\]
+
+accordint to chain-rule of derivative: $$\frac {df(g(x))} {dx}=\frac {df} {dg}\frac {dg} {dx}$$
+
+$$\frac \partial {\partial {\theta_t}} (\mathbf{X} \theta_t -\mathbf{y}) =\mathbf{X} $$
+
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{\theta_t}} 
+=\frac 2 n(\mathbf{X})^T(\mathbf{X} \theta_t-\mathbf{y})
+\]
+
+Your derivation is almost correct, but there are a few issues with the notation and the chain rule application. Let's go through the derivation step-by-step to ensure correctness.
+
+### Step-by-Step Derivation
+
+Given:
+
+\[ \text{MSE} = \frac{1}{n} (\mathbf{X} \mathbf{w_t} - \mathbf{b_t} - \mathbf{y})^2 = \frac{1}{n} (\mathbf{X} \theta_t - \mathbf{y})^2 \]
+
+where:
+
+\[ \mathbf{\theta_t} = \begin{bmatrix} \mathbf{b_t} \\ \mathbf{w_t} \end{bmatrix} \]
+
+### Expand the MSE
+
+First, let’s write the MSE more explicitly. Assuming \( \mathbf{X} \) includes a column of ones to account for the bias term \( \mathbf{b_t} \):
+
+\[ \text{MSE} = \frac{1}{n} \sum_{i=1}^n (\mathbf{x_i}^T \theta_t - y_i)^2 \]
+
+For simplicity, let's rewrite it in matrix form:
+
+\[ \text{MSE} = \frac{1}{n} (\mathbf{X} \theta_t - \mathbf{y})^T (\mathbf{X} \theta_t - \mathbf{y}) \]
+
+### Gradient of the MSE
+
+To find the gradient of the MSE with respect to \( \mathbf{\theta_t} \):
+
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{\theta_t}} = \frac{\partial}{\partial \mathbf{\theta_t}} \left( \frac{1}{n} (\mathbf{X} \theta_t - \mathbf{y})^T (\mathbf{X} \theta_t - \mathbf{y}) \right) \]
+
+First, let’s define:
+
+\[ \mathbf{e} = \mathbf{X} \theta_t - \mathbf{y} \]
+
+Thus:
+
+\[ \text{MSE} = \frac{1}{n} \mathbf{e}^T \mathbf{e} \]
+
+Now, applying the chain rule:
+
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{\theta_t}} = \frac{1}{n} \frac{\partial}{\partial \mathbf{\theta_t}} (\mathbf{e}^T \mathbf{e}) \]
+
+Using the gradient of the squared error term:
+
+\[ \frac{\partial}{\partial \mathbf{\theta_t}} (\mathbf{e}^T \mathbf{e}) = 2 \mathbf{X}^T \mathbf{e} \]
+
+Thus:
+
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{\theta_t}} = \frac{2}{n} \mathbf{X}^T (\mathbf{X} \theta_t - \mathbf{y}) \]
+
+### Final Gradient Expression
+
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{\theta_t}} = \frac{2}{n} \mathbf{X}^T (\mathbf{X} \theta_t - \mathbf{y}) \]
+
+### Summary
+
+The correct expression for the gradient of the MSE with respect to \( \mathbf{\theta_t} \) is:
+
+\[ \frac{\partial \text{MSE}}{\partial \mathbf{\theta_t}} = \frac{2}{n} \mathbf{X}^T (\mathbf{X} \theta_t - \mathbf{y}) \]
+
+Your derivation was nearly correct, but ensure the application of the chain rule is consistent with the form of the error term and the dimensions of the matrices involved.
