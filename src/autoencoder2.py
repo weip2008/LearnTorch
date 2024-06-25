@@ -8,12 +8,16 @@ class AutoEncoder(nn.Module):
         # Encoder
         self.encoder_conv1 = nn.Conv2d(1, 16, 3, stride=2, padding=1)
         self.encoder_conv2 = nn.Conv2d(16, 32, 3, stride=2, padding=1)
-        self.encoder_fc = nn.Linear(3200, 256)  # Change the number of output features to 2400
+        self.encoder_fc = nn.Linear(32 * 2 * 150, 256)  # Adjust this based on the flattened size after conv layers
+        
+        # Latent space
+        self.latent_fc = nn.Linear(256, 2)  # Final layer to produce the 2-dimensional output
         
         # Decoder
-        self.decoder_fc = nn.Linear(256, 3200)
-        self.decoder_conv2 = nn.ConvTranspose2d(32, 16, 3, stride=2, output_padding=1)
-        self.decoder_conv1 = nn.ConvTranspose2d(16, 3, 3, stride=2, output_padding=1)
+        self.decoder_fc = nn.Linear(2, 256)
+        self.decoder_fc2 = nn.Linear(256, 32 * 2 * 150)  # Adjust based on the shape before flattening
+        self.decoder_conv2 = nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1)
+        self.decoder_conv1 = nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, output_padding=1)
         
     def forward(self, x):
         # Encoder
@@ -23,16 +27,21 @@ class AutoEncoder(nn.Module):
         x = x.view(x_shape[0], -1)  # Flatten the tensor to (batch_size, num_channels * height * width)
         x = F.relu(self.encoder_fc(x))
         
+        # Latent space
+        latent = self.latent_fc(x)  # Produce the 2-dimensional output
+        
         # Decoder
-        x = F.relu(self.decoder_fc(x))
-        x = x.view(x_shape)  # Reshape back to original shape
+        x = F.relu(self.decoder_fc(latent))
+        x = F.relu(self.decoder_fc2(x))
+        x = x.view(x_shape[0], 32, 2, 150)  # Reshape back to the expected shape for ConvTranspose2d
         x = F.relu(self.decoder_conv2(x))
         x = torch.sigmoid(self.decoder_conv1(x))
 
-        return x
+        return latent, x  # Return both the latent and reconstructed output
 
 # Example usage
-x = torch.randn(500, 1, 6, 200)  # Input shape: (500, 1, 6, 200)
+x = torch.randn(500, 1, 1, 1200)  # Input shape: (500, 1, 1, 1200) to match the Conv2d requirements
 model = AutoEncoder()
-output = model(x)
-print(output.shape)  # Output shape: (500, 3)
+latent, output = model(x)
+print(latent.shape)  # Output shape: (500, 2)
+print(output.shape)  # Reconstructed output shape: (500, 1, 1, 1200)
