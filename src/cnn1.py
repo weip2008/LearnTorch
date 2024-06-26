@@ -14,7 +14,7 @@ class StockCNN(nn.Module):
         self.pool = nn.MaxPool1d(kernel_size=2, stride=2, padding=0)
         
         # Define the fully connected layers
-        self.fc1 = nn.Linear(64 * (1200 // 8), 128)  # Adjust size based on pooling
+        self.fc1 = nn.Linear(64 * (150 // 8), 128)  # Adjust size based on pooling
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, 2)
     
