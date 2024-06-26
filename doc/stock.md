@@ -565,24 +565,31 @@ get 93% accuracy easily.
 
 ### Recurrent Neural Network
 
-* [Recurrent Neural Network](../src/rnn.py)
-* [Recurrent with data SPY_TrainingData_200_10.csv works](../src/stockrnn_wang.py)
-* 
+* [Recurrent Neural Network from ChatGPT](../src/rnn.py)
+* [Recurrent with data SPY_TrainingData_200_10.csv works](../src/stock_rnn_wang.py)
+the accura 67.7%.
 
 ### Attension Machanics
 
-* [Attension Machanics](../src/attention.py)
+* [Attension Machanics model from ChatGPT](../src/attention.py)
+* [Use attensio Machinics model train stock data](../src/stock_attension_wang.py)
+Accuracy: 60.0%, Avg loss: 0.690121
 
 ### Transform 模型
 
-* [](../src/transform.py)
+* [Trasform model class from ChatGPT](../src/transform.py)
+* [Use Transform model train stock data](../src/stock_transform_wang.py)
+ Accuracy: 100.0%, Avg loss: 0.002986
 
 ### AutoEncoders
 
 * [](../src/autoencoder.py)
-* [](../src/autoencoder2.py)
+* [Auto Encode model from ChatGPT](../src/autoencoder2.py)
+* [Use Auto Encode model train stock data](../src/stock_autoencode_wang.py)
+Accuracy: 100.0%, Avg loss: 0.000001
 
 ### 生成对抗网络
+Generative Adversarial Network (GAN)
 
 * [understand what it is](../src/gan.py)
 * [Successful](../src/gan1.py)

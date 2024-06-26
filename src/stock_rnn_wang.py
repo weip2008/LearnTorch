@@ -199,7 +199,7 @@ if __name__ == "__main__":
 
     loss_fn = nn.CrossEntropyLoss()
     # loss_fn = WeightedCrossEntropyLoss(weights)
-    optimizer = torch.optim.SGD(model.parameters(), lr=1.5e-8) # lr: learning rate
+    optimizer = torch.optim.SGD(model.parameters(), lr=1.5e-6) # lr: learning rate
 
     epochs = 20
     for t in range(epochs):

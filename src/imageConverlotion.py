@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 # Load the image
 image_path = "data/lady.jpg"
-image_path = "data/flower.jpg"
+# image_path = "data/flower.jpg"
 image = cv2.imread(image_path)
 
 # Convert the image to grayscale
@@ -16,6 +16,8 @@ gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 # Apply different convolution filters
 kernel_identity = np.array([[0, 1, 0], [0, 1, 0], [0, 1, 0]])
+kernel_identity = np.array([[0, 0, 0], [1, 1, 1], [0, 0, 0]])
+kernel_identity = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 kernel_edge_detection = np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]])
 kernel_sharpen = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
 
