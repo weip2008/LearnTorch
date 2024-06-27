@@ -1,6 +1,7 @@
 # This version read source data from SQLite database tables
 
 import sqlite3
+from datetime import datetime
 import logging
 import pandas as pd
 import numpy as np
@@ -109,6 +110,7 @@ def calculate_velocity(processing_df):
     
     if IsDebug:
         print(processing_df)
+        plot_prices(processing_df)
     
     for j in range(0, len(processing_df)-1):
         # Extract Price from the current and previous rows
@@ -343,7 +345,43 @@ def generate_testing_data(tddf_highlow_list, position):
     outputfile.close()    
     return
 
-def check_patterns(ohlc_df, patterns_df, tdLen):
+
+def plot_prices(df):
+    """
+    Plots the Close price and Normalized price on the same chart with dual y-axes.
+
+    Parameters:
+    df (pandas.DataFrame): DataFrame containing 'Close' and 'Normalized_Price' columns.
+    """
+    # Plotting
+    fig, ax1 = plt.subplots()
+
+    # Plot Close prices
+    ax1.plot(df.index, df['Close'], color='blue', label='Close Price', linestyle='-', marker='o')
+    ax1.set_xlabel('Datetime')
+    ax1.set_ylabel('Close Price', color='blue')
+    ax1.tick_params(axis='y', labelcolor='blue')
+    ax1.set_ylim(df['Close'].min(), df['Close'].max())
+
+    # Create a twin y-axis to plot Normalized Price
+    ax2 = ax1.twinx()
+    ax2.plot(df.index, df['Normalized_Price'], color='red', label='Normalized Price', linestyle='-', marker='x')
+    ax2.set_ylabel('Normalized Price', color='red')
+    ax2.tick_params(axis='y', labelcolor='red')
+    ax2.set_ylim(df['Normalized_Price'].min(), df['Normalized_Price'].max())
+
+    # Add a legend to differentiate the plots
+    lines_1, labels_1 = ax1.get_legend_handles_labels()
+    lines_2, labels_2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper left')
+
+    fig.tight_layout()
+    plt.title('Close Price and Normalized Price')
+    plt.show()
+
+
+
+''' def check_patterns2(ohlc_df, patterns_df, tdLen):
     
     # filtered_low_points_index = filtered_low_points.index.tolist()
     # filtered_high_points_index = filtered_high_points.index.tolist()
@@ -371,6 +409,121 @@ def check_patterns(ohlc_df, patterns_df, tdLen):
         print("Error: Not sure how to process this point!\n")
         
     return low_list, high_list
+
+ '''
+def check_patterns(ohlc_df, patterns_df, IsDebug = False):
+    # Initialize variables
+    in_long_position = False  # Track whether we are in a buy position
+    #buy_time = None
+    #sell_time = None
+    low_list = []
+    high_list = []
+    
+    # Loop through the DataFrame and process each row for LONG position(做多)
+    for idx, row in patterns_df.iterrows():
+        label = row['Label']
+        price = row['Price']
+        time = idx  # Access the time from the index directly
+        
+        if label[1] == 'L':
+            if not in_long_position:
+                # Buy in at this point
+                buy_price = price
+                buy_time = idx
+                in_long_position = True
+                if IsDebug:
+                    print(f"At {time}, buy  price: {buy_price:.2f} at {label} point")
+            else:
+                if IsDebug:
+                    print(f"At {time}, already in long position, ignoring signal {label} at price: {buy_price:.2f}")
+                continue
+        
+        elif label[1] == 'H':
+            if in_long_position:
+                # Sell out at this point
+                sell_price = price
+                sell_time = idx
+                hold_time = sell_time - buy_time                
+                profit = sell_price - buy_price - cost
+                if profit > 10: 
+                    section_df = cut_slice(ohlc_df, buy_time, tdLen+1)
+                    if (section_df is not None):
+                        #print("\nSliced DataFrame:\n", section_df)
+                        low_list.append(section_df) 
+                        
+                    section_df = cut_slice(ohlc_df, sell_time, tdLen+1)
+                    if (section_df is not None):
+                        #print("\nSliced DataFrame:\n", section_df)
+                        high_list.append(section_df) 
+                        
+                    in_long_position = False
+                    if IsDebug:
+                        print(f"At {time}, {label} point, sell price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                
+                    continue
+                else:
+                    in_long_position = False
+                    if IsDebug:
+                        print(f"At {time}, {label} point, NO sell at price: {sell_price:.2f}, Profit: {profit:.2f}, ignore this pair.")         
+            else:
+                if IsDebug:
+                    print(f"Not in position, ignoring sell signal at {time}, {label}")
+                continue        
+        else:
+            print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+    
+    
+    ''' in_short_position = False        
+    # Loop through the DataFrame and process each row for SHORT position (做空)
+    for idx, row in patterns_df.iterrows():
+        label = row['Label']
+        price = row['Price']
+        time = idx  # Access the time from the index directly
+        
+        if label[1] == 'H':
+            if not in_short_position:
+                # Buy in at this point
+                buy_price = price
+                #buy_time = time
+                in_short_position = True
+                if IsDebug:
+                    print(f"At {time}, buy  price: {buy_price:.2f} at {label} point")
+            else:
+                in_short_position = False
+                if IsDebug:
+                    print(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}. Ignore this pair.")
+                continue
+        
+        elif label[1] == 'L':
+            if in_short_position:
+                # Sell out at this point
+                sell_price = price                
+                profit = -1 * (sell_price - buy_price) - cost
+                if profit > 2: 
+                    section_df = cut_slice(ohlc_df, idx, tdLen+1)
+                    if (section_df is not None):
+                        #print("\nSliced DataFrame:\n", section_df)
+                        low_list.append(section_df) 
+                        in_short_position = False
+                        if IsDebug:
+                            print(f"At {time}, {label} point, sell price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                    
+                    continue
+                else:
+                    if IsDebug:
+                        print(f"At {time}, {label} point, NO sell at price: {sell_price:.2f}, Profit: {profit:.2f}")         
+            else:
+                if IsDebug:
+                    print(f"Not in position, ignoring sell signal at {time}, {label}")
+                continue
+        
+        else:
+            print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+ '''
+    
+    return low_list, high_list
+
+
 
 def gen_highlow_list(query_start, query_end):
     # Connect to the SQLite database
@@ -441,7 +594,7 @@ def gen_highlow_list(query_start, query_end):
 
     zz.plot_patterns(ohlc_df, patterns_df)
         
-    low_list, high_list = check_patterns(ohlc_df, patterns_df, tdLen)
+    low_list, high_list = check_patterns(ohlc_df, patterns_df)
     return low_list, high_list
 
 #
@@ -456,19 +609,18 @@ if __name__ == "__main__":
         )
 
     IsDebug = True
-    #WindowLen = 5
 
     #Trainning Data Length
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    tdLen = 50
+    tdLen = 30
 
     # Series Number for output training/testing data set pairs
-    SN = "101"
+    SN = "152"
         
     # ZigZag parameters
-    deviation = 0.005  # Percentage
+    deviation = 0.0015  # Percentage
         
     symbol = "SPX"
     #symbol = "MES=F"
@@ -480,12 +632,22 @@ if __name__ == "__main__":
     data_dir = "data"
 
     db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
-
+    
+    # Cost for each trade
+    cost = 5.00
+    
     #============================= Training Data ============================================#
-    training_start_date = "2019-01-01"
-    training_end_date = "2019-12-31"
+    training_start_date = "2020-01-01"
+    training_end_date = "2023-12-31"
 
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)
+    
     tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date)
+    if IsDebug:
+        print(f"tddf_low_list length:{len(tddf_low_list)}\n")
+        print(f"tddf_low_list length:{len(tddf_high_list)}\n")
 
     td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
 
@@ -495,8 +657,12 @@ if __name__ == "__main__":
 
 
     #============================= Testing Data ============================================#
-    testing_start_date = "2019-06-01"
-    testing_end_date = "2019-12-31"
+    testing_start_date = "2023-06-01"
+    testing_end_date = "2023-12-31"
+    
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)
 
     tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date)
 
@@ -507,3 +673,6 @@ if __name__ == "__main__":
         generate_testing_data(tddf_low_list, TradePosition.LONG)
         generate_testing_data(tddf_high_list, TradePosition.SHORT)
 
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)

@@ -109,16 +109,16 @@ def check_patterns2(patterns_df):
     return total
 
 
-def check_patterns(patterns_df, IsDebug = True):
+def check_patterns(patterns_df, IsDebug = False):
     # Initialize variables
     in_long_position = False  # Track whether we are in a buy position
     buy_time = None
     sell_time = None
     count_long = 0
+    profits_long = []
     total_profit_long = 0
     total_hold_time = pd.Timedelta(0)
     hold_times_long = []  # List to store hold times
-    wait_times_long = []
 
     # Loop through the DataFrame and process each row for LONG position(做多)
     for idx, row in patterns_df.iterrows():
@@ -147,7 +147,8 @@ def check_patterns(patterns_df, IsDebug = True):
                 # Sell out at this point
                 sell_price = price                
                 profit = sell_price - buy_price - cost
-                if profit > 0: 
+                if profit > 0:
+                    profits_long.append(profit) 
                     sell_time = time
                     hold_time = sell_time - buy_time
                     total_hold_time += hold_time
@@ -158,8 +159,9 @@ def check_patterns(patterns_df, IsDebug = True):
                     if IsDebug:
                         print(f"At {time}, {label} point, sell price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
                 else:
+                    in_long_position = False
                     if IsDebug:
-                        print(f"At {time}, {label} point, NO sell at price: {sell_price:.2f}, Profit: {profit:.2f}")         
+                        print(f"At {time}, {label} point, NO sell at price: {sell_price:.2f}, Profit: {profit:.2f}, ignore this pair.")         
             else:
                 if IsDebug:
                     print(f"Not in position, ignoring sell signal at {time}, {label}")
@@ -176,12 +178,14 @@ def check_patterns(patterns_df, IsDebug = True):
         # Calculate median hold time in minutes
         hold_times_minutes_long = [ht.total_seconds() / 60 for ht in hold_times_long]
         median_hold_time_minutes_long = pd.Series(hold_times_minutes_long).median()
+        median_profit_long = pd.Series(profits_long).median()
         # wait_times_minutes_long = [ht.total_seconds() / 60 for ht in wait_times_long]
         # median_wait_time_minutes_long = pd.Series(wait_times_minutes_long).median()
     else:
         avg_hold_time_minutes = 0
         median_hold_time_minutes_long = 0
         #median_wait_time_minutes_long = 0
+        median_profit_long = 0
         
     
     # Print total profit/loss,  median hold time and median wait time
@@ -189,12 +193,14 @@ def check_patterns(patterns_df, IsDebug = True):
         print(f"Total Long Profit/Loss: {total_profit_long:.2f}")
         print(f"Average Hold Time: {avg_hold_time_minutes:.2f} minutes")
         print(f"Median Hold Time: {median_hold_time_minutes_long:.2f} minutes")
+        print(f"Median profit: {median_profit_long:.2f} ")
         #print(f"Median wait Time: {median_wait_time_minutes_long:.2f} minutes")
     
     
     in_short_position = False    
     buy_time = None
     sell_time = None
+    profits_short = []
     total_profit_short = 0
     total_hold_time = pd.Timedelta(0)
     count_short = 0
@@ -218,8 +224,9 @@ def check_patterns(patterns_df, IsDebug = True):
                 if IsDebug:
                     print(f"At {time}, buy  price: {buy_price:.2f} at {label} point")
             else:
+                in_short_position = False
                 if IsDebug:
-                    print(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}")
+                    print(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}. Ignore this pair.")
                 continue
         
         elif label[1] == 'L':
@@ -228,6 +235,7 @@ def check_patterns(patterns_df, IsDebug = True):
                 sell_price = price                
                 profit = -1 * (sell_price - buy_price) - cost
                 if profit > 0: 
+                    profits_short.append(profit) 
                     sell_time = time
                     hold_time = sell_time - buy_time
                     total_hold_time += hold_time
@@ -256,11 +264,13 @@ def check_patterns(patterns_df, IsDebug = True):
         # Calculate median hold time in minutes
         hold_times_minutes_short = [ht.total_seconds() / 60 for ht in hold_times_short]
         median_hold_time_minutes_short = pd.Series(hold_times_minutes_short).median()
+        median_profit_short = pd.Series(profits_short).median()
         # wait_times_minutes_short = [ht.total_seconds() / 60 for ht in wait_times_short]
         # median_wait_time_minutes_short = pd.Series(wait_times_minutes_short).median()
     else:
         avg_hold_time_minutes = 0
         median_hold_time_minutes_short = 0
+        median_profit_short = 0
         #median_wait_time_minutes_short = 0
         
     
@@ -269,6 +279,7 @@ def check_patterns(patterns_df, IsDebug = True):
         print(f"Total Short Profit/Loss: {total_profit_short:.2f}")
         print(f"Average Hold Time: {avg_hold_time_minutes:.2f} minutes")
         print(f"Median Hold Time: {median_hold_time_minutes_short:.2f} minutes")
+        print(f"Median profit: {median_profit_short:.2f} ")
         #print(f"Median wait Time: {median_wait_time_minutes_short:.2f} minutes")
     
     # Create a temporary DataFrame with the results
@@ -411,9 +422,9 @@ if __name__ == "__main__":
     # zigzag_1min parameters
     #deviation = 0.01  # Percentage
     # Try different deviation values
-    deviation_values = [0.0015]
+    #deviation_values = [0.0015]
     #deviation_values = [0.0010]
-    #deviation_values = [0.01, 0.001, 0.002, 0.004, 0.005, 0.006]
+    deviation_values = [0.0009, 0.001, 0.0015, 0.002, 0.004, 0.005]
     #deviation_values = [0.0035, 0.0030, 0.0025, 0.0020]
     #deviation_values = [0.0025, 0.0020, 0.0015, 0.0010]
     #deviation_values = [0.0015, 0.0014, 0.0013, 0.0012, 0.0011]
@@ -423,7 +434,7 @@ if __name__ == "__main__":
     #deviation_values = [0.00040, 0.00035, 0.00030]
     
     
-    start_date = "2023-01-01"
+    start_date = "2020-01-01"
     end_date = "2023-12-31"
 
     #total = get_total_earning(start_date, end_date, deviation)

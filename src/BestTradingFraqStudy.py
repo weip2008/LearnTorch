@@ -111,7 +111,7 @@ def check_patterns2(patterns_df):
     return total
 
 
-def check_patterns(patterns_df, IsDebug=False):
+def check_patterns(patterns_df, IsDebug=True):
     # Initialize variables
     in_long_position = False  # Track whether we are in a buy position
     in_short_position = False 
@@ -120,6 +120,7 @@ def check_patterns(patterns_df, IsDebug=False):
     sell_time = None
     count_long = 0
     total_profit_long = 0
+    median_hold_time_minutes_long = 0.0
     hold_time = pd.Timedelta(0)
     total_hold_time = pd.Timedelta(0)
     hold_times_long = []  # List to store hold times
@@ -179,6 +180,7 @@ def check_patterns(patterns_df, IsDebug=False):
         # Dividing by 60 converts the seconds into minutes.
         # The result is a list of hold times in minutes.        
         median_hold_time_minutes_long = pd.Series(hold_times_minutes_long).median()
+        mode_hold_time_minutes_long = pd.Series(hold_times_minutes_long).mode()
         # pd.Series(hold_times_minutes_long) converts the list of hold times in minutes into a Pandas Series, 
         # which is a one-dimensional array-like object.
         # .median() calculates the median (the middle value) of the hold times in minutes.
@@ -190,6 +192,7 @@ def check_patterns(patterns_df, IsDebug=False):
         median_hold_time_minutes_long = 0
         longest_hold_time_minutes_long = 0
         #median_wait_time_minutes_long = 0
+        mode_hold_time_minutes_long = 0
         
     
     # Print total profit/loss,  median hold time and median wait time
@@ -197,8 +200,9 @@ def check_patterns(patterns_df, IsDebug=False):
         print(f"Total Long Profit/Loss: {total_profit_long:.2f}")
         print(f"Average Hold Time: {avg_hold_time_minutes_long:.2f} minutes")
         print(f"Median Hold Time: {median_hold_time_minutes_long:.2f} minutes")
+        #print(f"Mode Hold Time: {mode_hold_time_minutes_long:.2f} minutes")
         print(f"Longest Hold Time: {longest_hold_time_minutes_long:.2f} minutes")
-        #print(f"Median wait Time: {median_wait_time_minutes_long:.2f} minutes")
+        
     
        
     buy_price = 0
@@ -436,11 +440,12 @@ if __name__ == "__main__":
     # zigzag_1min parameters
     #deviation = 0.01  # Percentage
     # Try different deviation values
-    #deviation_values = [0.0010]
+    deviation_values = [0.0013]
     #deviation_values = [0.01, 0.001, 0.002, 0.004, 0.005, 0.006]
     #deviation_values = [0.0035, 0.0030, 0.0025, 0.0020]
     #deviation_values = [0.0025, 0.0020, 0.0015, 0.0010]
-    deviation_values = [0.0025, 0.0020, 0.0015, 0.0010, 0.0005]
+    #deviation_values = [0.0020, 0.0015, 0.0012, 0.0010, 0.0005]
+    #deviation_values = [0.0015, 0.0013, 0.0012, 0.0011, 0.0010]
     #deviation_values = [0.001, 0.0008, 0.0007, 0.0006]
     #deviation_values = [0.0007, 0.0006, 0.00060, 0.00055, 0.0005]
     #deviation_values = [0.0009, 0.0008, 0.0007]
@@ -449,7 +454,7 @@ if __name__ == "__main__":
     #deviation_values = [0.00049, 0.00048, 0.00047, 0.00046]
 
     start_date = "2020-01-01"
-    end_date = "2020-12-31"
+    end_date = "2023-12-31"
 
     #total = get_total_earning(start_date, end_date, deviation)
 
