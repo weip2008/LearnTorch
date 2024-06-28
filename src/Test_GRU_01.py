@@ -21,6 +21,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+import matplotlib.pyplot as plt
 
 # Example variable-length data
 data = [np.random.rand(np.random.randint(10, 1000), 5) for _ in range(100)]
@@ -68,15 +69,29 @@ class GRUModel(nn.Module):
 model = GRUModel(input_size=5, hidden_size=50, output_size=1)
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
+scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)  # Reduce LR every 5 epochs
 
-# Training loop
+# Training loop with scheduler and loss tracking
 num_epochs = 10
+losses = []
 model.train()
 for epoch in range(num_epochs):
+    epoch_loss = 0.0
     for inputs, targets, lengths in dataloader:
         optimizer.zero_grad()
         outputs = model(inputs, lengths)
         loss = criterion(outputs.squeeze(), targets)
         loss.backward()
         optimizer.step()
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}')
+        epoch_loss += loss.item()
+    scheduler.step()  # Adjust the learning rate
+    avg_loss = epoch_loss / len(dataloader)
+    losses.append(avg_loss)
+    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss}')
+
+# Plotting the training loss over epochs
+plt.plot(losses)
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Training Loss over Epochs')
+plt.show()
