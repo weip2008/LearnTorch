@@ -1,3 +1,20 @@
+#
+# Explanation for GRU Model:
+#1.	Preprocess the Data:
+#   o	Same as before, sequences are dynamically padded within each batch.
+#2.	Create Dataset and DataLoader:
+#   o	VariableLengthDataset class handles the data and targets.
+#   o	DataLoader with a custom collate_fn handles dynamic batching and padding.
+#3.	Define the Model:
+#   o	A GRU model with a fully connected layer is defined.
+#   o	pack_padded_sequence is used to handle the variable-length sequences during the forward pass.
+#4.	Train the Model:
+#   o	A standard training loop is used with a mean squared error loss function and the Adam optimizer.
+#   o	Packed sequences and dynamic batching efficiently handle the variable-length sequences.
+# By using a GRU model, you benefit from a simpler architecture compared to LSTM, 
+# often resulting in faster training times while still effectively handling variable-length sequential data.
+#
+
 import torch
 import torch.nn as nn
 import torch.optim as optim

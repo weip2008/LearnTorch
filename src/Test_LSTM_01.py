@@ -1,3 +1,22 @@
+#
+# Explanation for LSTM Model:
+#1.	Preprocess the Data:
+#   o	No need for padding to the maximum length.
+#   o	The custom collate function sorts sequences by length and pads them dynamically within each batch.
+#2.	Create Dataset and DataLoader:
+#   o	VariableLengthDataset class handles the data and targets.
+#   o	DataLoader with a custom collate_fn handles dynamic batching and padding.
+#3.	Define the Model:
+#   o	An LSTM model with a fully connected layer is defined.
+#   o	pack_padded_sequence is used to handle the variable-length sequences during the forward pass.
+#4.	Train the Model:
+#   o	A standard training loop is used with a mean squared error loss function and the Adam optimizer.
+#   o	Packed sequences and dynamic batching efficiently handle the variable-length sequences.
+# This approach ensures that the model efficiently processes sequences of varying lengths
+# without unnecessary padding, resulting in better performance and resource utilization.
+#
+
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
