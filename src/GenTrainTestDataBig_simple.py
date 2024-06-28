@@ -22,7 +22,7 @@ def cut_slice(ohlc_df, datetime_index, window_len):
         # If the datetime_index is not found in the DataFrame index, return None
         return None
     
-    start_index = index - window_len
+    start_index = index - window_len +1
     # If we don't have enough long data series for this slice, ignore it
     if start_index < 0:
         return None
@@ -255,7 +255,7 @@ def plot_prices(df):
 
 
 
-def check_patterns(ohlc_df, patterns_df, IsDebug = False):
+def check_patterns(ohlc_df, patterns_df, IsDebug = True):
     # Initialize variables
     in_long_position = False  # Track whether we are in a buy position
     #buy_time = None
@@ -292,12 +292,12 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = False):
                 if profit > 5: 
                     section_df = cut_slice(ohlc_df, buy_time, tdLen)
                     if (section_df is not None):
-                        #print("\nSliced DataFrame:\n", section_df)
+                        #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
                         low_list.append(section_df) 
                         
                     section_df = cut_slice(ohlc_df, sell_time, tdLen)
                     if (section_df is not None):
-                        #print("\nSliced DataFrame:\n", section_df)
+                        #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
                         high_list.append(section_df) 
                         
                     in_long_position = False
