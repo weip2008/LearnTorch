@@ -214,7 +214,7 @@ def generate_testing_data(tddf_highlow_list, position):
         if IsDebug:
             print("\nGenerate training data:")
 
-        write_training_data(position, tddf_price_list, datafile)
+        write_testing_data(position, tddf_price_list, datafile)
     
     outputfile.close()    
     return
@@ -491,7 +491,7 @@ if __name__ == "__main__":
     tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date)
     if IsDebug:
         print(f"tddf_low_list length:{len(tddf_low_list)}\n")
-        print(f"tddf_low_list length:{len(tddf_high_list)}\n")
+        print(f"tddf_high_list length:{len(tddf_high_list)}\n")
 
     td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
 
