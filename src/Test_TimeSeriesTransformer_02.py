@@ -7,7 +7,11 @@ import random
 import matplotlib.pyplot as plt
 
 
+
+#=============================== 1. Data Preparation ==================================================
 # Function to generate synthetic data
+# This function generates synthetic data with variable-length sequences. 
+# Each sequence has random values, and the target sequence is a shifted version of the source sequence.
 def generate_data(num_samples, min_len, max_len, input_size):
     data = []
     for _ in range(num_samples):
@@ -18,6 +22,7 @@ def generate_data(num_samples, min_len, max_len, input_size):
     return data
 
 # Dataset class for variable-length sequences
+# A custom dataset class to handle the generated data with variable lengths.
 class VariableLengthTimeSeriesDataset(Dataset):
     def __init__(self, data):
         self.data = data
@@ -54,6 +59,9 @@ data = generate_data(num_samples, min_len, max_len, input_size)
 dataset = VariableLengthTimeSeriesDataset(data)
 dataloader = DataLoader(dataset, batch_size=32, collate_fn=collate_fn)
 
+
+#========================= 2.  Transformer Model ========================================
+# A Transformer model adapted for time series data.
 class TimeSeriesTransformer(nn.Module):
     def __init__(self, input_size, d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, output_size, dropout=0.1):
         super(TimeSeriesTransformer, self).__init__()
@@ -85,6 +93,8 @@ dropout = 0.1
 
 model = TimeSeriesTransformer(input_size, d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, output_size, dropout)
 
+
+#============================= 3. Training Loop =====================================
 # Define the loss function and the optimizer
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -95,6 +105,8 @@ def create_subsequent_mask(size):
     return mask
 
 # Training loop
+# The training loop iterates over epochs and batches, processes the data, computes the loss, 
+# and updates the model parameters.
 num_epochs = 10
 losses = []
 model.train()
@@ -131,3 +143,6 @@ plt.ylabel('Loss')
 plt.title('Training Loss over Epochs')
 plt.show()
 
+# Save the model
+torch.save(model.state_dict(), 'timeseries_transformer.pth')
+print("Model saved successfully.")
