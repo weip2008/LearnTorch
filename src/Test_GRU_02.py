@@ -1,28 +1,3 @@
-#
-# Explanation for GRU Model:
-#1.	Preprocess the Data:
-#   o	Same as before, sequences are dynamically padded within each batch.
-#2.	Create Dataset and DataLoader:
-#   o	VariableLengthDataset class handles the data and targets.
-#   o	DataLoader with a custom collate_fn handles dynamic batching and padding.
-#3.	Define the Model:
-#   o	A GRU model with a fully connected layer is defined.
-#   o	pack_padded_sequence is used to handle the variable-length sequences during the forward pass.
-#4.	Train the Model:
-#   o	A standard training loop is used with a mean squared error loss function and the Adam optimizer.
-#   o	Packed sequences and dynamic batching efficiently handle the variable-length sequences.
-# By using a GRU model, you benefit from a simpler architecture compared to LSTM, 
-# often resulting in faster training times while still effectively handling variable-length sequential data.
-#
-#To increase the batch size in the GRU model example, you need to modify the batch_size parameter 
-#   in the DataLoader. Here’s how you can do it:
-#Steps:
-#1.	Adjust the batch_size parameter in the DataLoader.
-#2.	Optionally, you can also adjust other hyperparameters if necessary, such as the learning rate 
-#   or the number of epochs, to accommodate the larger batch size.
-
-
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -57,7 +32,6 @@ def collate_fn(batch):
     return padded_data, targets, lengths
 
 dataset = VariableLengthDataset(data, targets)
-# Increase batch size from 16 to 64
 dataloader = DataLoader(dataset, batch_size=64, shuffle=True, collate_fn=collate_fn)
 
 # Define the GRU model
@@ -80,27 +54,34 @@ criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)  # Reduce LR every 5 epochs
 
-# Training loop with scheduler and loss tracking
-num_epochs = 20
-losses = []
-model.train()
-for epoch in range(num_epochs):
-    epoch_loss = 0.0
-    for inputs, targets, lengths in dataloader:
-        optimizer.zero_grad()
-        outputs = model(inputs, lengths)
-        loss = criterion(outputs.squeeze(), targets)
-        loss.backward()
-        optimizer.step()
-        epoch_loss += loss.item()
-    scheduler.step()  # Adjust the learning rate
-    avg_loss = epoch_loss / len(dataloader)
-    losses.append(avg_loss)
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss}')
+# Function to train the model for a given number of epochs
+def train_model(num_epochs):
+    losses = []
+    model.train()
+    for epoch in range(num_epochs):
+        epoch_loss = 0.0
+        for inputs, targets, lengths in dataloader:
+            optimizer.zero_grad()
+            outputs = model(inputs, lengths)
+            loss = criterion(outputs.squeeze(), targets)
+            loss.backward()
+            optimizer.step()
+            epoch_loss += loss.item()
+        scheduler.step()  # Adjust the learning rate
+        avg_loss = epoch_loss / len(dataloader)
+        losses.append(avg_loss)
+        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss}')
+    return losses
+
+# Train with 10 epochs and 20 epochs
+losses_10_epochs = train_model(num_epochs=10)
+losses_20_epochs = train_model(num_epochs=20)
 
 # Plotting the training loss over epochs
-plt.plot(losses)
+plt.plot(range(1, 11), losses_10_epochs, label='10 Epochs')
+plt.plot(range(1, 21), losses_20_epochs, label='20 Epochs')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Training Loss over Epochs')
+plt.legend()
 plt.show()
