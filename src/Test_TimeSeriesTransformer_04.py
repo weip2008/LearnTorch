@@ -1,13 +1,29 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.utils.rnn as rnn_utils
 from torch.utils.data import DataLoader, Dataset
 import pandas as pd
 import time
-import matplotlib.pyplot as plt
 
-# Step 1: Load and process the CSV data
+# Assuming your TimeSeriesTransformer and Dataset classes are defined here
+
+# Define your dataset class if not already defined
+class VariableLengthTimeSeriesDataset(Dataset):
+    def __init__(self, data):
+        self.data = data
+        
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, idx):
+        return self.data[idx]
+    
+# Define your DataLoader preparation function
+def prepare_dataloader(data, batch_size):
+    dataset = VariableLengthTimeSeriesDataset(data)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+# Function to load data from CSV
 def load_data(file_path):
     try:
         data = pd.read_csv(file_path, header=None, on_bad_lines='skip')
@@ -29,133 +45,79 @@ def load_data(file_path):
     
     return low_data, high_data
 
-# Load data from CSV
-low_data, high_data = load_data('data/SPX_TrainingData_200.csv')
 
-# Step 2: Create a custom dataset for variable-length sequences
-class VariableLengthTimeSeriesDataset(Dataset):
-    def __init__(self, data):
-        self.data = data
 
-    def __len__(self):
-        return len(self.data)
 
-    def __getitem__(self, index):
-        sequence = self.data[index]
-        return torch.tensor(sequence, dtype=torch.float32)
-
-# Step 3: Collate function to pad sequences and create masks
-def collate_fn(batch):
-    sequences = [item for item in batch]
-    padded_sequences = rnn_utils.pad_sequence(sequences, batch_first=True)
-    mask = torch.zeros(padded_sequences.size(0), padded_sequences.size(1), dtype=torch.bool)
-
-    for i, seq_len in enumerate([len(seq) for seq in sequences]):
-        mask[i, seq_len:] = True
-
-    return padded_sequences, mask
-
-# Create datasets and dataloaders
-low_dataset = VariableLengthTimeSeriesDataset(low_data)
-high_dataset = VariableLengthTimeSeriesDataset(high_data)
-
-low_dataloader = DataLoader(low_dataset, batch_size=32, collate_fn=collate_fn, shuffle=True)
-high_dataloader = DataLoader(high_dataset, batch_size=32, collate_fn=collate_fn, shuffle=True)
-
-# Transformer model definition
+# Assuming your model definition here
 class TimeSeriesTransformer(nn.Module):
-    def __init__(self, input_size, d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, output_size, dropout=0.1):
-        super(TimeSeriesTransformer, self).__init__()
-        self.embedding = nn.Linear(input_size, d_model)
-        self.transformer = nn.Transformer(
-            d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, dropout, batch_first=True
-        )
-        self.fc_out = nn.Linear(d_model, output_size)
+    def __init__(self, d_model, nhead, num_encoder_layers, num_decoder_layers, input_size, dim_feedforward, output_size):
+        super().__init__()
+        # Initialize your model components here
+        
+    def forward(self, src, tgt, tgt_mask=None, src_key_padding_mask=None, tgt_key_padding_mask=None):
+        # Implement your forward pass logic here
+        pass
 
-    def forward(self, src, tgt, src_mask=None, tgt_mask=None, src_key_padding_mask=None, tgt_key_padding_mask=None):
-        src = self.embedding(src)
-        tgt = self.embedding(tgt)
-        output = self.transformer(
-            src, tgt, src_mask=src_mask, tgt_mask=tgt_mask,
-            src_key_padding_mask=src_key_padding_mask, tgt_key_padding_mask=tgt_key_padding_mask
-        )
-        output = self.fc_out(output)
-        return output
-
-# Hyperparameters
-input_size = 1
-d_model = 64
-nhead = 4
-num_encoder_layers = 3
-num_decoder_layers = 3
-dim_feedforward = 128
-output_size = 1
-dropout = 0.1
-
-# Check if a GPU is available and if not, fall back to the CPU
+# Load data from CSV
+print("1. Load data")
+low_data, high_data = load_data('data/SPX_TrainingData_200.csv')
+    
+# Initialize model
+print("Initializing model...")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = TimeSeriesTransformer(d_model=512, nhead=8, num_encoder_layers=6, num_decoder_layers=6,
+                              input_size=..., dim_feedforward=..., output_size=...).to(device)
 
-model = TimeSeriesTransformer(input_size, d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, output_size, dropout)
+# Prepare data loaders
+batch_size = 32
+low_dataloader = prepare_dataloader(low_data, batch_size)
+high_dataloader = prepare_dataloader(high_data, batch_size)
 
-# Define the loss function and the optimizer
-criterion = nn.MSELoss()
+# Initialize optimizer and criterion
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
-
-
-# Function to create subsequent mask
-def create_subsequent_mask(size):
-    mask = torch.triu(torch.ones(size, size), diagonal=1).bool()
-    return mask
+criterion = nn.CrossEntropyLoss()
 
 # Training loop
 num_epochs = 10
-losses = []
-
 for epoch in range(num_epochs):
+    print(f"Starting epoch {epoch + 1}/{num_epochs}...")
     epoch_start_time = time.time()
-    model.train()  # Set the model to training mode
-    
+
+    model.train()  # Set model to training mode
     total_loss = 0
-    for src, tgt_mask in low_dataloader:
-        src, tgt_mask = src.to(device), tgt_mask.to(device)
 
-        optimizer.zero_grad()
-        
-        # Prepare tgt_input by shifting tgt_mask to the right and prepending a start token
-        tgt_input = torch.cat((torch.zeros(tgt_mask.size(0), 1, device=device), tgt_mask[:, :-1]), dim=1)
-        
-        # Forward pass
-        output = model(src, tgt_input, tgt_mask=tgt_mask, src_key_padding_mask=mask.bool(), tgt_key_padding_mask=mask[:, :-1].bool())
-        
-        # Compute the loss
-        tgt_output = tgt_mask[:, 1:]
-        loss = criterion(output.view(-1, output.size(-1)), tgt_output.view(-1))
-        
-        # Backward pass and optimization
-        loss.backward()
-        optimizer.step()
-        
-        total_loss += loss.item()
-        
-    avg_loss = total_loss / len(low_dataloader)
-    epoch_end_time = time.time()
-    
-    epoch_duration = (epoch_end_time - epoch_start_time) / 60  # Convert duration to minutes
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}, Duration: {epoch_duration:.2f} minutes')
+    for i, (src, tgt_mask) in enumerate(low_dataloader):
+        try:
+            print(f"Processing batch {i+1}/{len(low_dataloader)}...")
+            src = src.to(device)
+            tgt_mask = tgt_mask.to(device)
+            src_key_padding_mask = torch.zeros_like(src).bool()  # Adjust as needed
+            tgt_key_padding_mask = torch.zeros_like(tgt_mask).bool()  # Adjust as needed
 
-    losses.append(avg_loss)
-    scheduler.step()
+            # Prepare tgt_input for the decoder
+            optimizer.zero_grad()
+            tgt_input = torch.cat((torch.zeros(tgt_mask.size(0), 1, device=device), tgt_mask[:, :-1]), dim=1)
+            print(f"tgt_input shape: {tgt_input.shape}")
 
-# Save the model
-torch.save(model.state_dict(), 'timeseries_transformer.pth')
-print("Model saved successfully.")
+            # Time profiling for transformer decoder
+            start_time = time.time()
+            output = model(src, tgt_input, tgt_mask=None, src_key_padding_mask=src_key_padding_mask, tgt_key_padding_mask=tgt_key_padding_mask)
+            print(f"Model output shape: {output.shape}")
+            decoder_duration = time.time() - start_time
+            print(f"Decoder computation time: {decoder_duration:.2f} seconds")
 
+            # Compute loss, backpropagate, and update parameters
+            loss = criterion(output, tgt_mask)
+            loss.backward()
+            optimizer.step()
 
+            total_loss += loss.item()
 
-# Plotting the training loss over epochs
-plt.plot(losses)
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.title('Training Loss over Epochs')
-plt.show()
+        except Exception as e:
+            print(f"Error in batch {i+1}: {e}")
+            raise e
+
+    epoch_duration = time.time() - epoch_start_time
+    print(f"Epoch {epoch + 1} completed. Total loss: {total_loss:.4f}, Duration: {epoch_duration / 60:.2f} minutes")
+
+print("Training completed.")
