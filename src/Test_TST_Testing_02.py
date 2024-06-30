@@ -37,6 +37,7 @@ class TimeSeriesTransformer(nn.Module):
         # Example:
         self.encoder = nn.TransformerEncoder(...)
         self.decoder = nn.TransformerDecoder(...)
+        # Replace ... with appropriate arguments depending on your model's implementation for the inference step.
     
     def forward(self, src, tgt):
         # Implement your forward pass logic here
