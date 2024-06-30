@@ -14,7 +14,7 @@ class TradePosition(Enum):
     LONG = 1
     SHORT = -1
 
-def cut_slice(ohlc_df, datetime_index, window_len):
+def cut_slice2(ohlc_df, datetime_index, window_len):
     # Convert the datetime_index to a positional index
     try:
         index = ohlc_df.index.get_loc(datetime_index)
@@ -22,7 +22,7 @@ def cut_slice(ohlc_df, datetime_index, window_len):
         # If the datetime_index is not found in the DataFrame index, return None
         return None
     
-    start_index = index - window_len
+    start_index = index - window_len +1
     # If we don't have enough long data series for this slice, ignore it
     if start_index < 0:
         return None
@@ -34,6 +34,29 @@ def cut_slice(ohlc_df, datetime_index, window_len):
     # Start from start_index up to but not including end_index!
     section_df = ohlc_df.iloc[start_index:end_index].copy()
     section_df.drop(['Open', 'High', 'Low', 'Volume' ], axis=1, inplace=True) 
+    return section_df
+
+
+
+def cut_slice(ohlc_df, start_index, end_index):
+    # Ensure the start_index and end_index are in the DataFrame index
+    if start_index not in ohlc_df.index or end_index not in ohlc_df.index:
+        # If either index is not found, return None
+        return None
+    
+    # Get the positional indices of the timestamps
+    start_pos = ohlc_df.index.get_loc(start_index)
+    end_pos = ohlc_df.index.get_loc(end_index)
+    
+    # Ensure start_pos is less than or equal to end_pos
+    if start_pos > end_pos:
+        return None
+    
+    # Create a copy of the section of the original DataFrame
+    # Start from start_pos up to and including end_pos
+    section_df = ohlc_df.iloc[start_pos:end_pos + 1].copy()
+    section_df.drop(['Open', 'High', 'Low', 'Volume'], axis=1, inplace=True)
+    
     return section_df
 
 
@@ -61,13 +84,8 @@ def gen_hold_list_index(df):
     return new_index 
 
 
-def list_to_string(acceleration_list):
-    # Convert each tuple to a string with parentheses and join them with newline characters
-    #return ' '.join(['(' + ','.join(map(str, acceleration_tuple)) + '),' for acceleration_tuple in acceleration_list])
-    #return ' '.join('(' + ','.join(map(str, acceleration_tuple)) + '),' for acceleration_tuple in acceleration_list)    
-    #return ','.join(','.join(map(str, acceleration_tuple)) for acceleration_tuple in acceleration_list)
-    #return ','.join(','.join(f'{value:.4f}' for value in acceleration_tuple) for acceleration_tuple in acceleration_list)
-    return ','.join(','.join(f'{value}' for value in acceleration_tuple) for acceleration_tuple in acceleration_list)
+def list_to_string(price_list):
+    return ', '.join(map(str, price_list))
 
 # Convert training data list to string           
 def convert_list_to_string(tddf_list):
@@ -97,115 +115,24 @@ def convert_to_day_and_time(timestamp):
 def normalize(series):
     return (series - series.min()) / (series.max() - series.min())
 
+def gen_list(processing_df):
+    price_list = []
 
-def calculate_velocity(processing_df):
-    velocity_list = []
-    
-    # Find the lowest price and corresponding volume in the DataFrame
-    #lowest_price, corresponding_volume = find_lowest_price_with_volume(processing_df)
-    
-    # Normalize 'Volume' and 'Price'
-    #processing_df['Normalized_Volume'] = normalize(processing_df['Volume'])
     processing_df['Normalized_Price'] = normalize(processing_df['Close'])
     
     if IsDebug:
         print(processing_df)
         plot_prices(processing_df)
     
-    for j in range(0, len(processing_df)-1):
-        # Extract Price from the current and previous rows
-        price_current = processing_df.iloc[j]['Close']
-        price_next = processing_df.iloc[j+1]['Close']
+    for j in range(0, len(processing_df)):
+
         normalized_price_current = processing_df.iloc[j]['Normalized_Price']
-        normalized_price_next = processing_df.iloc[j+1]['Normalized_Price']
-
-        #print("Price_current:", Price_current)
-        #print("Price_previous:", Price_previous)
-        
-        #dY = price_current - price_previous
-        dY = normalized_price_next - normalized_price_current 
-        #print("dY:", dY)
-        
-        # Extract timestamps from the current and previous rows
-        #index_previous = processing_df.index[j - 1]
         index_current = processing_df.index[j]
-        index_next = processing_df.index[j+1]
-        #print("index_current:", index_current)
-        #print("index_previous:", index_next)
         
-        #dT = (index_next - index_current) / pd.Timedelta(minutes=1)  
-        #dT = index_current - index_previous 
-        #dT = (index_next - index_current) / tdLen
-        loc_current = processing_df.index.get_loc(index_current)
-        loc_next = processing_df.index.get_loc(index_next)
+        #price_list.append((index_current, normalized_price_current))
+        price_list.append((normalized_price_current))
 
-        # Calculate dT based on the difference of locations
-        dT = loc_next - loc_current
-        #print("dT:", dT)
-                
-        # Calculate the velocity (dY/dT)
-        velocity = dY / dT
-        #print("velocity:", velocity)
-        
-        #datetime_current = processing_df.iloc[j]['Datetime']
-        #volume_current = processing_df.iloc[j]['Volume']
-        #normalized_volum_current = processing_df.iloc[j]['Normalized_Volume']
-        # Append the tuple with the "Velocity" column to tdohlc_df_high_velocity_list
-        velocity_list.append((index_current, normalized_price_current, velocity))
-
-    return velocity_list
-
-
-def calculate_acceleration(velocity_list):
-    """
-    Calculate acceleration based on a list of tuples containing velocity data.
-
-    Parameters:
-    - velocity_list: A list of tuples where each tuple contains velocity data.
-                     The tuple structure is assumed to be (index, Price, bb_bbm, velocity).
-
-    Returns:
-    - A list of tuples with the "Acceleration" column added.
-    """
-
-    acceleration_list = []
-
-    # Iterate over each tuple in velocity_list starting from the second tuple
-    for i in range(0, len(velocity_list)-1):
-        # Extract velocity data from the current and next tuples
-        next_tuple = velocity_list[i+1] 
-        current_tuple = velocity_list[i]
-        #previous_tuple = velocity_list[i - 1]
-
-        velocity_next = next_tuple[2]
-        velocity_current = current_tuple[2]  # velocity is stored at index 2 in the tuple
-        #velocity_previous = previous_tuple[2]
-
-        # Calculate the change in velocity
-        dV = velocity_next - velocity_current 
-        
-        #index_current = velocity_list[i].index
-        #index_previous = velocity_list[i-1].index
-        index_current = i
-        index_next = i+1
-        i#ndex_previous = i-1
-        #dT = index_current - index_previous
-        dT = index_next - index_current
-        
-        # Calculate acceleration (dV/dT)
-        acceleration = dV / dT
-        
-        #current_time = pd.to_datetime(current_tuple[0])
-        current_time = current_tuple[0]
-        #day_of_week_numeric, time_float = convert_to_day_and_time(index_current)
-        day_of_week_numeric, time_float = convert_to_day_and_time(current_time)
-
-        # Append the tuple with the "Acceleration" column to acceleration_list
-        #acceleration_list.append((index_current, current_tuple[1], velocity_current, acceleration))
-        acceleration_list.append((day_of_week_numeric, time_float, 
-                                  current_tuple[1],  current_tuple[2], acceleration))
-
-    return acceleration_list
+    return price_list
 
     # Example usage:
     # acceleration_data = calculate_acceleration(velocity_list)
@@ -272,36 +199,21 @@ def generate_training_data(tddf_highlow_list, position):
     filename = 'stockdata/TrainingDataGenLog_'+ str(position)+".log"
     # Open a file in write mode
     outputfile = open(filename, 'w')
- 
-    # Initialize an empty list to store tuples with the "Velocity" column
-    tddf_velocity_list = []
-    tddf_acceleration_list = []
      
     # Iterate over each tuple in tddf_highlow_list starting from the second tuple
     for i in range(0, len(tddf_highlow_list)):
         processing_df = tddf_highlow_list[i]
         if IsDebug:
             print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
-        
-        tddf_velocity_list = calculate_velocity(processing_df)
+            
+        tddf_price_list = gen_list(processing_df)
         if IsDebug:
-            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
-        
-        tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
-        if IsDebug:
-            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
-        
+            print("\nCalculated price list length:", len(tddf_price_list), "\n",tddf_price_list) 
+
         if IsDebug:
             print("\nGenerate training data:")
-        
-        # Write lengths to the file in the desired format
-        outputfile.write(
-            f"{len(processing_df)},"
-            f"{len(tddf_velocity_list)},"
-            f"{len(tddf_acceleration_list)}\n"
-        ) 
-        
-        write_training_data(position, tddf_acceleration_list, datafile)
+
+        write_training_data(position, tddf_price_list, datafile)
     
     outputfile.close()    
     return
@@ -312,35 +224,20 @@ def generate_testing_data(tddf_highlow_list, position):
     # Open a file in write mode
     outputfile = open(filename, 'w')
  
-    # Initialize an empty list to store tuples with the "Velocity" column
-    tddf_velocity_list = []
-    tddf_acceleration_list = []
-     
     # Iterate over each tuple in tddf_highlow_list starting from the second tuple
     for i in range(0, len(tddf_highlow_list)):
         processing_df = tddf_highlow_list[i]
         if IsDebug:
             print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
-        
-        tddf_velocity_list = calculate_velocity(processing_df)
+            
+        tddf_price_list = gen_list(processing_df)
         if IsDebug:
-            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
-        
-        tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
-        if IsDebug:
-            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
+            print("\nCalculated price list length:", len(tddf_price_list), "\n",tddf_price_list) 
         
         if IsDebug:
-            print("\nGenerate testing data:")
-        
-        # Write lengths to the file in the desired format
-        outputfile.write(
-            f"{len(processing_df)},"
-            f"{len(tddf_velocity_list)},"
-            f"{len(tddf_acceleration_list)}\n"
-        ) 
-        
-        write_testing_data(position, tddf_acceleration_list, datafile)
+            print("\nGenerate training data:")
+
+        write_testing_data(position, tddf_price_list, datafile)
     
     outputfile.close()    
     return
@@ -381,44 +278,15 @@ def plot_prices(df):
 
 
 
-''' def check_patterns2(ohlc_df, patterns_df, tdLen):
-    
-    # filtered_low_points_index = filtered_low_points.index.tolist()
-    # filtered_high_points_index = filtered_high_points.index.tolist()
-
+def check_patterns(ohlc_df, patterns_df, IsDebug = True):
     low_list = []
     high_list = []
-    # Loop through the DataFrame and find the first item with the second character of 'L'
-    for idx, row in patterns_df.iterrows():
-        if row['Label'][1] == 'L':
-            #print(f"L point found at {idx}, {row['Label']}")
-            section_df = cut_slice(ohlc_df, idx, tdLen+1)
-            if (section_df is not None):
-                #print("\nSliced DataFrame:\n", section_df)
-                low_list.append(section_df) 
-            continue
-        
-        if row['Label'][1] == 'H':
-            #print(f"H point found at {idx}, {row['Label']}")
-            section_df = cut_slice(ohlc_df, idx, tdLen+1)
-            if (section_df is not None):                
-                #print("\nSliced DataFrame:\n", section_df)
-                high_list.append(section_df) 
-            continue
-        
-        print("Error: Not sure how to process this point!\n")
-        
-    return low_list, high_list
-
- '''
-def check_patterns(ohlc_df, patterns_df, IsDebug = False):
+    
     # Initialize variables
     in_long_position = False  # Track whether we are in a buy position
-    #buy_time = None
-    #sell_time = None
-    low_list = []
-    high_list = []
-    
+    buy_time = None
+    sell_time = None
+    hold_time = None  
     # Loop through the DataFrame and process each row for LONG position(做多)
     for idx, row in patterns_df.iterrows():
         label = row['Label']
@@ -445,16 +313,16 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = False):
                 sell_time = idx
                 hold_time = sell_time - buy_time                
                 profit = sell_price - buy_price - cost
-                if profit > 10: 
-                    section_df = cut_slice(ohlc_df, buy_time, tdLen+1)
+                if profit > 0: 
+                    section_df = cut_slice(ohlc_df, buy_time, sell_time)
                     if (section_df is not None):
-                        #print("\nSliced DataFrame:\n", section_df)
-                        low_list.append(section_df) 
-                        
-                    section_df = cut_slice(ohlc_df, sell_time, tdLen+1)
-                    if (section_df is not None):
-                        #print("\nSliced DataFrame:\n", section_df)
+                        #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
                         high_list.append(section_df) 
+                        
+                    # section_df = cut_slice(ohlc_df, sell_time, tdLen)
+                    # if (section_df is not None):
+                    #     print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
+                    #     high_list.append(section_df) 
                         
                     in_long_position = False
                     if IsDebug:
@@ -473,7 +341,10 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = False):
             print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
     
     
-    ''' in_short_position = False        
+    in_short_position = False
+    buy_time = None
+    sell_time = None      
+    hold_time = None  
     # Loop through the DataFrame and process each row for SHORT position (做空)
     for idx, row in patterns_df.iterrows():
         label = row['Label']
@@ -484,7 +355,7 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = False):
             if not in_short_position:
                 # Buy in at this point
                 buy_price = price
-                #buy_time = time
+                buy_time = time
                 in_short_position = True
                 if IsDebug:
                     print(f"At {time}, buy  price: {buy_price:.2f} at {label} point")
@@ -497,12 +368,14 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = False):
         elif label[1] == 'L':
             if in_short_position:
                 # Sell out at this point
-                sell_price = price                
+                sell_price = price
+                sell_time = idx
+                hold_time = sell_time - buy_time                   
                 profit = -1 * (sell_price - buy_price) - cost
-                if profit > 2: 
-                    section_df = cut_slice(ohlc_df, idx, tdLen+1)
+                if profit > 0: 
+                    section_df = cut_slice(ohlc_df, buy_time, sell_time)
                     if (section_df is not None):
-                        #print("\nSliced DataFrame:\n", section_df)
+                        #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
                         low_list.append(section_df) 
                         in_short_position = False
                         if IsDebug:
@@ -519,8 +392,7 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = False):
         
         else:
             print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
- '''
-    
+
     return low_list, high_list
 
 
@@ -608,7 +480,7 @@ if __name__ == "__main__":
         format=' %(levelname)s => %(message)s'
         )
 
-    IsDebug = True
+    IsDebug = False
 
     #Trainning Data Length
     # average number of working days in a month is 21.7, based on a five-day workweek
@@ -617,7 +489,7 @@ if __name__ == "__main__":
     tdLen = 30
 
     # Series Number for output training/testing data set pairs
-    SN = "152"
+    SN = "200"
         
     # ZigZag parameters
     deviation = 0.0015  # Percentage
@@ -637,8 +509,8 @@ if __name__ == "__main__":
     cost = 5.00
     
     #============================= Training Data ============================================#
-    training_start_date = "2020-01-01"
-    training_end_date = "2023-12-31"
+    training_start_date = "2022-01-01"
+    training_end_date = "2022-06-31"
 
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -647,9 +519,9 @@ if __name__ == "__main__":
     tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date)
     if IsDebug:
         print(f"tddf_low_list length:{len(tddf_low_list)}\n")
-        print(f"tddf_low_list length:{len(tddf_high_list)}\n")
+        print(f"tddf_high_list length:{len(tddf_high_list)}\n")
 
-    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{tdLen}_{SN}.csv")
+    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{SN}.csv")
 
     with open(td_file, "w") as datafile:
         generate_training_data(tddf_low_list, TradePosition.LONG)
@@ -657,8 +529,8 @@ if __name__ == "__main__":
 
 
     #============================= Testing Data ============================================#
-    testing_start_date = "2023-06-01"
-    testing_end_date = "2023-12-31"
+    testing_start_date = "2022-06-01"
+    testing_end_date = "2022-12-31"
     
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -666,7 +538,7 @@ if __name__ == "__main__":
 
     tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date)
 
-    td_file = os.path.join(data_dir, f"{symbol}_TestingData_{tdLen}_{SN}.csv")
+    td_file = os.path.join(data_dir, f"{symbol}_TestingData_{SN}.csv")
 
     with open(td_file, "w") as datafile:
         #generate_training_data(patterns_df)
