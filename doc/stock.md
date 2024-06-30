@@ -33,6 +33,8 @@
   - [AutoEncoders](#autoencoders)
   - [生成对抗网络](#生成对抗网络)
   - [Reinforcement Learning](#reinforcement-learning)
+- [不可学的数据形态](#不可学的数据形态)
+- [可变长的时间序列](#可变长的时间序列)
 
 <!-- /code_chunk_output -->
 
@@ -597,3 +599,33 @@ Generative Adversarial Network (GAN)
 ### Reinforcement Learning
 
 * [Need use real data](../src/reinforcement.py)
+
+## 不可学的数据形态
+
+😢📌一旦数据量增大，几乎所有的模型都只能得到50%的精度，甚至更低。
+
+* [卷积模型，2328买卖点，窗口30，只得到50%](../src/stock_cnn_wang_150.py)
+* [卷积模型，2328买卖点，只得到50%](../src/stock_cnn_wang_151.py)
+* [卷积模型，2328买卖点，只得到50%](../src/stock_cnn_wang_152.py)
+* [Transform，2328买卖点，窗口60，只得到50%](../src/stock_transform_wang_151.py)
+* [只取一列价格数据，固定窗口为30个点，只得到50%](../src/stock_160.py)
+
+```dos
+Epoch 20********************
+loss: 0.868377  [   64/ 9066]
+loss: 0.867910  [ 4160/ 9066]
+loss: 0.542266  [ 8256/ 9066]
+Test Error: 
+ Accuracy: 50.0%, Avg loss: 0.704931
+```
+## 可变长的时间序列
+
+> 按照数据变化样式取训练数据，按照最长的时间序列，将短的时间序列用0补足。
+
+❓😢这样做，可能对训练和测试解决“没有可学习的数据形态”的问题，但是如何在预测中构造你的输入数据呢？难在预测时，如何确定输入数据的长度呢？
+
+💡👉Deep Learning crucial points
+
+1. The training data must be learnable.
+2. The test data should contain patterns similar to those in the training data.
+3. The input data for predictions should have patterns similar to the trained input data.
