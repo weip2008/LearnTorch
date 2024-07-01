@@ -66,7 +66,7 @@ def load_data(file_path):
 
 # Load test data from CSV
 print("1. Load test data")
-low_test_data, high_test_data = load_data('data/SPX_TestingData_200.csv')
+low_test_data, high_test_data = load_data('data/SPX_TestingData_201.csv')
 
 # Step 2: Create a custom dataset for variable-length sequences
 class VariableLengthTimeSeriesDataset(Dataset):
