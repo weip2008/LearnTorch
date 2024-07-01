@@ -31,6 +31,8 @@ def load_data(file_path):
 # Load data from CSV
 print("1. Load data")
 low_data, high_data = load_data('data/SPX_TrainingData_200.csv')
+print(f"    Loaded {len(low_data)} low_data and {len(high_data)} high_data.")
+
 
 # Step 2: Create a custom dataset for variable-length sequences
 class VariableLengthTimeSeriesDataset(Dataset):
@@ -94,6 +96,7 @@ dim_feedforward = 128
 output_size = 1
 dropout = 0.1
 
+print("     Initializing model...")
 model = TimeSeriesTransformer(input_size, d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, output_size, dropout)
 
 # Define the loss function and the optimizer
@@ -113,6 +116,7 @@ model.train()
 for epoch in range(num_epochs):
     epoch_start_time = time.time()
     epoch_loss = 0.0
+    print(f"Starting epoch {epoch+1}/{num_epochs}...")
     for (low_batch, low_mask), (high_batch, high_mask) in zip(low_dataloader, high_dataloader):
         for batch, mask in [(low_batch, low_mask), (high_batch, high_mask)]:
             batch = batch.unsqueeze(-1)  # Adding feature dimension
@@ -126,10 +130,16 @@ for epoch in range(num_epochs):
                 batch, tgt_input, tgt_mask=tgt_subsequent_mask, 
                 src_key_padding_mask=mask, tgt_key_padding_mask=mask[:, :-1]
             )
+            print(f"Model output shape: {output.shape}")
+
 
             output = output.reshape(-1, output.size(-1))
+            #print(f"Model output reshape: {output.shape}")
             tgt_output = tgt_output.reshape(-1, tgt_output.size(-1))
+            #print(f"tgt_output shape: {tgt_output.shape}")
             loss = criterion(output, tgt_output)
+            print(f"Batch loss: {loss.item()}")
+            
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
