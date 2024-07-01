@@ -629,3 +629,37 @@ Test Error:
 1. The training data must be learnable.
 2. The test data should contain patterns similar to those in the training data.
 3. The input data for predictions should have patterns similar to the trained input data.
+
+* [Time Series Transformer model](../src/Test_TimeSeriesTransformer_03.py)
+[Time Series Data](../data/SPX_TrainingData_200.csv)
+[quick plot tool](../src/plotTools.py)
+
+![row 5710 has 13 points](images/data5710_13.png)
+show the buy/sell pair dataset. it definitely has from low to hight pattern, but cannot be used in prediction.
+
+![](images/data_10_245.png)
+since the time series difference, the row 5710 has only 13 points data, and row 10 has 245 points, huge difference. question is how to pad the data to keep the same learnable pattern?
+
+👎😱 all different length dataset, has similer pattern, which is from low to high, or vice versa. computer will learn nothing but this simple pattern!
+
+```debug
+padded_sequences[2,:]
+tensor([1.0000, 0.7732, 0.9991, 0.8992, 0.7307, 0.7309, 0.5683, 0.7300, 0.2079,
+        0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
+        0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
+```
+
+![](images/paddedSequences.png)
+
+```
+mask[1,:]
+tensor([False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False,
+        False, False, False, False, False, False, False, False, False, False
+
+len(mask[1,:])
+357        
+```
