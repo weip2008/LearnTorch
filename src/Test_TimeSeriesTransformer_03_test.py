@@ -43,7 +43,7 @@ model.load_state_dict(torch.load('timeseries_transformer.pth'))
 model.eval()
 
 # Step 1: Load and process the CSV data
-def load_data(file_path):
+def load_training_data(file_path):
     try:
         data = pd.read_csv(file_path, header=None, on_bad_lines='skip')
     except pd.errors.ParserError as e:
@@ -64,9 +64,26 @@ def load_data(file_path):
     
     return low_data, high_data
 
+def load_testing_data(file_path):
+    low_data = []
+    high_data = []
+    
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip().split(',')
+            if line[0] == '0':
+                low_data.append([float(value) for value in line[1:]])
+            elif line[0] == '1':
+                high_data.append([float(value) for value in line[1:]])
+    
+    return low_data, high_data
+
+
+
 # Load test data from CSV
 print("1. Load test data")
-low_test_data, high_test_data = load_data('data/SPX_TestingData_201.csv')
+#low_test_data, high_test_data = load_training_data('data/SPX_TestingData_201.csv')
+low_test_data, high_test_data = load_testing_data('data/SPX_TestingData_201.csv')
 
 # Step 2: Create a custom dataset for variable-length sequences
 class VariableLengthTimeSeriesDataset(Dataset):
