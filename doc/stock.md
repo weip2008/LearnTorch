@@ -600,7 +600,7 @@ Generative Adversarial Network (GAN)
 
 * [Need use real data](../src/reinforcement.py)
 
-## 不可学的数据形态
+## AI无法学习的数据形态
 
 😢📌一旦数据量增大，几乎所有的模型都只能得到50%的精度，甚至更低。
 
@@ -663,3 +663,86 @@ tensor([False, False, False, False, False, False, False, False, False, False,
 len(mask[1,:])
 357        
 ```
+
+```py
+for epoch in range(num_epochs):
+    epoch_start_time = time.time()
+    epoch_loss = 0.0
+    print(f"Starting epoch {epoch+1}/{num_epochs}...")
+    for (low_batch, low_mask), (high_batch, high_mask) in zip(low_dataloader, high_dataloader):
+        for batch, mask in [(low_batch, low_mask), (high_batch, high_mask)]:
+            batch = batch.unsqueeze(-1)  # Adding feature dimension
+            tgt_input = batch[:, :-1, :]
+            tgt_output = batch[:, 1:, :]
+
+            tgt_subsequent_mask = create_subsequent_mask(tgt_input.size(1)).to(tgt_input.device)
+
+            optimizer.zero_grad()
+💡👉       output = model(
+                batch, tgt_input, tgt_mask=tgt_subsequent_mask, 
+                src_key_padding_mask=mask, tgt_key_padding_mask=mask[:, :-1]
+            )
+            print(f"Model output shape: {output.shape}")
+```
+
+tgt_output.shape
+torch.Size([32, 82, 1])
+
+tgt_intput: target input
+tgt_input.shape
+torch.Size([32, 82, 1])
+共有32套数据，每套有82个价格，单一价格描述股票属性。关键是大部分的数据是后缀补0.
+
+batch.shape
+torch.Size([32, 83, 1])
+
+tgt_subsequent_mask.shape
+torch.Size([82, 82])
+
+tgt_subsequent_mask
+tensor([[False,  True,  True,  ...,  True,  True,  True],
+        [False, False,  True,  ...,  True,  True,  True],
+        [False, False, False,  ...,  True,  True,  True],
+        ...,
+        [False, False, False,  ..., False,  True,  True],
+        [False, False, False,  ..., False, False,  True],
+        [False, False, False,  ..., False, False, False]])
+
+mask.shape
+torch.Size([32, 83])
+
+mask
+tensor([[False, False, False,  ...,  True,  True,  True],
+        [False, False, False,  ...,  True,  True,  True],
+        [False, False, False,  ...,  True,  True,  True],
+        ...,
+        [False, False, False,  ...,  True,  True,  True],
+        [False, False, False,  ...,  True,  True,  True],
+        [False, False, False,  ...,  True,  True,  True]])
+
+output.shape
+torch.Size([32, 82, 1])
+
+output.shape
+torch.Size([2624, 1])
+
+tgt_output.shape
+torch.Size([2624, 1])
+
+output
+tensor([[ 0.3952],
+        [ 0.1312],
+        [ 0.5834],
+        ...,
+        [ 0.3008],
+        [ 0.4594],
+        [-0.0273]], grad_fn=<ViewBackward0>)
+
+tgt_output
+tensor([[0.6721],
+        [0.5523],
+        [0.6548],
+        ...,
+        [0.0000],
+        [0.0000],
+        [0.0000]])
