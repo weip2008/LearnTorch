@@ -489,7 +489,7 @@ if __name__ == "__main__":
     tdLen = 30
 
     # Series Number for output training/testing data set pairs
-    SN = "200"
+    SN = "201"
         
     # ZigZag parameters
     deviation = 0.0015  # Percentage
@@ -529,8 +529,8 @@ if __name__ == "__main__":
 
 
     #============================= Testing Data ============================================#
-    testing_start_date = "2022-06-01"
-    testing_end_date = "2022-12-31"
+    testing_start_date = "2022-03-01"
+    testing_end_date = "2022-06-31"
     
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
