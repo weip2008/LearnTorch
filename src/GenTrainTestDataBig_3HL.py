@@ -284,8 +284,8 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
     
     # Initialize variables
     in_long_position = False  # Track whether we are in a buy position
-    previous_previous_buy_time = None
-    previous_buy_time = None
+    previous_previous_point = None
+    previous_point = None
     buy_time = None
     sell_time = None
     hold_time = None  
@@ -302,7 +302,7 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                 buy_time = idx
                 in_long_position = True
                 if IsDebug:
-                    print(f"At {time}, buy  price: {buy_price:.2f} at {label} point")
+                    print(f"At {time}, LONG buy  price: {buy_price:.2f} at {label} point")
             else:
                 if IsDebug:
                     print(f"At {time}, already in long position, ignoring signal {label} at price: {buy_price:.2f}")
@@ -316,34 +316,27 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                 hold_time = sell_time - buy_time                
                 profit = sell_price - buy_price - cost
                 if profit > 0: 
-                    if previous_previous_buy_time is not None:
-                        section_df = cut_slice(ohlc_df, previous_previous_buy_time, sell_time) 
-                        in_long_position = False
-                        previous_previous_buy_time = previous_buy_time
-                        previous_buy_time = buy_time
-                        continue
-                    
-                    if previous_buy_time is not None:
-                        section_df = cut_slice(ohlc_df, previous_buy_time, sell_time)
-                        in_long_position = False
-                        previous_previous_buy_time = previous_buy_time
-                        previous_buy_time = buy_time
-                        continue      
-                                                          
-                    section_df = cut_slice(ohlc_df, buy_time, sell_time)
+                    if previous_previous_point is not None:
+                        section_df = cut_slice(ohlc_df, previous_previous_point, sell_time)                        
+                    else:
+                        section_df = cut_slice(ohlc_df, buy_time, sell_time)
                         
                     if (section_df is not None):
                         #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
                         high_list.append(section_df) 
                         
                     in_long_position = False
-                    previous_buy_time = buy_time
+                    previous_previous_point = previous_point
+                    previous_point = buy_time
                     if IsDebug:
-                        print(f"At {time}, {label} point, sell price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                        print(f"At {time}, {label} point, LONG sell price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
                 
                     continue
                 else:
+                    # if profit not > 0 or > 5, just drop this L/H pair
                     in_long_position = False
+                    previous_previous_point = previous_point
+                    previous_point = buy_time
                     if IsDebug:
                         print(f"At {time}, {label} point, NO sell at price: {sell_price:.2f}, Profit: {profit:.2f}, ignore this pair.")         
             else:
@@ -353,9 +346,12 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
         else:
             print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
     
-    
+    if IsDebug:
+        print("\n\n=======================================================================\n\n")
+        
     in_short_position = False
-    previous_buy_time = None
+    previous_previous_point = None
+    previous_point = None
     buy_time = None
     sell_time = None      
     hold_time = None  
@@ -372,7 +368,7 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                 buy_time = time
                 in_short_position = True
                 if IsDebug:
-                    print(f"At {time}, buy  price: {buy_price:.2f} at {label} point")
+                    print(f"At {time}, SHORT buy  price: {buy_price:.2f} at {label} point")
             else:
                 in_short_position = False
                 if IsDebug:
@@ -387,8 +383,8 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                 hold_time = sell_time - buy_time                   
                 profit = -1 * (sell_price - buy_price) - cost
                 if profit > 0: 
-                    if previous_buy_time is not None:
-                        section_df = cut_slice(ohlc_df, previous_buy_time, sell_time)                        
+                    if previous_previous_point is not None:
+                        section_df = cut_slice(ohlc_df, previous_previous_point, sell_time)                        
                     else:
                         section_df = cut_slice(ohlc_df, buy_time, sell_time)
                         
@@ -397,12 +393,17 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                         low_list.append(section_df) 
                     
                     in_short_position = False
-                    previous_buy_time = buy_time
+                    previous_previous_point = previous_point
+                    previous_point = buy_time
                     if IsDebug:
-                        print(f"At {time}, {label} point, sell price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                        print(f"At {time}, {label} point, SHORT sell price: {sell_price:.2f}, Profit: {profit:.2f}, Hold Time: {hold_time}")
                     
                     continue
                 else:
+                    # if profit not > 0 or > 5, just drop this L/H pair
+                    in_long_position = False
+                    previous_previous_point = previous_point
+                    previous_point = buy_time
                     if IsDebug:
                         print(f"At {time}, {label} point, NO sell at price: {sell_price:.2f}, Profit: {profit:.2f}")         
             else:
@@ -540,7 +541,7 @@ if __name__ == "__main__":
         print(f"tddf_low_list length:{len(tddf_low_list)}\n")
         print(f"tddf_high_list length:{len(tddf_high_list)}\n")
 
-    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_{SN}.csv")
+    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_3HL_{SN}.csv")
 
     with open(td_file, "w") as datafile:
         generate_training_data(tddf_low_list, TradePosition.LONG)
@@ -557,7 +558,7 @@ if __name__ == "__main__":
 
     tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date)
 
-    td_file = os.path.join(data_dir, f"{symbol}_TestingData_{SN}.csv")
+    td_file = os.path.join(data_dir, f"{symbol}_TestingData_3HL_{SN}.csv")
 
     with open(td_file, "w") as datafile:
         #generate_training_data(patterns_df)

@@ -30,7 +30,7 @@ def load_data(file_path):
 
 # Load data from CSV
 print("1. Load data")
-low_data, high_data = load_data('data/SPX_TrainingData_300.csv')
+low_data, high_data = load_data('data/SPX_TrainingData_3HL_400.csv')
 print(f"    Loaded {len(low_data)} low_data and {len(high_data)} high_data.")
 
 
@@ -151,5 +151,5 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}, Duration: {epoch_duration:.2f} minutes')
 
 # Save the model
-torch.save(model.state_dict(), 'timeseries_transformer_03_300.pth')
+torch.save(model.state_dict(), 'timeseries_transformer_03_3HL_400.pth')
 print("Model saved successfully.")
