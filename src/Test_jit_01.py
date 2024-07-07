@@ -39,3 +39,33 @@ print(f"Time taken with Numba: {time_with_numba:.4f} seconds")
 assert np.allclose(C_np, C_numba), "The results are not the same!"
 
 print(f"Speedup: {time_without_numba / time_with_numba:.2f}x")
+
+print("================================================")
+
+start_time = time.time()
+C_np = np.dot(A, B)
+end_time = time.time()
+time_without_numba = end_time - start_time
+
+start_time = time.time()
+C_numba = matrix_multiply(A, B)
+end_time = time.time()
+time_with_numba = end_time - start_time
+
+print(f"Time taken with Numba: {time_with_numba:.4f} seconds")
+
+
+print("================================================")
+
+start_time = time.time()
+C_np = np.dot(A, B)
+end_time = time.time()
+time_without_numba = end_time - start_time
+
+start_time = time.time()
+C_numba = matrix_multiply(A, B)
+end_time = time.time()
+time_with_numba = end_time - start_time
+
+print(f"Time taken with Numba: {time_with_numba:.4f} seconds")
+

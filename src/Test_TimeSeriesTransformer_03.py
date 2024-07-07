@@ -30,7 +30,7 @@ def load_data(file_path):
 
 # Load data from CSV
 print("1. Load data")
-low_data, high_data = load_data('data/SPX_TrainingData_200.csv')
+low_data, high_data = load_data('data/SPX_TrainingData_3HL_400.csv')
 print(f"    Loaded {len(low_data)} low_data and {len(high_data)} high_data.")
 
 
@@ -130,7 +130,7 @@ for epoch in range(num_epochs):
                 batch, tgt_input, tgt_mask=tgt_subsequent_mask, 
                 src_key_padding_mask=mask, tgt_key_padding_mask=mask[:, :-1]
             )
-            print(f"Model output shape: {output.shape}")
+            #print(f"Model output shape: {output.shape}")
 
 
             output = output.reshape(-1, output.size(-1))
@@ -138,7 +138,7 @@ for epoch in range(num_epochs):
             tgt_output = tgt_output.reshape(-1, tgt_output.size(-1))
             #print(f"tgt_output shape: {tgt_output.shape}")
             loss = criterion(output, tgt_output)
-            print(f"Batch loss: {loss.item()}")
+            #print(f"Batch loss: {loss.item()}")
             
             loss.backward()
             optimizer.step()
@@ -151,5 +151,5 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}, Duration: {epoch_duration:.2f} minutes')
 
 # Save the model
-torch.save(model.state_dict(), 'timeseries_transformer.pth')
+torch.save(model.state_dict(), 'timeseries_transformer_03_3HL_400.pth')
 print("Model saved successfully.")

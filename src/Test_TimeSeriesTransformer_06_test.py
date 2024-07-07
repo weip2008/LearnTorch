@@ -136,7 +136,7 @@ def evaluate_model(model, dataloaders, criterion):
 
 # Load training data from CSV
 print("1. Load training data")
-low_data_train, high_data_train = load_data('data/SPX_TrainingData_200.csv')
+low_data_train, high_data_train = load_data('data/SPX_TrainingData_201.csv')
 print(f"    Loaded {len(low_data_train)} low_data and {len(high_data_train)} high_data.")
 
 # Create datasets and dataloaders for training
@@ -160,12 +160,16 @@ output_size = 1
 dropout = 0.1
 
 model = TimeSeriesTransformer(input_size, d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, output_size, dropout)
+model.load_state_dict(torch.load('timeseries_transformer_06_201.pth'))
+model.eval()
+
 
 # Define the loss function and the optimizer
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+#optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=1.0e-1)
 
-# Training loop
+''' # Training loop
 print("4. Training Loop")
 num_epochs = 10
 model.train()
@@ -196,12 +200,12 @@ for epoch in range(num_epochs):
     
     avg_loss = epoch_loss / (len(low_train_dataloader) + len(high_train_dataloader))  # Adjusting for two dataloaders
     epoch_end_time = time.time()
-    epoch_duration = (epoch_end_time - epoch_start_time) / 60 # convert to minutes
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}, Duration: {epoch_duration:.2f} minutes')
+    epoch_duration = (epoch_end_time - epoch_start_time) #/ 60 # convert to minutes
+    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}, Duration: {epoch_duration:.2f} seconds')
 
 # Save the model
-torch.save(model.state_dict(), 'timeseries_transformer.pth')
-print("Model saved successfully.")
+torch.save(model.state_dict(), 'timeseries_transformer_06_201.pth')
+print("Model saved successfully.") '''
 
 # Load the testing data
 print("Loading testing data...")
