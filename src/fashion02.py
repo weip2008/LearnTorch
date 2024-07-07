@@ -34,13 +34,13 @@ def train(dataloader, model, loss_fn, optimizer):
         X, y = X.to(device), y.to(device)
 
         # Compute prediction error
-        pred = model(X)
-        loss = loss_fn(pred, y)
+        pred = model(X) # get predict data
+        loss = loss_fn(pred, y) # calculate the loss
 
         # Backpropagation
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+        optimizer.zero_grad() # clear previous gradient
+        loss.backward() # calculate gradient
+        optimizer.step() # adjust w,b
 
         if batch % 100 == 0:
             loss, current = loss.item(), (batch + 1) * len(X)
