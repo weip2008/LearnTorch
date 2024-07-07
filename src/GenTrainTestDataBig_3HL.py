@@ -14,30 +14,6 @@ class TradePosition(Enum):
     LONG = 1
     SHORT = -1
 
-def cut_slice2(ohlc_df, datetime_index, window_len):
-    # Convert the datetime_index to a positional index
-    try:
-        index = ohlc_df.index.get_loc(datetime_index)
-    except KeyError:
-        # If the datetime_index is not found in the DataFrame index, return None
-        return None
-    
-    start_index = index - window_len +1
-    # If we don't have enough long data series for this slice, ignore it
-    if start_index < 0:
-        return None
-    
-    # Adjust end index to include the last element
-    end_index = index + 1
-    
-    # Create a copy of the section of the original DataFrame
-    # Start from start_index up to but not including end_index!
-    section_df = ohlc_df.iloc[start_index:end_index].copy()
-    section_df.drop(['Open', 'High', 'Low', 'Volume' ], axis=1, inplace=True) 
-    return section_df
-
-
-
 def cut_slice(ohlc_df, start_index, end_index):
     # Ensure the start_index and end_index are in the DataFrame index
     if start_index not in ohlc_df.index or end_index not in ohlc_df.index:
@@ -509,7 +485,7 @@ if __name__ == "__main__":
     #tdLen = 30
 
     # Series Number for output training/testing data set pairs
-    SN = "400"
+    SN = "401"
         
     # ZigZag parameters
     deviation = 0.0015  # Percentage
@@ -529,8 +505,8 @@ if __name__ == "__main__":
     cost = 5.00
     
     #============================= Training Data ============================================#
-    training_start_date = "2022-01-01"
-    training_end_date = "2022-06-31"
+    training_start_date = "2023-01-01"
+    training_end_date = "2023-06-31"
 
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -549,8 +525,8 @@ if __name__ == "__main__":
 
 
     #============================= Testing Data ============================================#
-    testing_start_date = "2022-03-01"
-    testing_end_date = "2022-06-31"
+    testing_start_date = "2023-03-01"
+    testing_end_date = "2023-06-31"
     
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
