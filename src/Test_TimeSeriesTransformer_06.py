@@ -41,7 +41,7 @@ def load_data(file_path):
 
 # Load data from CSV
 print("1. Load data")
-low_data, high_data = load_data('data/SPX_TrainingData_201.csv')
+low_data, high_data = load_data('data/SPX_TrainingData_2HL_300.csv')
 print(f"    Loaded {len(low_data)} low_data and {len(high_data)} high_data.")
 
 # Step 2: Create a custom dataset for variable-length sequences
@@ -171,5 +171,5 @@ for epoch in range(num_epochs):
     print(f'    Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}, Duration: {epoch_duration:.2f} seconds')
 
 # Save the model
-torch.save(model.state_dict(), 'timeseries_transformer_06_201.pth')
+torch.save(model.state_dict(), 'timeseries_transformer_06_2HL_300.pth')
 print("Model saved successfully.")
