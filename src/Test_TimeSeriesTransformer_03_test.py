@@ -106,7 +106,7 @@ def collate_fn(batch):
     for i, seq_len in enumerate([len(seq) for seq in sequences]):
         mask[i, seq_len:] = True
 
-    return padded_sequences, mask
+    return padded_sequences, mask # return data padded by 0, and mask True for all real data, and False for all padded data
 
 # Create datasets and dataloaders
 print("2. Create test datasets and dataloaders")

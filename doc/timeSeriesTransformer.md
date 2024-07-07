@@ -1,4 +1,4 @@
-Certainly! This code is an implementation of a Transformer-based neural network model for time series forecasting. Let's go through the key components and steps:
+This code is an implementation of a Transformer-based neural network model for time series forecasting. Let's go through the key components and steps:
 
 ### Step 1: Load and Process the CSV Data
 The `load_data` function loads a CSV file containing time series data. It separates the data into two lists (`low_data` and `high_data`) based on prefixes `[1, 0]` and `[0, 1]` respectively, indicating different classes or types of time series.
@@ -7,7 +7,7 @@ The `load_data` function loads a CSV file containing time series data. It separa
 The `VariableLengthTimeSeriesDataset` class is a custom PyTorch `Dataset` that stores the time series sequences. It implements methods to get the length of the dataset (`__len__`) and to retrieve individual sequences (`__getitem__`).
 
 ### Step 3: Collate Function for Padding Sequences
-The `collate_fn` function is used by the `DataLoader` to pad sequences within each batch to ensure they have the same length. It also creates a mask tensor to distinguish padded elements from real data during computation.
+The `collate_fn` function is used by the `DataLoader` to pad sequences within each batch to ensure they have the <font style="background-color:yellow">same length</font>. It also creates a mask tensor to distinguish padded elements from real data during computation.
 
 ### Transformer Model Definition
 The `TimeSeriesTransformer` class defines the Transformer model using PyTorch's `nn.Transformer`. Key components include:

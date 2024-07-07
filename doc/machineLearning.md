@@ -90,7 +90,7 @@ class AC accuracy
 
 ❓What is Gradient?
 [Gradient detail](gradient.md)
-[](../src/gradient.py)
+[Understand loss.backward() function](../src/gradient.py)
 
 ❓What is Learning Rate?
 * [LR controlling the size of the steps taken during gradient descent。](../src/gradientDescend.py)
