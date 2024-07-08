@@ -129,7 +129,7 @@ output_size = 1
 dropout = 0.1
 
 model = TimeSeriesTransformer(input_size, d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, output_size, dropout)
-model.load_state_dict(torch.load('timeseries_transformer_06_2HL.pth'))
+model.load_state_dict(torch.load('timeseries_transformer_06_2HL_300.pth'))
 model.eval()
 
 # Define tolerance threshold
