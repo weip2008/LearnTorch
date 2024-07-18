@@ -21,8 +21,8 @@
 #2.	Optionally, you can also adjust other hyperparameters if necessary, such as the learning rate 
 #   or the number of epochs, to accommodate the larger batch size.
 
-
-
+import csv
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -32,52 +32,51 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import matplotlib.pyplot as plt
 
 
-# Load and process the CSV data
-def load_training_data(file_path):
-    try:
-        data = pd.read_csv(file_path, header=None, on_bad_lines='skip')
-    except pd.errors.ParserError as e:
-        print(f"Error parsing the file: {e}")
-        return [], []
-
+def load_data(file_path):
     low_data = []
     high_data = []
-    
-    for row in data.values:
-        prefix = row[:2]
-        sequence = row[2:]
-        
-        if prefix.tolist() == [1, 0]:
-            low_data.append(sequence[~pd.isna(sequence)].tolist())
-        elif prefix.tolist() == [0, 1]:
-            high_data.append(sequence[~pd.isna(sequence)].tolist())
-    
-    return low_data, high_data
+    low_target = []
+    high_target = []
 
-def load_testing_data(file_path):
-    low_data = []
-    high_data = []
-    
-    with open(file_path, 'r') as f:
-        for line in f:
-            line = line.strip().split(',')
-            if line[0] == '0':
-                low_data.append([float(value) for value in line[1:]])
-            elif line[0] == '1':
-                high_data.append([float(value) for value in line[1:]])
-    
-    return low_data, high_data
+    with open(file_path, 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            prefix = list(map(int, row[:2]))  # Convert prefix to a list of integers
+            sequence = ', '.join(row[2:])    # Join the rest of the row back into a single string
+            
+            # Split the sequence into tuples
+            sequence = sequence.strip("()")  # Remove leading and trailing parentheses
+            items = sequence.split('), (')   # Split based on the tuple separator
+
+            data_list = []
+            for item in items:
+                item = item.replace('(', '').replace(')', '')  # Remove any remaining parentheses
+                data_tuple = tuple(map(float, item.split(', ')))  # Convert to a tuple of floats
+                data_list.append(data_tuple)
+
+            # Convert the list of tuples to a numpy array (2D array)
+            data_array = np.array(data_list)
+
+            # Extract the target value from the last row, 3rd column
+            target_value = data_array[-1, 2]
+
+            if prefix == [1, 0]:
+                low_data.append(data_array)
+                low_target.append(target_value)
+            elif prefix == [0, 1]:
+                high_data.append(data_array)
+                high_target.append(target_value)
+
+    return low_data, high_data, low_target, high_target
 
 
-# Load data from CSV
-print("1. Load data")
-low_data, high_data = load_training_data('data/SPX_TrainingData_3HL_400.csv')
-print(f"    Loaded {len(low_data)} low_data and {len(high_data)} high_data.")
-
-
-# Example variable-length data
-data = [np.random.rand(np.random.randint(10, 1000), 5) for _ in range(100)]
-targets = np.random.rand(100)
+# Example usage
+file_path = 'data/SPX_TrainingData_2HL_501.csv'
+low_data, high_data, low_targets, high_targets = load_data(file_path)
+print(f'Low data: {len(low_data)} sequences')
+print(f'High data: {len(high_data)} sequences')
+print(f'Low targets: {low_targets}')
+print(f'High targets: {high_targets}')
 
 # Create a custom dataset
 class VariableLengthDataset(Dataset):
@@ -100,9 +99,12 @@ def collate_fn(batch):
     targets = torch.stack(targets)
     return padded_data, targets, lengths
 
-dataset = VariableLengthDataset(data, targets)
+low_dataset = VariableLengthDataset(low_data, low_targets)
+high_dataset = VariableLengthDataset(high_data, high_targets)
+
 # Increase batch size from 16 to 64
-dataloader = DataLoader(dataset, batch_size=64, shuffle=True, collate_fn=collate_fn)
+low_dataloader = DataLoader(low_dataset, batch_size=64, shuffle=True, collate_fn=collate_fn)
+high_dataloader = DataLoader(high_dataset, batch_size=64, shuffle=True, collate_fn=collate_fn)
 
 # Define the GRU model
 class GRUModel(nn.Module):
@@ -130,7 +132,7 @@ losses = []
 model.train()
 for epoch in range(num_epochs):
     epoch_loss = 0.0
-    for inputs, targets, lengths in dataloader:
+    for inputs, targets, lengths in low_dataloader:
         optimizer.zero_grad()
         outputs = model(inputs, lengths)
         loss = criterion(outputs.squeeze(), targets)
@@ -138,7 +140,7 @@ for epoch in range(num_epochs):
         optimizer.step()
         epoch_loss += loss.item()
     scheduler.step()  # Adjust the learning rate
-    avg_loss = epoch_loss / len(dataloader)
+    avg_loss = epoch_loss / len(low_dataloader)
     losses.append(avg_loss)
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss}')
 
