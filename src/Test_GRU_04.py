@@ -154,11 +154,11 @@ torch.save({
 
 print(f"Training results saved to {save_path}")
 
-# Plotting the training loss over epochs
+''' # Plotting the training loss over epochs
 plt.plot(losses)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Training Loss over Epochs')
 plt.show()
-
+ '''
 
