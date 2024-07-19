@@ -45,7 +45,7 @@ def load_data(file_path):
     return low_data, high_data, low_target, high_target
 
 # Load testing data
-test_file_path = 'data/SPX_TestingData_2HL_504.csv'
+test_file_path = 'data/SPX_TestingData_2HL_505.csv'
 test_low_data, test_high_data, test_low_target, test_high_target = load_data(test_file_path)
 print(f'Low data: {len(test_low_data)} sequences')
 print(f'High data: {len(test_high_data)} sequences')
@@ -132,3 +132,40 @@ print(f'Test Low Data Loss (MSE): {test_low_loss:.6f}')
 print(f'Test Low Data Accuracy: {test_low_accuracy:.6f}')
 print(f'Test High Data Loss (MSE): {test_high_loss:.6f}')
 print(f'Test High Data Accuracy: {test_high_accuracy:.6f}')
+
+
+# Assuming the model class and checkpoint loading is done as previously described
+
+# Set the model to evaluation mode
+#model.eval()
+
+# Example of new input data sequence
+# new_data = [
+#     [(0.5, 1.2, 0.3, 0.8, 1.0), (0.6, 1.3, 0.4, 0.9, 1.1)]  # Replace with actual data
+# ]
+
+# Use the first element from test_low_data as new input data sequence
+new_data = [test_low_data[0]]
+# Check the shape of the new_data to find out the number of rows and columns
+num_rows, num_columns = new_data[0].shape
+print(f'Number of rows: {num_rows}')
+print(f'Number of columns: {num_columns}')
+print(new_data)
+
+# Convert new data to tensors and pad sequences
+new_data_tensor = [torch.tensor(seq, dtype=torch.float32) for seq in new_data]
+new_lengths = [len(seq) for seq in new_data_tensor]
+padded_new_data = nn.utils.rnn.pad_sequence(new_data_tensor, batch_first=True)
+
+# Make predictions
+with torch.no_grad():
+    predictions = model(padded_new_data, new_lengths)
+    predictions = predictions.squeeze().numpy()  # Convert to numpy for easier handling
+
+# Ensure predictions is a 1-D array for consistency
+if predictions.ndim == 0:
+    predictions = np.expand_dims(predictions, axis=0)
+
+# Post-process and print predictions
+for i, prediction in enumerate(predictions):
+    print(f'Prediction for sequence {i}: {prediction}')
