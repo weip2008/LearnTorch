@@ -101,7 +101,7 @@ The learning rate is a crucial hyperparameter in training neural networks, contr
 
 * [Understand learning rate](../src/mse1.py)
 * [Understand learning rate](../src/mse2.py)
-
+![](images/)
 ## Data Preprocessing
 - **Articles and Tutorials**:
   - [Towards Data Science: Data Preprocessing in Python](https://towardsdatascience.com/data-preprocessing-in-python-pipelines-part-1-fundamentals-5f09529a23a4)
