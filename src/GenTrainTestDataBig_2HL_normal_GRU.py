@@ -618,7 +618,7 @@ if __name__ == "__main__":
     #tdLen = 30
 
     # Series Number for output training/testing data set pairs
-    SN = "501"
+    SN = "504"
         
     # ZigZag parameters
     deviation = 0.0015  # Percentage
@@ -638,8 +638,8 @@ if __name__ == "__main__":
     cost = 5.00
     
     #============================= Training Data ============================================#
-    training_start_date = "2023-01-01"
-    training_end_date = "2023-06-31"
+    training_start_date = "2020-01-01"
+    training_end_date = "2023-05-31"
 
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -658,8 +658,8 @@ if __name__ == "__main__":
 
 
     #============================= Testing Data ============================================#
-    testing_start_date = "2023-03-01"
-    testing_end_date = "2023-06-31"
+    testing_start_date = "2023-06-01"
+    testing_end_date = "2023-12-31"
     
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")

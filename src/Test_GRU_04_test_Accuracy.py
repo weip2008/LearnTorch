@@ -45,7 +45,7 @@ def load_data(file_path):
     return low_data, high_data, low_target, high_target
 
 # Load testing data
-test_file_path = 'data/SPX_TestingData_2HL_501.csv'
+test_file_path = 'data/SPX_TestingData_2HL_504.csv'
 test_low_data, test_high_data, test_low_target, test_high_target = load_data(test_file_path)
 print(f'Low data: {len(test_low_data)} sequences')
 print(f'High data: {len(test_high_data)} sequences')
@@ -94,7 +94,7 @@ test_low_dataloader = DataLoader(test_low_dataset, batch_size=64, shuffle=False,
 test_high_dataloader = DataLoader(test_high_dataset, batch_size=64, shuffle=False, collate_fn=collate_fn)
 
 # Load the trained model and optimizer states
-checkpoint = torch.load('GRU_training_results_501.pth')
+checkpoint = torch.load('GRU_training_results_504.pth')
 model = GRUModel(input_size=5, hidden_size=50, output_size=1)
 model.load_state_dict(checkpoint['model_state_dict'])
 
