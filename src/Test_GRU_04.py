@@ -139,13 +139,12 @@ for epoch in range(num_epochs):
     losses.append(avg_loss)
     epoch_end_time = time.time()
     epoch_duration = (epoch_end_time - epoch_start_time) / 60  # convert to minutes
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}, Duration: {epoch_duration:.2f} minutes')
-    if avg_loss < 0.001:
-        break
+    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.5f}, Duration: {epoch_duration:.2f} minutes')
+    
 
 
 # Save the model, optimizer state, and losses
-save_path = 'training_results_GRU_501.pth'
+save_path = 'GRU_training_results_501.pth'
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
