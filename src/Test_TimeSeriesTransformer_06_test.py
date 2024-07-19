@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, Dataset
 import pandas as pd
 
 # Load and process the CSV data
-def load_data(file_path):
+def load_training_data(file_path):
     try:
         data = pd.read_csv(file_path, header=None, on_bad_lines='skip')
     except pd.errors.ParserError as e:
@@ -25,6 +25,22 @@ def load_data(file_path):
             high_data.append(sequence[~pd.isna(sequence)].tolist())
     
     return low_data, high_data
+
+def load_testing_data(file_path):
+    low_data = []
+    high_data = []
+    
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip().split(',')
+            if line[0] == '0':
+                low_data.append([float(value) for value in line[1:]])
+            elif line[0] == '1':
+                high_data.append([float(value) for value in line[1:]])
+    
+    return low_data, high_data
+
+
 
 # Custom dataset for variable-length sequences
 class VariableLengthTimeSeriesDataset(Dataset):
@@ -89,7 +105,7 @@ def create_subsequent_mask(size):
 
 # Load test data from CSV
 print("1. Load test data")
-low_data, high_data = load_data('data/SPX_TestingData_2HL_300.csv')
+low_data, high_data = load_testing_data('data/SPX_TestingData_2HL_300.csv')
 print(f"    Loaded {len(low_data)} low_data and {len(high_data)} high_data.")
 
 # Create datasets and dataloaders
@@ -113,7 +129,7 @@ output_size = 1
 dropout = 0.1
 
 model = TimeSeriesTransformer(input_size, d_model, nhead, num_encoder_layers, num_decoder_layers, dim_feedforward, output_size, dropout)
-model.load_state_dict(torch.load('timeseries_transformer_06_2HL.pth'))
+model.load_state_dict(torch.load('timeseries_transformer_06_2HL_300.pth'))
 model.eval()
 
 # Define tolerance threshold
