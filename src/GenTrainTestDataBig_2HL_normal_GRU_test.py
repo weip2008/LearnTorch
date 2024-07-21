@@ -618,7 +618,7 @@ if __name__ == "__main__":
     #tdLen = 30
 
     # Series Number for output training/testing data set pairs
-    SN = "504"
+    SN = "505"
         
     # ZigZag parameters
     deviation = 0.0015  # Percentage
@@ -637,29 +637,10 @@ if __name__ == "__main__":
     # Cost for each trade
     cost = 5.00
     
-    #============================= Training Data ============================================#
-    training_start_date = "2020-01-01"
-    training_end_date = "2023-05-31"
-
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
     
-    tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date)
-    if IsDebug:
-        print(f"tddf_low_list length:{len(tddf_low_list)}\n")
-        print(f"tddf_high_list length:{len(tddf_high_list)}\n")
-
-    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_2HL_{SN}.csv")
-
-    with open(td_file, "w") as datafile:
-        generate_training_data(tddf_low_list, TradePosition.LONG)
-        generate_training_data(tddf_high_list, TradePosition.SHORT)
-
-
     #============================= Testing Data ============================================#
     testing_start_date = "2023-06-01"
-    testing_end_date = "2023-12-31"
+    testing_end_date = "2023-11-30"
     
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")

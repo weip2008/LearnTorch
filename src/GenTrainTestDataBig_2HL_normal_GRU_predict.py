@@ -59,6 +59,16 @@ def gen_hold_list_index(df):
 
     return new_index 
 
+# Convert DataFrame to string
+def dataframe_to_string(df):
+    result = ','.join([f'({index}, {row["Close"]})' for index, row in df.iterrows()])
+    return result
+
+
+def velcotiylist_to_string(velocity_list):
+    result = ','.join([f'({t[0]}, {t[1]}, {t[2]})' for t in velocity_list])
+    return result
+
 
 def list_to_string(price_list):
     return ','.join(map(str, price_list))
@@ -169,6 +179,55 @@ def write_testing_data(TradePosition, acceleration_list, csvfile):
     return
 
 
+def write_processingdf_file(TradePosition, processing_df, csvfile):
+    # for testing data, the first number is index of "LONG, SHORT" series!
+    # so if it's LONG, SHORT is 1;
+    
+    processingdata_str = dataframe_to_string(processing_df)
+   
+    if (TradePosition is TradePosition.LONG):
+        result = "0," + processingdata_str + "\n"
+        if IsDebug:
+            print(result)
+    
+        csvfile.write(result)
+        return
+
+        
+    if (TradePosition is TradePosition.SHORT):        
+        result = "1," + processingdata_str + "\n"
+        if IsDebug:
+            print(result)
+        
+        csvfile.write(result)
+            
+    return
+
+
+def write_velocity_file(TradePosition, velocity_list, csvfile):
+    # for testing data, the first number is index of "LONG, SHORT" series!
+    # so if it's LONG, SHORT is 1;
+    
+    veloctiy_str = velcotiylist_to_string(velocity_list)
+   
+    if (TradePosition is TradePosition.LONG):
+        result = "0," + veloctiy_str + "\n"
+        if IsDebug:
+            print(result)
+    
+        csvfile.write(result)
+        return
+
+        
+    if (TradePosition is TradePosition.SHORT):        
+        result = "1," + veloctiy_str + "\n"
+        if IsDebug:
+            print(result)
+        
+        csvfile.write(result)
+            
+    return
+
 
 def generate_training_data(tddf_highlow_list, position):
     
@@ -211,25 +270,24 @@ def generate_training_data(tddf_highlow_list, position):
 
 
 
-def generate_testing_data(tddf_highlow_list, position):
-    
-    filename = 'stockdata/TestingDataGenLog_'+ str(position)+".log"
-    # Open a file in write mode
-    outputfile = open(filename, 'w')
- 
+def generate_testing_data(tddf_highlow_list, position, processdf_file, velocity_file, datafile):
     # Initialize an empty list to store tuples with the "Velocity" column
     tddf_velocity_list = []
     tddf_acceleration_list = []
-     
+
     # Iterate over each tuple in tddf_highlow_list starting from the second tuple
     for i in range(0, len(tddf_highlow_list)):
         processing_df = tddf_highlow_list[i]
         if IsDebug:
             print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
+
+        write_processingdf_file(position, processing_df, processdf_file)
         
         tddf_velocity_list = calculate_velocity(processing_df)
         if IsDebug:
-            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
+            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n", tddf_velocity_list)
+        
+        write_velocity_file(position, tddf_velocity_list, velocity_file)
         
         tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
         if IsDebug:
@@ -238,16 +296,8 @@ def generate_testing_data(tddf_highlow_list, position):
         if IsDebug:
             print("\nGenerate testing data:")
         
-        # Write lengths to the file in the desired format
-        outputfile.write(
-            f"{len(processing_df)},"
-            f"{len(tddf_velocity_list)},"
-            f"{len(tddf_acceleration_list)}\n"
-        ) 
-        
         write_testing_data(position, tddf_acceleration_list, datafile)
-    
-    outputfile.close()    
+
     return
 
 
@@ -618,7 +668,7 @@ if __name__ == "__main__":
     #tdLen = 30
 
     # Series Number for output training/testing data set pairs
-    SN = "504"
+    SN = "506"
         
     # ZigZag parameters
     deviation = 0.0015  # Percentage
@@ -637,29 +687,10 @@ if __name__ == "__main__":
     # Cost for each trade
     cost = 5.00
     
-    #============================= Training Data ============================================#
-    training_start_date = "2020-01-01"
-    training_end_date = "2023-05-31"
-
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
     
-    tddf_low_list, tddf_high_list = gen_highlow_list(training_start_date, training_end_date)
-    if IsDebug:
-        print(f"tddf_low_list length:{len(tddf_low_list)}\n")
-        print(f"tddf_high_list length:{len(tddf_high_list)}\n")
-
-    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_2HL_{SN}.csv")
-
-    with open(td_file, "w") as datafile:
-        generate_training_data(tddf_low_list, TradePosition.LONG)
-        generate_training_data(tddf_high_list, TradePosition.SHORT)
-
-
     #============================= Testing Data ============================================#
     testing_start_date = "2023-06-01"
-    testing_end_date = "2023-12-31"
+    testing_end_date = "2023-11-30"
     
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -668,11 +699,17 @@ if __name__ == "__main__":
     tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date)
 
     td_file = os.path.join(data_dir, f"{symbol}_TestingData_2HL_{SN}.csv")
+    processdf_file_path = os.path.join(data_dir, f"{symbol}_ProcessDF_2HL_{SN}.csv")
+    velocity_file_path = os.path.join(data_dir, f"{symbol}_Velocity_2HL_{SN}.csv")
 
-    with open(td_file, "w") as datafile:
-        #generate_training_data(patterns_df)
-        generate_testing_data(tddf_low_list, TradePosition.LONG)
-        generate_testing_data(tddf_high_list, TradePosition.SHORT)
+    with open(td_file, "w") as datafile, \
+         open(processdf_file_path, "w") as processdf_file, \
+         open(velocity_file_path, "w") as velocity_file:
+
+        # Generate testing data for low and high lists
+        generate_testing_data(tddf_low_list, TradePosition.LONG, processdf_file, velocity_file, datafile)
+        generate_testing_data(tddf_high_list, TradePosition.SHORT, processdf_file, velocity_file, datafile)
+
 
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")

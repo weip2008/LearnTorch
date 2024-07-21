@@ -47,7 +47,7 @@ def load_data(file_path):
     return low_data, high_data, low_target, high_target
 
 # Example usage
-file_path = 'data/SPX_TrainingData_2HL_501.csv'
+file_path = 'data/SPX_TrainingData_2HL_504.csv'
 low_data, high_data, low_target, high_target = load_data(file_path)
 print(f'Low data: {len(low_data)} sequences')
 print(f'High data: {len(high_data)} sequences')
@@ -139,12 +139,12 @@ for epoch in range(num_epochs):
     losses.append(avg_loss)
     epoch_end_time = time.time()
     epoch_duration = (epoch_end_time - epoch_start_time) / 60  # convert to minutes
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.5f}, Duration: {epoch_duration:.2f} minutes')
+    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} minutes')
     
 
 
 # Save the model, optimizer state, and losses
-save_path = 'GRU_training_results_501.pth'
+save_path = 'GRU_training_results_504.pth'
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
