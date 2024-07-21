@@ -23,7 +23,7 @@ for i in range(50):
     loss = f(x)
     
     # Compute gradients (backward pass)
-    loss.backward()
+    loss.backward() # comments out this line see the effects
     
     # Print the gradient
     print(f'Iteration {i+1}: x = {x.item()}, f(x) = {loss.item()}, grad = {x.grad.item()}, manual={df(x)}')
