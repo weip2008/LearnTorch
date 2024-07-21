@@ -100,8 +100,10 @@ The learning rate is a crucial hyperparameter in training neural networks, contr
 [Math on Partial Derivative respect to $\theta_t$](mse1.md)
 
 * [Understand learning rate](../src/mse1.py)
-* [Understand learning rate](../src/mse2.py)
-![](images/)
+* [Understand adjust w,b](../src/mse2.py)
+
+![Understand manually adjust w $ b](images/adjust_W_B.png)
+
 ## Data Preprocessing
 - **Articles and Tutorials**:
   - [Towards Data Science: Data Preprocessing in Python](https://towardsdatascience.com/data-preprocessing-in-python-pipelines-part-1-fundamentals-5f09529a23a4)
