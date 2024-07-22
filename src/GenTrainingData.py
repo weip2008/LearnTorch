@@ -1,5 +1,7 @@
 # This version read source data from SQLite database tables
-
+"""
+pip install ta
+"""
 import sqlite3
 import logging
 import pandas as pd
@@ -381,7 +383,7 @@ logging.basicConfig(
     format=' %(levelname)s => %(message)s'
 )
         
-IsDebug = True
+IsDebug = False
 #WindowLen = 5
 
 #Trainning data lenth

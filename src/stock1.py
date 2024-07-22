@@ -1,3 +1,6 @@
+"""
+pip install torchvision
+"""
 import torch
 from torch import nn
 from torchvision import datasets
@@ -8,7 +11,7 @@ import matplotlib.pyplot as plt
 from stock import NeuralNetwork, file_path, getDataSet, labels,window
 
 model = NeuralNetwork()
-model.load_state_dict(torch.load("stock_model_30_07_83.pth"))
+model.load_state_dict(torch.load("outputs/stock_model_30_07_83.pth"))
 index = 0
 model.eval()
 training_data,test_data = getDataSet(file_path)
