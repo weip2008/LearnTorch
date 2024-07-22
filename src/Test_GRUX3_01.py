@@ -7,8 +7,8 @@ import time
 
 # Example fixed-length data
 fixed_length = 120
-data = [np.random.rand(fixed_length, 5) for _ in range(100)]
-targets = np.random.rand(100, 3)  # Each target is an array of length 3
+data = [np.random.rand(fixed_length, 5) for _ in range(1000)]
+targets = np.random.rand(1000, 3)  # Each target is an array of length 3
 
 # Create a custom dataset
 class FixedLengthDataset(Dataset):
@@ -43,7 +43,7 @@ criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Training loop
-num_epochs = 10
+num_epochs = 20
 losses = []
 model.train()
 for epoch in range(num_epochs):
