@@ -105,8 +105,8 @@ class GRUModel(nn.Module):
 model = GRUModel(input_size=5, hidden_size=50, output_size=1)
 criterion = nn.MSELoss()
 optimizer = optim.AdamW(model.parameters(), lr=0.001)  # Reduced initial learning rate
-scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)  # More gradual reduction
-#scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
+#scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)  # More gradual reduction
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
 
 # Training loop with scheduler, gradient clipping, and loss tracking
 num_epochs = 10
