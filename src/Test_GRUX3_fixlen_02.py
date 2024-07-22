@@ -41,7 +41,7 @@ class GRUModel(nn.Module):
 
 model = GRUModel(input_size=5, hidden_size=50, output_size=3, dropout=0.0)  # Ensure dropout is 0 for single layer
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.005)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=2, factor=0.5)
 
 # Weight initialization
