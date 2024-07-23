@@ -35,12 +35,12 @@ def load_data(file_path):
     return data, targets
 
 # Example usage
-file_path = 'data/SPX_TrainingData_FixLenGRU_601.txt'
+file_path = 'data/SPX_TrainingData_FixLenGRU_603.txt'
 data, targets = load_data(file_path)
 
 print("Data shape:", data.shape)
 print("Targets shape:", targets.shape)
-print(targets)
+#print(targets)
 
 
 # Create a custom dataset
@@ -73,7 +73,7 @@ class GRUModel(nn.Module):
 # Instantiate the model, define the loss function and the optimizer
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)  # Output size is now 3
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.005)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Training loop
 num_epochs = 20
@@ -101,7 +101,7 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} seconds')
 
 # Save the model, optimizer state, and losses
-save_path = 'GRU_model_with_fixed_length_data_601.pth'
+save_path = 'GRU_model_with_fixed_length_data_603.pth'
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),

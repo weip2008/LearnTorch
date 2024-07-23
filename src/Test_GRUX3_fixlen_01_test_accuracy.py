@@ -57,7 +57,7 @@ class GRUModel(nn.Module):
         return output
 
 # Load the testing data
-test_file_path = 'data/SPX_TestingData_FixLenGRU_601.txt'
+test_file_path = 'data/SPX_TestingData_FixLenGRU_603.txt'
 test_data, test_targets = load_data(test_file_path)
 
 # Create a DataLoader for the testing data
@@ -66,7 +66,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
 # Load the saved model
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)
-checkpoint = torch.load('GRU_model_with_fixed_length_data_601.pth')
+checkpoint = torch.load('GRU_model_with_fixed_length_data_603.pth')
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 

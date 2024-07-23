@@ -478,11 +478,11 @@ if __name__ == "__main__":
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    training_data_len = 10
+    training_data_len = 120
     target_len = 3
 
     # Series Number for output training/testing data set pairs
-    SN = "600"
+    SN = "603"
         
     symbol = "SPX"
     #symbol = "MES=F"
@@ -496,8 +496,8 @@ if __name__ == "__main__":
     db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
   
     #============================= Training Data ============================================#
-    training_start_date = "2022-01-01"
-    training_end_date = "2022-06-31"
+    training_start_date = "2020-01-01"
+    training_end_date = "2023-06-30"
 
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -514,8 +514,8 @@ if __name__ == "__main__":
 
 
 #============================= Testing Data ============================================#
-    testing_start_date = "2022-07-01"
-    testing_end_date = "2022-10-31"
+    testing_start_date = "2023-07-01"
+    testing_end_date = "2023-12-31"
 
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
