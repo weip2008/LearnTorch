@@ -56,7 +56,7 @@ class FixedLengthDataset(Dataset):
         return torch.tensor(self.data[idx], dtype=torch.float32), torch.tensor(self.targets[idx], dtype=torch.float32)
 
 dataset = FixedLengthDataset(data, targets)
-dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=256, shuffle=True)
 
 # Define the GRU model
 class GRUModel(nn.Module):

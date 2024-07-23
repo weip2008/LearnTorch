@@ -478,11 +478,11 @@ if __name__ == "__main__":
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    training_data_len = 120
+    training_data_len = 10
     target_len = 3
 
     # Series Number for output training/testing data set pairs
-    SN = "601"
+    SN = "600"
         
     symbol = "SPX"
     #symbol = "MES=F"
