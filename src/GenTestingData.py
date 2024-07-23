@@ -403,7 +403,7 @@ logging.basicConfig(
     format=' %(levelname)s => %(message)s'
 )
         
-IsDebug = True
+IsDebug = False
 #WindowLen = 5
 
 #Trainning data lenth

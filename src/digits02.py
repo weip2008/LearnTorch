@@ -35,10 +35,10 @@ def predict_digit(image_path):
 if __name__ == "__main__":
     model = NeuralNetwork()
     model.eval()
-    model.load_state_dict(torch.load("handwritting_model_92.pth"))
+    model.load_state_dict(torch.load("outputs/handwritting_model_92%.pth"))
 
 
     # Assuming the image is saved as "digit_2.png"
-    digit_path = "digit_4.png"
+    digit_path = "outputs/digit_4.png"
     predicted_digit = predict_digit(digit_path)
     print(f"Predicted digit: {predicted_digit}")
