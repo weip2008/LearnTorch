@@ -5,10 +5,43 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import time
 
-# Example fixed-length data
-fixed_length = 120
-data = [np.random.rand(fixed_length, 5) for _ in range(1000)]
-targets = np.random.rand(1000, 3)  # Each target is an array of length 3
+import pandas as pd
+def load_data(file_path):
+    data = []
+    targets = []
+
+    with open(file_path, 'r') as file:
+        for line in file:
+            # Split the line into data and target parts
+            data_part, target_part = line.strip().split('][')
+            
+            # Add the closing bracket to the data part and opening bracket to the target part
+            data_part += ']'
+            target_part = '[' + target_part
+            
+            # Convert the string representations to actual lists
+            data_row = eval(data_part)
+            target_row = eval(target_part)
+            
+            # Append to the respective lists
+            data.append(data_row)
+            targets.append(target_row)
+            #targets.append(target_row[0])  # Ensure target_row is a 1D array
+    
+    # Convert lists to numpy arrays
+    data = np.array(data)
+    targets = np.array(targets)
+    
+    return data, targets
+
+# Example usage
+file_path = 'data/SPX_TrainingData_FixLenGRU_601.txt'
+data, targets = load_data(file_path)
+
+print("Data shape:", data.shape)
+print("Targets shape:", targets.shape)
+print(targets)
+
 
 # Create a custom dataset
 class FixedLengthDataset(Dataset):
@@ -23,7 +56,7 @@ class FixedLengthDataset(Dataset):
         return torch.tensor(self.data[idx], dtype=torch.float32), torch.tensor(self.targets[idx], dtype=torch.float32)
 
 dataset = FixedLengthDataset(data, targets)
-dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
 
 # Define the GRU model
 class GRUModel(nn.Module):
@@ -40,7 +73,7 @@ class GRUModel(nn.Module):
 # Instantiate the model, define the loss function and the optimizer
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)  # Output size is now 3
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.005)
 
 # Training loop
 num_epochs = 20
@@ -68,7 +101,7 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} seconds')
 
 # Save the model, optimizer state, and losses
-save_path = 'GRU_model_with_fixed_length_data.pth'
+save_path = 'GRU_model_with_fixed_length_data_601.pth'
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),

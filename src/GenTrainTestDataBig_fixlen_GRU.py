@@ -88,7 +88,8 @@ def convert_df_to_string(df):
     normalized_prices = df['Normalized_Price'].tolist()
     
     # Convert the list to a single tuple within a list
-    result_str = str([tuple(normalized_prices)])
+    #result_str = str([tuple(normalized_prices)])
+    result_str = str(normalized_prices)
     
     return result_str
 
@@ -477,11 +478,11 @@ if __name__ == "__main__":
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    training_data_len = 10
+    training_data_len = 120
     target_len = 3
 
     # Series Number for output training/testing data set pairs
-    SN = "600"
+    SN = "601"
         
     symbol = "SPX"
     #symbol = "MES=F"
@@ -506,7 +507,7 @@ if __name__ == "__main__":
 
     training_data_slices_list = cut_slice(ohlc_df, training_data_len+2, target_len)
 
-    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_FixLenGRU_{SN}.csv")
+    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_FixLenGRU_{SN}.txt")
 
     with open(td_file, "w") as datafile:
         generate_training_data(training_data_slices_list)
