@@ -513,5 +513,21 @@ if __name__ == "__main__":
         generate_training_data(training_data_slices_list)
 
 
+#============================= Testing Data ============================================#
+    testing_start_date = "2022-07-01"
+    testing_end_date = "2022-10-31"
+
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)
+    
+    ohlc_df = load_data(testing_start_date, testing_end_date)
+
+    testing_data_slices_list = cut_slice(ohlc_df, training_data_len+2, target_len)
+
+    td_file = os.path.join(data_dir, f"{symbol}_TestingData_FixLenGRU_{SN}.txt")
+
+    with open(td_file, "w") as datafile:
+        generate_training_data(testing_data_slices_list)
 
     
