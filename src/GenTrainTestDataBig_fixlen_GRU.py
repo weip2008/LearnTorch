@@ -13,51 +13,65 @@ class TradePosition(Enum):
     LONG = 1
     SHORT = -1
 
-def cut_slice(ohlc_df, training_data_len, target_len):
-    total_len = training_data_len + target_len
-    training_data_slices = []
+def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
+    total_len = traintest_data_len + target_len
+    traintest_data_slices = []
     
     current_end = len(ohlc_df)
     while current_end >= total_len:
         # 1. Count back target_len
         current_end -= target_len+1
         
-        # 2. Count back training_data_len
-        current_start = current_end - training_data_len + 1
+        # 2. Count back traintest_data_len
+        current_start = current_end - traintest_data_len + 1
         
         # Ensure we don't go out of bounds
         if current_start < 0:
             break
         
-        # 3. Cut the slice length training_data_len + target_lenif
+        # 3. Cut the slice length traintest_data_len + target_lenif
         slice_df = ohlc_df.iloc[current_start:current_end + target_len + 1]
         # if IsDebug:
         #     print("Results dataframe length:", len(slice_df))  
         #     print(slice_df)
         
-        training_data_slices.append(slice_df)
+        traintest_data_slices.append(slice_df)
         
         # Update current_end to the start of the next slice
         current_end = current_start + target_len
     
-    return training_data_slices
+    return traintest_data_slices
 
 
-def cut_slice2(ohlc_df, training_data_len, target_len):
-    total_len = training_data_len + target_len
-    training_data_slices = []
+def cut_predect_slice(ohlc_df, traintest_data_len):
+    total_len = traintest_data_len + target_len
+    traintest_data_slices = []
     
-    num_slices = len(ohlc_df) // total_len
-    for i in range(num_slices):
-        start_idx = len(ohlc_df) - (i + 1) * total_len
-        end_idx = len(ohlc_df) - i * total_len
-        slice_df = ohlc_df.iloc[start_idx:end_idx]
-        if IsDebug:
-            print("Results dataframe length:", len(slice_df))  
-            print(slice_df)
-        training_data_slices.append(slice_df)
+    current_end = len(ohlc_df)
+    while current_end >= total_len:
+        # 1. Count back target_len
+        current_end -= target_len+1
+        
+        # 2. Count back traintest_data_len
+        current_start = current_end - traintest_data_len + 1
+        
+        # Ensure we don't go out of bounds
+        if current_start < 0:
+            break
+        
+        # 3. Cut the slice length traintest_data_len + target_lenif
+        slice_df = ohlc_df.iloc[current_start:current_end + target_len + 1]
+        # if IsDebug:
+        #     print("Results dataframe length:", len(slice_df))  
+        #     print(slice_df)
+        
+        traintest_data_slices.append(slice_df)
+        
+        # Update current_end to the start of the next slice
+        current_end = current_start + target_len
     
-    return training_data_slices
+    
+    return traintest_data_slices
 
 
 def gen_hold_list_index(df):
@@ -94,9 +108,9 @@ def convert_df_to_string(df):
     return result_str
 
 
-def generate_training_data(tddf_list):
+def generate_traintest_data(tddf_list, type):
     
-    filename = 'stockdata/TestingDataGenLog_FixLenGRU'+".log"
+    filename = 'stockdata/TrainTestDataGenLog_FixLenGRU_'+type+".log"
     # Open a file in write mode
     outputfile = open(filename, 'w')
  
@@ -139,28 +153,38 @@ def generate_training_data(tddf_list):
             f"{len(tddf_acceleration_list)}\n"
         ) 
         
-        write_training_data(tddf_acceleration_list, target_df, datafile)
+        write_traintest_data(tddf_acceleration_list, target_df, datafile)
     
     outputfile.close()    
     return
 
 
-
-def generate_testing_data(tddf_highlow_list):
+def generate_predict_data(tddf_list, type):
     
-    filename = 'stockdata/TestingDataGenLog_FixLenGRU'+".log"
+    filename = 'stockdata/TestingDataGenLog_FixLenGRU_'+type+".log"
     # Open a file in write mode
     outputfile = open(filename, 'w')
  
     # Initialize an empty list to store tuples with the "Velocity" column
     tddf_velocity_list = []
     tddf_acceleration_list = []
-     
+    count = 0 
     # Iterate over each tuple in tddf_highlow_list starting from the second tuple
-    for i in range(0, len(tddf_highlow_list)):
-        processing_df = tddf_highlow_list[i]
+    for i in range(0, len(tddf_list)):
+        processing_df = tddf_list[i].copy()
+        processing_df['Normalized_Price'] = normalize(processing_df['Close'])
+        if IsDebug:
+            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)        
+        
+        # Calculate the split point
+        split_point = len(processing_df) - target_len
+
+        # Split the DataFrame
+        target_df = processing_df.iloc[split_point:].copy()
+        processing_df = processing_df.iloc[:split_point].copy()
         if IsDebug:
             print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
+            print("\ncurrent processing target size:", len(target_df), "\n", target_df)
         
         tddf_velocity_list = calculate_velocity(processing_df)
         if IsDebug:
@@ -171,7 +195,7 @@ def generate_testing_data(tddf_highlow_list):
             print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
         
         if IsDebug:
-            print("\nGenerate testing data:")
+            print("\nGenerate training data:")
         
         # Write lengths to the file in the desired format
         outputfile.write(
@@ -180,10 +204,14 @@ def generate_testing_data(tddf_highlow_list):
             f"{len(tddf_acceleration_list)}\n"
         ) 
         
-        write_testing_data(tddf_acceleration_list, datafile)
+        write_traintest_data(tddf_acceleration_list, target_df, datafile)
+        count=count+1
+        if count> 2:
+            break
     
     outputfile.close()    
     return
+
 
 
 def calculate_velocity(processing_df):
@@ -377,7 +405,7 @@ def gen_list(processing_df):
     # Example usage:
     # acceleration_data = calculate_acceleration(velocity_list)
 
-def write_training_data( acceleration_list, target_df, csvfile):
+def write_traintest_data( acceleration_list, target_df, csvfile):
     # Initialize an empty string to store the result
     #result = ""
     
@@ -478,7 +506,7 @@ if __name__ == "__main__":
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    training_data_len = 120
+    traintest_data_len = 120
     target_len = 3
 
     # Series Number for output training/testing data set pairs
@@ -505,12 +533,12 @@ if __name__ == "__main__":
     
     ohlc_df = load_data(training_start_date, training_end_date)
 
-    training_data_slices_list = cut_slice(ohlc_df, training_data_len+2, target_len)
+    traintest_data_slices_list = cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len)
 
-    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_FixLenGRU_{SN}.txt")
+    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_FixLenGRU_{traintest_data_len}_{SN}.txt")
 
     with open(td_file, "w") as datafile:
-        generate_training_data(training_data_slices_list)
+        generate_traintest_data(traintest_data_slices_list, "Train")
 
 
 #============================= Testing Data ============================================#
@@ -523,11 +551,26 @@ if __name__ == "__main__":
     
     ohlc_df = load_data(testing_start_date, testing_end_date)
 
-    testing_data_slices_list = cut_slice(ohlc_df, training_data_len+2, target_len)
+    testing_data_slices_list = cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len)
 
-    td_file = os.path.join(data_dir, f"{symbol}_TestingData_FixLenGRU_{SN}.txt")
+    td_file = os.path.join(data_dir, f"{symbol}_TestingData_FixLenGRU_{traintest_data_len}_{SN}.txt")
 
     with open(td_file, "w") as datafile:
-        generate_training_data(testing_data_slices_list)
+        generate_traintest_data(testing_data_slices_list, "Test")
 
+    #============================= Prediction Data ============================================#
+    training_start_date = "2023-06-01"
+    training_end_date = "2023-06-30"
+
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)
     
+    ohlc_df = load_data(training_start_date, training_end_date)
+
+    traintest_data_slices_list = cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len)
+
+    td_file = os.path.join(data_dir, f"{symbol}_PredictData_FixLenGRU_{traintest_data_len}_{SN}.txt")
+
+    with open(td_file, "w") as datafile:
+        generate_predict_data(traintest_data_slices_list,"Predict")

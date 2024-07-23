@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import numpy as np
-import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 
 # Define the function to load data
@@ -57,20 +56,31 @@ class GRUModel(nn.Module):
         return output
 
 # Load the testing data
+print("1. Load test data.")
 test_file_path = 'data/SPX_TestingData_FixLenGRU_603.txt'
 test_data, test_targets = load_testing_data(test_file_path)
 
 # Create a DataLoader for the testing data
+print("2. Create dataloader.")
 test_dataset = FixedLengthDataset(test_data, test_targets)
 test_dataloader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
 # Load the saved model
+print("3. Load the saved model.")
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)
 checkpoint = torch.load('GRU_model_with_fixed_length_data_603.pth')
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
+# Load the saved model
+# model = GRUModel(input_size=5, hidden_size=50, output_size=3)
+# checkpoint = torch.load('GRU_model_with_fixed_length_data_603.pth')
+# model.load_state_dict(checkpoint['model_state_dict'])
+# model.eval()
+
+
 # Evaluate the model on the testing data
+print("4. Evaluate the model on test data.")
 test_loss = 0.0
 all_targets = []
 all_outputs = []
@@ -86,11 +96,6 @@ with torch.no_grad():
 
 avg_test_loss = test_loss / len(test_dataloader)
 print(f'Test Loss (MSE): {avg_test_loss:.8f}')
-# Mean Squared Error (MSE) measures the average squared difference between the predicted values 
-# and the actual values.
-# A lower MSE indicates that the model’s predictions are closer to the actual values. 
-# Test Loss (MSE): 0.01045113 suggests that, on average, the squared difference between the 
-# predicted and actual values is quite small.
 
 # Calculate additional metrics manually
 all_targets = np.array(all_targets)
@@ -99,21 +104,55 @@ all_outputs = np.array(all_outputs)
 # Mean Absolute Error (MAE)
 mae = np.mean(np.abs(all_targets - all_outputs))
 print(f'Mean Absolute Error (MAE): {mae:.8f}')
-# MAE measures the average absolute difference between the predicted values and the actual values.
-# It gives an idea of how much the predictions deviate from the actual values on average. 
-# Mean Absolute Error (MAE): 0.07155589 means on average, the model’s predictions are off by about 0.0716 
-# units from the actual values.
 
 # R-squared (R2)
 ss_res = np.sum((all_targets - all_outputs) ** 2)
 ss_tot = np.sum((all_targets - np.mean(all_targets, axis=0)) ** 2)
 r2 = 1 - (ss_res / ss_tot)
 print(f'R-squared (R2): {r2:.8f}')
-# R-squared is a statistical measure that represents the proportion of the variance for a 
-# dependent variable that’s explained by an independent variable or variables in a regression model.
-# R-squared (R2): 0.89939589  indicates that approximately 89.94% of the variance in the target variable
-# is explained by the model. This is a high value, suggesting that the model fits the data well.
 
-# MSE and MAE are both measures of prediction error, with lower values indicating better performance.
-# R2 is a measure of how well the model explains the variability of the target data, 
-#    with values closer to 1 indicating a better fit
+#====================== Prediction ----------------------
+print("5. Predict feture values.")
+
+# Function to prepare new data for prediction
+def prepare_new_data(data):
+    # Convert to numpy array and reshape
+    #data = np.array(data)
+    # Ensure data is in the shape [1, sequence_length, input_size]
+    #data = data[np.newaxis, :]
+    print("Data shape:", data.shape)
+    # Convert to tensor
+    data_tensor = torch.tensor(data, dtype=torch.float32)
+    return data_tensor
+
+
+predict_file_path = 'data/SPX_PredictData_FixLenGRU_120_603.txt'
+predict_data, predict_targets = load_testing_data(predict_file_path)
+
+print("Data shape:", predict_data.shape)
+print("Targets shape:", predict_targets.shape)
+# Prepare the new data
+prepared_data = prepare_new_data(predict_data)
+
+
+# Load the saved model
+model = GRUModel(input_size=5, hidden_size=50, output_size=3)
+checkpoint = torch.load('GRU_model_with_fixed_length_data_603.pth')
+model.load_state_dict(checkpoint['model_state_dict'])
+model.eval()
+
+# Make predictions
+with torch.no_grad():
+    predictions = model(prepared_data)
+    predictions = predictions.squeeze().numpy()  # Convert to numpy for easier handling
+
+# Ensure predictions is a 1-D array for consistency
+if predictions.ndim == 0:
+    predictions = np.expand_dims(predictions, axis=0)
+
+# Post-process and print predictions
+for i, prediction in enumerate(predictions):
+    print("----------------------------------------------------------------")
+    print(f'Prediction for sequence {i}: {prediction}')
+    print(f'Real data for sequence {i}: {predict_targets[i]}')
+    
