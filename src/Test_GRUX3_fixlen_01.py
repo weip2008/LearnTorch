@@ -35,7 +35,7 @@ def load_data(file_path):
     return data, targets
 
 # Example usage
-file_path = 'data/SPX_TrainingData_FixLenGRU_603.txt'
+file_path = 'data/SPX_TrainingData_FixLenGRU_120_604.txt'
 data, targets = load_data(file_path)
 
 print("Data shape:", data.shape)
@@ -101,7 +101,7 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} seconds')
 
 # Save the model, optimizer state, and losses
-save_path = 'GRU_model_with_fixed_length_data_603.pth'
+save_path = 'GRU_model_with_fixed_length_data_604.pth'
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),

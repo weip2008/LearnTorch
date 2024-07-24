@@ -225,38 +225,42 @@ def calculate_velocity(processing_df):
     #processing_df['Normalized_Volume'] = normalize(processing_df['Volume'])
     #processing_df['Normalized_Price'] = normalize(processing_df['Close'])
     
-    if IsDebug:
-        print(processing_df)
+    #if IsDebug:
+    #    print(processing_df)
     
-    for j in range(0, len(processing_df)-1):
+    for j in range(1, len(processing_df)):
         # Extract Price from the current and previous rows
-        price_current = processing_df.iloc[j]['Close']
-        price_next = processing_df.iloc[j+1]['Close']
+        #price_current = processing_df.iloc[j]['Close']
+        #price_next = processing_df.iloc[j+1]['Close']
+        normalized_price_previous = processing_df.iloc[j-1]['Normalized_Price']
         normalized_price_current = processing_df.iloc[j]['Normalized_Price']
-        normalized_price_next = processing_df.iloc[j+1]['Normalized_Price']
+        #normalized_price_next = processing_df.iloc[j+1]['Normalized_Price']
 
         #print("Price_current:", Price_current)
         #print("Price_previous:", Price_previous)
         
         #dY = price_current - price_previous
-        dY = normalized_price_next - normalized_price_current 
+        dY = normalized_price_current - normalized_price_previous
+        #dY = normalized_price_next - normalized_price_current 
         #print("dY:", dY)
         
         # Extract timestamps from the current and previous rows
-        #index_previous = processing_df.index[j - 1]
+        index_previous = processing_df.index[j-1]
         index_current = processing_df.index[j]
-        index_next = processing_df.index[j+1]
+        #index_next = processing_df.index[j+1]
         #print("index_current:", index_current)
         #print("index_previous:", index_next)
         
         #dT = (index_next - index_current) / pd.Timedelta(minutes=1)  
         #dT = index_current - index_previous 
         #dT = (index_next - index_current) / tdLen
+        loc_previous = processing_df.index.get_loc(index_previous)
         loc_current = processing_df.index.get_loc(index_current)
-        loc_next = processing_df.index.get_loc(index_next)
+        #loc_next = processing_df.index.get_loc(index_next)
 
         # Calculate dT based on the difference of locations
-        dT = loc_next - loc_current
+        dT = loc_current - loc_previous
+        #dT = loc_next - loc_current
         #print("dT:", dT)
                 
         # Calculate the velocity (dY/dT)
@@ -287,26 +291,27 @@ def calculate_acceleration(velocity_list):
     acceleration_list = []
 
     # Iterate over each tuple in velocity_list starting from the second tuple
-    for i in range(0, len(velocity_list)-1):
+    for i in range(1, len(velocity_list)):
         # Extract velocity data from the current and next tuples
-        next_tuple = velocity_list[i+1] 
+        #next_tuple = velocity_list[i+1] 
         current_tuple = velocity_list[i]
-        #previous_tuple = velocity_list[i - 1]
+        previous_tuple = velocity_list[i-1]
 
-        velocity_next = next_tuple[2]
+        #velocity_next = next_tuple[2]
         velocity_current = current_tuple[2]  # velocity is stored at index 2 in the tuple
-        #velocity_previous = previous_tuple[2]
+        velocity_previous = previous_tuple[2]
 
         # Calculate the change in velocity
-        dV = velocity_next - velocity_current 
+        dV = velocity_current - velocity_previous
+        #dV = velocity_next - velocity_current 
         
         #index_current = velocity_list[i].index
         #index_previous = velocity_list[i-1].index
         index_current = i
-        index_next = i+1
-        i#ndex_previous = i-1
-        #dT = index_current - index_previous
-        dT = index_next - index_current
+        #index_next = i+1
+        index_previous = i-1
+        dT = index_current - index_previous
+        #dT = index_next - index_current
         
         # Calculate acceleration (dV/dT)
         acceleration = dV / dT
@@ -511,7 +516,7 @@ if __name__ == "__main__":
     target_len = 3
 
     # Series Number for output training/testing data set pairs
-    SN = "603"
+    SN = "604"
         
     symbol = "SPX"
     #symbol = "MES=F"

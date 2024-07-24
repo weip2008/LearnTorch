@@ -57,7 +57,7 @@ class GRUModel(nn.Module):
 
 # Load the testing data
 print("1. Load test data.")
-test_file_path = 'data/SPX_TestingData_FixLenGRU_603.txt'
+test_file_path = 'data/SPX_TestingData_FixLenGRU_120_604.txt'
 test_data, test_targets = load_testing_data(test_file_path)
 
 # Create a DataLoader for the testing data
@@ -68,7 +68,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 # Load the saved model
 print("3. Load the saved model.")
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)
-checkpoint = torch.load('GRU_model_with_fixed_length_data_603.pth')
+checkpoint = torch.load('GRU_model_with_fixed_length_data_604.pth')
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
@@ -95,6 +95,7 @@ with torch.no_grad():
         all_outputs.extend(outputs.numpy())
 
 avg_test_loss = test_loss / len(test_dataloader)
+print("--------------- Test Results ---------------")
 print(f'Test Loss (MSE): {avg_test_loss:.8f}')
 
 # Calculate additional metrics manually
@@ -110,6 +111,7 @@ ss_res = np.sum((all_targets - all_outputs) ** 2)
 ss_tot = np.sum((all_targets - np.mean(all_targets, axis=0)) ** 2)
 r2 = 1 - (ss_res / ss_tot)
 print(f'R-squared (R2): {r2:.8f}')
+print("---------------------------------------------")
 
 #====================== Prediction ----------------------
 print("5. Predict feture values.")
@@ -120,30 +122,31 @@ def prepare_new_data(data):
     #data = np.array(data)
     # Ensure data is in the shape [1, sequence_length, input_size]
     #data = data[np.newaxis, :]
-    print("Data shape:", data.shape)
+    #print("Data shape:", data.shape)
     # Convert to tensor
     data_tensor = torch.tensor(data, dtype=torch.float32)
     return data_tensor
 
 
-predict_file_path = 'data/SPX_PredictData_FixLenGRU_120_603.txt'
+predict_file_path = 'data/SPX_PredictData_FixLenGRU_120_604.txt'
 predict_data, predict_targets = load_testing_data(predict_file_path)
 
 print("Data shape:", predict_data.shape)
 print("Targets shape:", predict_targets.shape)
 # Prepare the new data
 prepared_data = prepare_new_data(predict_data)
-
+#predict_data_tensor = [torch.tensor(seq, dtype=torch.float32) for seq in predict_data]
 
 # Load the saved model
-model = GRUModel(input_size=5, hidden_size=50, output_size=3)
-checkpoint = torch.load('GRU_model_with_fixed_length_data_603.pth')
-model.load_state_dict(checkpoint['model_state_dict'])
-model.eval()
+# model = GRUModel(input_size=5, hidden_size=50, output_size=3)
+# checkpoint = torch.load('GRU_model_with_fixed_length_data_604.pth')
+# model.load_state_dict(checkpoint['model_state_dict'])
+# model.eval()
 
 # Make predictions
 with torch.no_grad():
     predictions = model(prepared_data)
+    #predictions = model(predict_data_tensor)
     predictions = predictions.squeeze().numpy()  # Convert to numpy for easier handling
 
 # Ensure predictions is a 1-D array for consistency
