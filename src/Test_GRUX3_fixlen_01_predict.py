@@ -97,6 +97,11 @@ with torch.no_grad():
 avg_test_loss = test_loss / len(test_dataloader)
 print("--------------- Test Results ---------------")
 print(f'Test Loss (MSE): {avg_test_loss:.8f}')
+# Mean Squared Error (MSE) measures the average squared difference between the predicted values 
+# and the actual values.
+# A lower MSE indicates that the model’s predictions are closer to the actual values. 
+# Test Loss (MSE): 0.014 suggests that, on average, the squared difference between the 
+# predicted and actual values is quite small.
 
 # Calculate additional metrics manually
 all_targets = np.array(all_targets)
@@ -105,12 +110,24 @@ all_outputs = np.array(all_outputs)
 # Mean Absolute Error (MAE)
 mae = np.mean(np.abs(all_targets - all_outputs))
 print(f'Mean Absolute Error (MAE): {mae:.8f}')
+# MAE measures the average absolute difference between the predicted values and the actual values.
+# It gives an idea of how much the predictions deviate from the actual values on average. 
+# Mean Absolute Error (MAE): 0.074 means on average, the model’s predictions are off by about 0.074 
+# units from the actual values.
 
 # R-squared (R2)
 ss_res = np.sum((all_targets - all_outputs) ** 2)
 ss_tot = np.sum((all_targets - np.mean(all_targets, axis=0)) ** 2)
 r2 = 1 - (ss_res / ss_tot)
 print(f'R-squared (R2): {r2:.8f}')
+# R-squared is a statistical measure that represents the proportion of the variance for a 
+# dependent variable that’s explained by an independent variable or variables in a regression model.
+# R-squared (R2): 0.894  indicates that approximately 89.94% of the variance in the target variable
+# is explained by the model. This is a high value, suggesting that the model fits the data well.
+
+# MSE and MAE are both measures of prediction error, with lower values indicating better performance.
+# R2 is a measure of how well the model explains the variability of the target data, 
+#    with values closer to 1 indicating a better fit
 print("---------------------------------------------")
 
 #====================== Prediction ----------------------
