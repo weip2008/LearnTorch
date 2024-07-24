@@ -56,7 +56,7 @@ class FixedLengthDataset(Dataset):
         return torch.tensor(self.data[idx], dtype=torch.float32), torch.tensor(self.targets[idx], dtype=torch.float32)
 
 dataset = FixedLengthDataset(data, targets)
-dataloader = DataLoader(dataset, batch_size=256, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
 
 # Define the GRU model
 class GRUModel(nn.Module):
@@ -73,10 +73,10 @@ class GRUModel(nn.Module):
 # Instantiate the model, define the loss function and the optimizer
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)  # Output size is now 3
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=1.5e-3)
 
 # Training loop
-num_epochs = 20
+num_epochs = 30
 losses = []
 model.train()
 for epoch in range(num_epochs):
@@ -101,7 +101,7 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} seconds')
 
 # Save the model, optimizer state, and losses
-save_path = 'GRU_model_with_fixed_length_data_604.pth'
+save_path = 'GRU_model_with_fixed_length_data_610.pth'
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),

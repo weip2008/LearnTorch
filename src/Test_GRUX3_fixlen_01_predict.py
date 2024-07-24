@@ -68,7 +68,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 # Load the saved model
 print("3. Load the saved model.")
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)
-checkpoint = torch.load('GRU_model_with_fixed_length_data_604.pth')
+checkpoint = torch.load('GRU_model_with_fixed_length_data_609.pth')
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
