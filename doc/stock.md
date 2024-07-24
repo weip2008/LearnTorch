@@ -24,7 +24,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -36,7 +36,8 @@
 - [AI无法学习的数据形态](#ai无法学习的数据形态)
 - [可变长的时间序列](#可变长的时间序列)
 - [GRU model](#gru-model)
-  - [Generate Training & Testing Data](#generate-training--testing-data)
+- [Load Stock Data to sqlite database](#load-stock-data-to-sqlite-database)
+  - [Generate Training \& Testing Data](#generate-training--testing-data)
   - [Create a GRU model](#create-a-gru-model)
   - [Forcast Future Stock Price Range](#forcast-future-stock-price-range)
 
@@ -753,6 +754,11 @@ tensor([[0.6721],
 
 
 ## GRU model
+
+## Load Stock Data to sqlite database
+* [Download stock data from internet and save it into CSV file]()
+* [read CSV file and save to Sqlite database](../src/WriteCsvToSql.py)
+* [](../src/ConcatCSVFiles.py)
 
 ### Generate Training & Testing Data
 ![Demo how to generate forcast training data](images/StockForecast.png)
