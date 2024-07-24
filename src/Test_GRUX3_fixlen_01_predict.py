@@ -157,5 +157,5 @@ if predictions.ndim == 0:
 for i, prediction in enumerate(predictions):
     print("----------------------------------------------------------------")
     print(f'Prediction for sequence {i}: {prediction}')
-    print(f'Real data for sequence {i}: {predict_targets[i]}')
+    print(f'Real  data for sequence {i}: {predict_targets[i]}')
     
