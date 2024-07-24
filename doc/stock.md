@@ -24,7 +24,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -33,8 +33,12 @@
   - [AutoEncoders](#autoencoders)
   - [生成对抗网络](#生成对抗网络)
   - [Reinforcement Learning](#reinforcement-learning)
-- [不可学的数据形态](#不可学的数据形态)
+- [AI无法学习的数据形态](#ai无法学习的数据形态)
 - [可变长的时间序列](#可变长的时间序列)
+- [GRU model](#gru-model)
+  - [Generate Training & Testing Data](#generate-training--testing-data)
+  - [Create a GRU model](#create-a-gru-model)
+  - [Forcast Future Stock Price Range](#forcast-future-stock-price-range)
 
 <!-- /code_chunk_output -->
 
@@ -746,3 +750,67 @@ tensor([[0.6721],
         [0.0000],
         [0.0000],
         [0.0000]])
+
+
+## GRU model
+
+### Generate Training & Testing Data
+![Demo how to generate forcast training data](images/StockForecast.png)
+[切片生成训练、测试、预测数据](../src/GenTrainTestDataBig_fixlen_GRU_2.py)
+
+### Create a GRU model
+* [Generate GRU model and save to a file](../src/Test_GRUX3_fixlen_01.py)
+
+🔔⚡️Experience
+1. epoch: when loss does NOT go down, epoch size is enough.
+2. Learning Rate: when loss changes back and forth, LR is too big; when loss changes too small, LR is too small.
+3. no matter how to change LR, and epoch, the final loss almost fixed, means you are reach the best loss.
+
+### Forcast Future Stock Price Range
+* [forecast future stock normalized price range](../src/Test_GRUX3_fixlen_01_predict.py)
+
+```
+1. Load test data.
+2. Create dataloader.
+3. Load the saved model.
+4. Evaluate the model on test data.
+--------------- Test Results ---------------
+Test Loss (MSE): 0.01390344
+Mean Absolute Error (MAE): 0.07444746
+R-squared (R2): 0.89404035
+---------------------------------------------
+1. Predict feture values.
+Data shape: (10, 120, 5)
+Targets shape: (10, 3)
+----------------------------------------------------------------
+Prediction for sequence 0: [0.17550081 0.18547772 0.19838372]
+Real  data for sequence 0: [0.1769437  0.17068811 0.16907954]
+----------------------------------------------------------------
+Prediction for sequence 1: [0.91071075 0.9159886  0.9081013 ]
+Real  data for sequence 1: [0.82054598 0.89281609 0.85747126]
+----------------------------------------------------------------
+Prediction for sequence 2: [0.90285707 0.90407133 0.88744545]
+Real  data for sequence 2: [0.88318741 0.8823562  0.88252244]
+----------------------------------------------------------------
+Prediction for sequence 3: [0.94254965 0.935987   0.94824004]
+Real  data for sequence 3: [0.96575879 1.         0.97637487]
+----------------------------------------------------------------
+Prediction for sequence 4: [0.25471193 0.2625934  0.29117215]
+Real  data for sequence 4: [0.27425204 0.32887579 0.32524932]
+----------------------------------------------------------------
+Prediction for sequence 5: [0.9175505  0.91640943 0.8980696 ]
+Real  data for sequence 5: [1.         0.98027574 0.9993962 ]
+----------------------------------------------------------------
+Prediction for sequence 6: [0.08631686 0.09392065 0.08612403]
+Real  data for sequence 6: [0.13514782 0.19099015 0.36884092]
+----------------------------------------------------------------
+Prediction for sequence 7: [0.23528987 0.23136936 0.24292988]
+Real  data for sequence 7: [0.06003752 0.12757974 0.17518762]
+----------------------------------------------------------------
+Prediction for sequence 8: [0.15681821 0.15669872 0.17343152]
+Real  data for sequence 8: [0.06746301 0.06664857 0.        ]
+----------------------------------------------------------------
+Prediction for sequence 9: [0.95848805 0.94515836 0.9446089 ]
+Real  data for sequence 9: [0.91780397 0.92152605 0.8560794 ]
+```
+
