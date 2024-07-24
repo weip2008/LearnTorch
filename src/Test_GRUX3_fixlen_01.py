@@ -73,10 +73,10 @@ class GRUModel(nn.Module):
 # Instantiate the model, define the loss function and the optimizer
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)  # Output size is now 3
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=1.5e-3)
+optimizer = optim.Adam(model.parameters(), lr=1.0e-3)
 
 # Training loop
-num_epochs = 30
+num_epochs = 50
 losses = []
 model.train()
 for epoch in range(num_epochs):
