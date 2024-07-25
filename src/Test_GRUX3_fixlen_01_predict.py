@@ -68,7 +68,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 # Load the saved model
 print("3. Load the saved model.")
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)
-checkpoint = torch.load('GRU_model_with_fixed_length_data_609.pth')
+checkpoint = torch.load('GRU_model_with_fixed_length_data_620.pth')
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
@@ -145,7 +145,7 @@ def prepare_new_data(data):
     return data_tensor
 
 
-predict_file_path = 'data/SPX_PredictData_FixLenGRU_120_604.txt'
+predict_file_path = 'data/SPX_PredictData_FixLenGRU_120_620.txt'
 predict_data, predict_targets = load_testing_data(predict_file_path)
 
 print("Data shape:", predict_data.shape)
