@@ -28,13 +28,14 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
         # 3. Cut the slice length traintest_data_len + target_len
         slice_df = ohlc_df.iloc[current_start:current_end + target_len + 1]
         
-        # Drop the 'Open' column
-        slice_df = slice_df.drop(columns=['Open'])
-        slice_df = slice_df.drop(columns=['High'])
-        slice_df = slice_df.drop(columns=['Low'])
+        # Drop the 'Open', 'High', and 'Low' columns
+        slice_df = slice_df.drop(columns=['Open', 'High', 'Low'])
+        
+        # Normalize the 'Close' column
+        slice_df['Normalized_Price'] = normalize(slice_df['Close'])
         
         # Add 'Velocity' and 'Acceleration' columns
-        slice_df['Velocity'] = slice_df['Close'].diff()
+        slice_df['Velocity'] = slice_df['Normalized_Price'].diff()
         slice_df['Acceleration'] = slice_df['Velocity'].diff()
         
         # Drop rows with NaN values
@@ -46,6 +47,7 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
         current_end = current_start + target_len
     
     return traintest_data_slices
+
 
 def process_chunk(ohlc_chunk, traintest_data_len, target_len):
     return cut_traintest_slice(ohlc_chunk, traintest_data_len, target_len)
@@ -513,10 +515,6 @@ def load_data(query_start, query_end):
   
     return ohlc_df
 
-# Normalization function
-def normalize(series):
-    return (series - series.min()) / (series.max() - series.min())
-
 
 #
 # ================================================================================#
@@ -563,6 +561,10 @@ if __name__ == "__main__":
     ohlc_df = load_data(training_start_date, training_end_date)
     print(f"Length of ohlc_df: {len(ohlc_df)}")
 
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)
+    
     # Use multi-threading to cut the DataFrame into slices
     slices_list  = parallel_cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len, num_threads=10)
 
@@ -571,6 +573,10 @@ if __name__ == "__main__":
 
     # Print the length of the slices list
     print(f"Number of slices: {slices_length}")
+    
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)
     
     # Check the type of the returned variable
     #print(f"Type of traintest_data_slices: {type(slices_list)}")
