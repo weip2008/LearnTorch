@@ -7,12 +7,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-#from enum import Enum
+from concurrent.futures import ThreadPoolExecutor
 
-''' class TradePosition(Enum):
-    LONG = 1
-    SHORT = -1
- '''
 def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
     total_len = traintest_data_len + target_len
     traintest_data_slices = []
@@ -20,7 +16,7 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
     current_end = len(ohlc_df)
     while current_end >= total_len:
         # 1. Count back target_len
-        current_end -= target_len+1
+        current_end -= target_len + 1
         
         # 2. Count back traintest_data_len
         current_start = current_end - traintest_data_len + 1
@@ -29,11 +25,20 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
         if current_start < 0:
             break
         
-        # 3. Cut the slice length traintest_data_len + target_lenif
+        # 3. Cut the slice length traintest_data_len + target_len
         slice_df = ohlc_df.iloc[current_start:current_end + target_len + 1]
-        # if IsDebug:
-        #     print("Results dataframe length:", len(slice_df))  
-        #     print(slice_df)
+        
+        # Drop the 'Open' column
+        slice_df = slice_df.drop(columns=['Open'])
+        slice_df = slice_df.drop(columns=['High'])
+        slice_df = slice_df.drop(columns=['Low'])
+        
+        # Add 'Velocity' and 'Acceleration' columns
+        slice_df['Velocity'] = slice_df['Close'].diff()
+        slice_df['Acceleration'] = slice_df['Velocity'].diff()
+        
+        # Drop rows with NaN values
+        slice_df = slice_df.dropna()
         
         traintest_data_slices.append(slice_df)
         
@@ -42,7 +47,25 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
     
     return traintest_data_slices
 
+def process_chunk(ohlc_chunk, traintest_data_len, target_len):
+    return cut_traintest_slice(ohlc_chunk, traintest_data_len, target_len)
 
+def parallel_cut_traintest_slice(ohlc_df, traintest_data_len, target_len, num_threads=5):
+    # Split the DataFrame into chunks
+    chunk_size = len(ohlc_df) // num_threads
+    chunks = [ohlc_df[i:i + chunk_size] for i in range(0, len(ohlc_df), chunk_size)]
+    
+    traintest_data_slices = []
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        futures = [executor.submit(process_chunk, chunk, traintest_data_len, target_len) for chunk in chunks]
+        for future in futures:
+            traintest_data_slices.extend(future.result())
+    
+    return traintest_data_slices
+
+
+    
+    
 def cut_predect_slice(ohlc_df, traintest_data_len):
     total_len = traintest_data_len + target_len
     traintest_data_slices = []
@@ -538,13 +561,35 @@ if __name__ == "__main__":
     print("Current date and time:", formatted_now)
     
     ohlc_df = load_data(training_start_date, training_end_date)
+    print(f"Length of ohlc_df: {len(ohlc_df)}")
 
-    traintest_data_slices_list = cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len)
+    # Use multi-threading to cut the DataFrame into slices
+    slices_list  = parallel_cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len, num_threads=10)
+
+    # Get the length of the slices list
+    slices_length = len(slices_list)
+
+    # Print the length of the slices list
+    print(f"Number of slices: {slices_length}")
+    
+    # Check the type of the returned variable
+    #print(f"Type of traintest_data_slices: {type(slices_list)}")
+
+    # Check the type of the elements in the list
+    #if slices_list:
+    #    print(f"Type of first element in traintest_data_slices: {type(slices_list[0])}")
+
+
+    # Print the results
+    for i, slice_df in enumerate(slices_list):
+        print(f"Slice {i+1}:\n{slice_df}\n")
+        
+    #traintest_data_slices_list = cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len)
 
     td_file = os.path.join(data_dir, f"{symbol}_TrainingData_FixLenGRU_{traintest_data_len}_{SN}.txt")
 
     with open(td_file, "w") as datafile:
-        generate_traintest_data(traintest_data_slices_list, "Train")
+        generate_traintest_data(slices_list , "Train")
 
 
 #============================= Testing Data ============================================#
