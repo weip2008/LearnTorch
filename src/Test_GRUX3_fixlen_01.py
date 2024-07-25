@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import time
+from datetime import datetime
 
 import pandas as pd
 def load_data(file_path):
@@ -35,7 +36,10 @@ def load_data(file_path):
     return data, targets
 
 # Example usage
-file_path = 'data/SPX_TrainingData_FixLenGRU_120_620.txt'
+print("1. Load data")
+print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+file_path = 'data/SPX_TrainingData_FixLenGRU_180_640.txt'
 data, targets = load_data(file_path)
 
 print("Data shape:", data.shape)
@@ -55,8 +59,11 @@ class FixedLengthDataset(Dataset):
     def __getitem__(self, idx):
         return torch.tensor(self.data[idx], dtype=torch.float32), torch.tensor(self.targets[idx], dtype=torch.float32)
 
+print("2. Define dataset and dataloader")
+print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
 dataset = FixedLengthDataset(data, targets)
-dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=256, shuffle=True)
 
 # Define the GRU model
 class GRUModel(nn.Module):
@@ -71,11 +78,17 @@ class GRUModel(nn.Module):
         return output
 
 # Instantiate the model, define the loss function and the optimizer
+print("3. Isnstantiate the model, define the loss function and the optimize")
+print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)  # Output size is now 3
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=1.5e-4)
 
 # Training loop
+print("3. Start training loop")
+print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
 num_epochs = 50
 losses = []
 model.train()
@@ -101,7 +114,9 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} seconds')
 
 # Save the model, optimizer state, and losses
-save_path = 'GRU_model_with_fixed_length_data_620.pth'
+print("4. Save the model, optimizer state, and losses")
+print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+save_path = 'GRU_model_with_fixed_length_data_640.pth'
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
@@ -109,3 +124,4 @@ torch.save({
 }, save_path)
 
 print(f"Training results saved to {save_path}")
+print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

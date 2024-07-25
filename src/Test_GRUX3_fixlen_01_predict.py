@@ -3,6 +3,10 @@ import torch.nn as nn
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
+test_file_path = 'data/SPX_TestingData_FixLenGRU_180_640.txt'
+model_file = 'GRU_model_with_fixed_length_data_640.pth'
+predict_file_path = 'data/SPX_PredictData_FixLenGRU_180_640.txt'
+
 # Define the function to load data
 def load_testing_data(file_path):
     data = []
@@ -57,7 +61,7 @@ class GRUModel(nn.Module):
 
 # Load the testing data
 print("1. Load test data.")
-test_file_path = 'data/SPX_TestingData_FixLenGRU_120_604.txt'
+print(f"Load test data file {test_file_path}")
 test_data, test_targets = load_testing_data(test_file_path)
 
 # Create a DataLoader for the testing data
@@ -68,7 +72,8 @@ test_dataloader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 # Load the saved model
 print("3. Load the saved model.")
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)
-checkpoint = torch.load('GRU_model_with_fixed_length_data_620.pth')
+print(f"Load model {model_file}")
+checkpoint = torch.load(model_file)
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
@@ -145,7 +150,8 @@ def prepare_new_data(data):
     return data_tensor
 
 
-predict_file_path = 'data/SPX_PredictData_FixLenGRU_120_620.txt'
+
+print(f"Load {predict_file_path}")
 predict_data, predict_targets = load_testing_data(predict_file_path)
 
 print("Data shape:", predict_data.shape)

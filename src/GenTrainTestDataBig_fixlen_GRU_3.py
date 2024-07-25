@@ -123,6 +123,7 @@ def df_slice_to_string_with_numeric_datetime(df):
 def generate_traintest_file(tddf_list, datatype):
     
     td_file = os.path.join(data_dir, f"{symbol}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
+    print(td_file)
 
     with open(td_file, "w") as datafile:
     # Iterate over each tuple in tddf_highlow_list starting from the second tuple
@@ -158,6 +159,7 @@ def generate_traintest_file(tddf_list, datatype):
 def generate_predict_data(tddf_list, datatype):
     count = 0
     td_file = os.path.join(data_dir, f"{symbol}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
+    print(td_file)
 
     with open(td_file, "w") as datafile:
     # Iterate over each tuple in tddf_highlow_list starting from the second tuple
@@ -290,7 +292,7 @@ def process_data(start_date, end_date, datatype):
 
     print("2. Cut slices")    
     # Use multi-threading to cut the DataFrame into slices
-    slices_list  = parallel_cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len, num_threads=5)
+    slices_list  = parallel_cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len, num_threads=10)
 
     # Get the length of the slices list
     slices_length = len(slices_list)
@@ -306,7 +308,10 @@ def process_data(start_date, end_date, datatype):
     #td_file = os.path.join(data_dir, f"{symbol}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
 
     #with open(td_file, "w") as datafile:
-    generate_traintest_file(slices_list , datatype)
+    if datatype == "Predict":
+        generate_predict_data(slices_list, datatype)
+    else:
+        generate_traintest_file(slices_list , datatype)
 
     print("4. Finish")
     now = datetime.now()
@@ -332,11 +337,11 @@ if __name__ == "__main__":
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    traintest_data_len = 120
+    traintest_data_len = 180
     target_len = 3
 
     # Series Number for output training/testing data set pairs
-    SN = "620"
+    SN = "640"
         
     symbol = "SPX"
     #symbol = "MES=F"
@@ -350,7 +355,7 @@ if __name__ == "__main__":
     db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
   
     #============================= Training Data ============================================#
-    training_start_date = "2020-01-01"
+    training_start_date = "2019-01-01"
     training_end_date = "2023-06-30"
 
     process_data(training_start_date, training_end_date, "Training")
