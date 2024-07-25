@@ -100,29 +100,6 @@ def cut_predect_slice(ohlc_df, traintest_data_len):
     return traintest_data_slices
 
 
-def gen_hold_list_index(df):
-    """
-    Generates new index numbers by inserting two integers evenly between consecutive index numbers.
-
-    Args:
-        df (pd.DataFrame): Input DataFrame.
-
-    Returns:
-        list: List of newly generated index numbers.
-    """
-    index_column = df.index
-    new_index = []
-
-    for i in range(len(index_column) - 1):
-        steps = (index_column[i+1] - index_column[i]) // 3
-        new_index.append(index_column[i]+steps)
-        new_index.append(index_column[i]+steps*2)
-
-    # Add the last index
-    new_index.append(index_column[-1])
-
-    return new_index 
-
 def convert_df_to_string(df):
     # Extract the "Normalized_Price" column as a list
     normalized_prices = df['Normalized_Price'].tolist()
@@ -134,224 +111,86 @@ def convert_df_to_string(df):
     return result_str
 
 
-def generate_traintest_data(tddf_list, type):
-    
-    filename = 'stockdata/TrainTestDataGenLog_FixLenGRU_'+type+".log"
-    # Open a file in write mode
-    outputfile = open(filename, 'w')
- 
-    # Initialize an empty list to store tuples with the "Velocity" column
-    tddf_velocity_list = []
-    tddf_acceleration_list = []
-     
-    # Iterate over each tuple in tddf_highlow_list starting from the second tuple
-    for i in range(0, len(tddf_list)):
-        processing_df = tddf_list[i].copy()
-        processing_df['Normalized_Price'] = normalize(processing_df['Close'])
-        if IsDebug:
-            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)        
-        
-        # Calculate the split point
-        split_point = len(processing_df) - target_len
+# Function to convert DataFrame slice to string format with numeric date and time
+def df_slice_to_string_with_numeric_datetime(df):
+    result = [
+        (convert_to_day_and_time(row.name)[0], convert_to_day_and_time(row.name)[1], row['Normalized_Price'], row['Velocity'], row['Acceleration'])
+        for _, row in df.iterrows()
+    ]
+    return str(result)
 
-        # Split the DataFrame
-        target_df = processing_df.iloc[split_point:].copy()
-        processing_df = processing_df.iloc[:split_point].copy()
-        if IsDebug:
-            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
-            print("\ncurrent processing target size:", len(target_df), "\n", target_df)
-        
-        tddf_velocity_list = calculate_velocity(processing_df)
-        if IsDebug:
-            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
-        
-        tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
-        if IsDebug:
-            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
-        
-        if IsDebug:
-            print("\nGenerate training data:")
-        
-        # Write lengths to the file in the desired format
-        outputfile.write(
-            f"{len(processing_df)},"
-            f"{len(tddf_velocity_list)},"
-            f"{len(tddf_acceleration_list)}\n"
-        ) 
-        
-        write_traintest_data(tddf_acceleration_list, target_df, datafile)
+
+def generate_traintest_file(tddf_list, datatype):
     
-    outputfile.close()    
+    td_file = os.path.join(data_dir, f"{symbol}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
+
+    with open(td_file, "w") as datafile:
+    # Iterate over each tuple in tddf_highlow_list starting from the second tuple
+        for i in range(0, len(tddf_list)):
+            processing_df = tddf_list[i].copy()
+            #processing_df['Normalized_Price'] = normalize(processing_df['Close'])
+            if IsDebug:
+                print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)        
+            
+            # Calculate the split point
+            split_point = len(processing_df) - target_len
+
+            # Split the DataFrame
+            target_df = processing_df.iloc[split_point:].copy()
+            traintestdata_df = processing_df.iloc[:split_point].copy()
+            if IsDebug:
+                print("\ncurrent processing DataFrame size:", len(traintestdata_df), "\n", traintestdata_df)
+                print("\ncurrent processing target size:", len(target_df), "\n", target_df)
+        
+            #write_traintest_data(traintestdata_df, target_df, datafile)
+            trainingdata_str = df_slice_to_string_with_numeric_datetime(traintestdata_df)
+            #print(trainingdata_str)
+            target_str = convert_df_to_string(target_df)
+            result_string = trainingdata_str + target_str +"\n"
+            if IsDebug:
+                print(result_string)
+
+            datafile.write(result_string)
+        
     return
 
 
-def generate_predict_data(tddf_list, type):
-    
-    filename = 'stockdata/TestingDataGenLog_FixLenGRU_'+type+".log"
-    # Open a file in write mode
-    outputfile = open(filename, 'w')
- 
-    # Initialize an empty list to store tuples with the "Velocity" column
-    tddf_velocity_list = []
-    tddf_acceleration_list = []
-    count = 0 
+def generate_predict_data(tddf_list, datatype):
+    count = 0
+    td_file = os.path.join(data_dir, f"{symbol}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
+
+    with open(td_file, "w") as datafile:
     # Iterate over each tuple in tddf_highlow_list starting from the second tuple
-    for i in range(0, len(tddf_list)):
-        processing_df = tddf_list[i].copy()
-        processing_df['Normalized_Price'] = normalize(processing_df['Close'])
-        if IsDebug:
-            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)        
-        
-        # Calculate the split point
-        split_point = len(processing_df) - target_len
+        for i in range(0, len(tddf_list)):
+            processing_df = tddf_list[i].copy()
+            #processing_df['Normalized_Price'] = normalize(processing_df['Close'])
+            if IsDebug:
+                print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)        
+            
+            # Calculate the split point
+            split_point = len(processing_df) - target_len
 
-        # Split the DataFrame
-        target_df = processing_df.iloc[split_point:].copy()
-        processing_df = processing_df.iloc[:split_point].copy()
-        if IsDebug:
-            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
-            print("\ncurrent processing target size:", len(target_df), "\n", target_df)
+            # Split the DataFrame
+            target_df = processing_df.iloc[split_point:].copy()
+            traintestdata_df = processing_df.iloc[:split_point].copy()
+            if IsDebug:
+                print("\ncurrent processing DataFrame size:", len(traintestdata_df), "\n", traintestdata_df)
+                print("\ncurrent processing target size:", len(target_df), "\n", target_df)
         
-        tddf_velocity_list = calculate_velocity(processing_df)
-        if IsDebug:
-            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
-        
-        tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
-        if IsDebug:
-            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
-        
-        if IsDebug:
-            print("\nGenerate training data:")
-        
-        # Write lengths to the file in the desired format
-        outputfile.write(
-            f"{len(processing_df)},"
-            f"{len(tddf_velocity_list)},"
-            f"{len(tddf_acceleration_list)}\n"
-        ) 
-        
-        write_traintest_data(tddf_acceleration_list, target_df, datafile)
-        count=count+1
-        if count> 9:
-            break
-    
-    outputfile.close()    
+            #write_traintest_data(traintestdata_df, target_df, datafile)
+            trainingdata_str = df_slice_to_string_with_numeric_datetime(traintestdata_df)
+            #print(trainingdata_str)
+            target_str = convert_df_to_string(target_df)
+            result_string = trainingdata_str + target_str +"\n"
+            if IsDebug:
+                print(result_string)
+
+            datafile.write(result_string)
+            count=count+1
+            if count> 9:
+                break
+
     return
-
-
-
-def calculate_velocity(processing_df):
-    velocity_list = []
-    
-    # Find the lowest price and corresponding volume in the DataFrame
-    #lowest_price, corresponding_volume = find_lowest_price_with_volume(processing_df)
-    
-    # Normalize 'Volume' and 'Price'
-    #processing_df['Normalized_Volume'] = normalize(processing_df['Volume'])
-    #processing_df['Normalized_Price'] = normalize(processing_df['Close'])
-    
-    #if IsDebug:
-    #    print(processing_df)
-    
-    for j in range(1, len(processing_df)):
-        # Extract Price from the current and previous rows
-        #price_current = processing_df.iloc[j]['Close']
-        #price_next = processing_df.iloc[j+1]['Close']
-        normalized_price_previous = processing_df.iloc[j-1]['Normalized_Price']
-        normalized_price_current = processing_df.iloc[j]['Normalized_Price']
-        #normalized_price_next = processing_df.iloc[j+1]['Normalized_Price']
-
-        #print("Price_current:", Price_current)
-        #print("Price_previous:", Price_previous)
-        
-        #dY = price_current - price_previous
-        dY = normalized_price_current - normalized_price_previous
-        #dY = normalized_price_next - normalized_price_current 
-        #print("dY:", dY)
-        
-        # Extract timestamps from the current and previous rows
-        index_previous = processing_df.index[j-1]
-        index_current = processing_df.index[j]
-        #index_next = processing_df.index[j+1]
-        #print("index_current:", index_current)
-        #print("index_previous:", index_next)
-        
-        #dT = (index_next - index_current) / pd.Timedelta(minutes=1)  
-        #dT = index_current - index_previous 
-        #dT = (index_next - index_current) / tdLen
-        loc_previous = processing_df.index.get_loc(index_previous)
-        loc_current = processing_df.index.get_loc(index_current)
-        #loc_next = processing_df.index.get_loc(index_next)
-
-        # Calculate dT based on the difference of locations
-        dT = loc_current - loc_previous
-        #dT = loc_next - loc_current
-        #print("dT:", dT)
-                
-        # Calculate the velocity (dY/dT)
-        velocity = dY / dT
-        #print("velocity:", velocity)
-        
-        #datetime_current = processing_df.iloc[j]['Datetime']
-        #volume_current = processing_df.iloc[j]['Volume']
-        #normalized_volum_current = processing_df.iloc[j]['Normalized_Volume']
-        # Append the tuple with the "Velocity" column to tdohlc_df_high_velocity_list
-        velocity_list.append((index_current, normalized_price_current, velocity))
-
-    return velocity_list
-
-
-def calculate_acceleration(velocity_list):
-    """
-    Calculate acceleration based on a list of tuples containing velocity data.
-
-    Parameters:
-    - velocity_list: A list of tuples where each tuple contains velocity data.
-                     The tuple structure is assumed to be (index, Price, bb_bbm, velocity).
-
-    Returns:
-    - A list of tuples with the "Acceleration" column added.
-    """
-
-    acceleration_list = []
-
-    # Iterate over each tuple in velocity_list starting from the second tuple
-    for i in range(1, len(velocity_list)):
-        # Extract velocity data from the current and next tuples
-        #next_tuple = velocity_list[i+1] 
-        current_tuple = velocity_list[i]
-        previous_tuple = velocity_list[i-1]
-
-        #velocity_next = next_tuple[2]
-        velocity_current = current_tuple[2]  # velocity is stored at index 2 in the tuple
-        velocity_previous = previous_tuple[2]
-
-        # Calculate the change in velocity
-        dV = velocity_current - velocity_previous
-        #dV = velocity_next - velocity_current 
-        
-        #index_current = velocity_list[i].index
-        #index_previous = velocity_list[i-1].index
-        index_current = i
-        #index_next = i+1
-        index_previous = i-1
-        dT = index_current - index_previous
-        #dT = index_next - index_current
-        
-        # Calculate acceleration (dV/dT)
-        acceleration = dV / dT
-        
-        #current_time = pd.to_datetime(current_tuple[0])
-        current_time = current_tuple[0]
-        #day_of_week_numeric, time_float = convert_to_day_and_time(index_current)
-        day_of_week_numeric, time_float = convert_to_day_and_time(current_time)
-
-        # Append the tuple with the "Acceleration" column to acceleration_list
-        #acceleration_list.append((index_current, current_tuple[1], velocity_current, acceleration))
-        acceleration_list.append((day_of_week_numeric, time_float, 
-                                  current_tuple[1],  current_tuple[2], acceleration))
-
-    return acceleration_list
 
 
 
@@ -383,20 +222,6 @@ def plot_prices(df):
 
 
 
-def list_to_string(price_list):
-    return ', '.join(map(str, price_list))
-
-# Convert training data list to string           
-def convert_list_to_string(tddf_list):
-    formatted_strings = []
-    for section_df in tddf_list:
-        formatted_str = "["
-        for index, row in section_df.iterrows():
-            formatted_str += "({}, {}, {}), ".format(index, row['Price'], row['Volume'])
-        formatted_str = formatted_str[:-2]  # Remove the last comma and space
-        formatted_str += "]"
-        formatted_strings.append(formatted_str)
-    return formatted_strings
     
 def convert_to_day_and_time(timestamp):
     # Get the day of the week (Monday=0, Sunday=6)
@@ -413,73 +238,6 @@ def convert_to_day_and_time(timestamp):
 # Normalization function
 def normalize(series):
     return (series - series.min()) / (series.max() - series.min())
-
-def gen_list(processing_df):
-    price_list = []
-
-    processing_df['Normalized_Price'] = normalize(processing_df['Close'])
-    
-    if IsDebug:
-        print(processing_df)
-        plot_prices(processing_df)
-    
-    for j in range(0, len(processing_df)):
-
-        normalized_price_current = processing_df.iloc[j]['Normalized_Price']
-        index_current = processing_df.index[j]
-        
-        #price_list.append((index_current, normalized_price_current))
-        price_list.append((normalized_price_current))
-
-    return price_list
-
-    # Example usage:
-    # acceleration_data = calculate_acceleration(velocity_list)
-
-def write_traintest_data( acceleration_list, target_df, csvfile):
-    # Initialize an empty string to store the result
-    #result = ""
-    
-    trainingdata_str = list_to_string(acceleration_list)
-    target_str = convert_df_to_string(target_df)
-    
-    # Iterate over each tuple in the acceleration_list
-    # for acceleration_tuple in acceleration_list:
-    #     # Convert each element of the tuple to a string and concatenate them
-    #     result += ",".join(map(str, acceleration_tuple)) 
-      
-    result = "["+trainingdata_str+"]" + target_str +"\n"
-    if IsDebug:
-        print(result)
-
-    csvfile.write(result)
-
-    return
-
-
-def write_testing_data(TradePosition, acceleration_list, csvfile):
-    # for testing data, the first number is index of "LONG, SHORT" series!
-    # so if it's LONG, SHORT is 1;
-    
-    trainingdata_str = list_to_string(acceleration_list)
-   
-    if (TradePosition is TradePosition.LONG):
-        result = "0," + trainingdata_str + "\n"
-        if IsDebug:
-            print(result)
-    
-        csvfile.write(result)
-        return
-
-        
-    if (TradePosition is TradePosition.SHORT):        
-        result = "1," + trainingdata_str + "\n"
-        if IsDebug:
-            print(result)
-        
-        csvfile.write(result)
-            
-    return
 
 
 def load_data(query_start, query_end):
@@ -515,7 +273,48 @@ def load_data(query_start, query_end):
   
     return ohlc_df
 
+def process_data(start_date, end_date, datatype):
+    print(f"---------------------------{datatype}----------------------------------")
+    print("1. Load data")
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)
+    
+    ohlc_df = load_data(start_date, end_date)
+    print(f"Length of ohlc_df: {len(ohlc_df)}")
+    
 
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)
+
+    print("2. Cut slices")    
+    # Use multi-threading to cut the DataFrame into slices
+    slices_list  = parallel_cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len, num_threads=5)
+
+    # Get the length of the slices list
+    slices_length = len(slices_list)
+
+    # Print the length of the slices list
+    print(f"Number of slices: {slices_length}")
+    
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)
+    
+    print("3. Generate training/testing data file")
+    #td_file = os.path.join(data_dir, f"{symbol}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
+
+    #with open(td_file, "w") as datafile:
+    generate_traintest_file(slices_list , datatype)
+
+    print("4. Finish")
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Current date and time:", formatted_now)
+
+    print(f"---------------------------{datatype}----------------------------------")
+    return
 #
 # ================================================================================#
 if __name__ == "__main__":
@@ -537,7 +336,7 @@ if __name__ == "__main__":
     target_len = 3
 
     # Series Number for output training/testing data set pairs
-    SN = "604"
+    SN = "620"
         
     symbol = "SPX"
     #symbol = "MES=F"
@@ -554,80 +353,16 @@ if __name__ == "__main__":
     training_start_date = "2020-01-01"
     training_end_date = "2023-06-30"
 
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
+    process_data(training_start_date, training_end_date, "Training")
     
-    ohlc_df = load_data(training_start_date, training_end_date)
-    print(f"Length of ohlc_df: {len(ohlc_df)}")
-
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
-    
-    # Use multi-threading to cut the DataFrame into slices
-    slices_list  = parallel_cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len, num_threads=10)
-
-    # Get the length of the slices list
-    slices_length = len(slices_list)
-
-    # Print the length of the slices list
-    print(f"Number of slices: {slices_length}")
-    
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
-    
-    # Check the type of the returned variable
-    #print(f"Type of traintest_data_slices: {type(slices_list)}")
-
-    # Check the type of the elements in the list
-    #if slices_list:
-    #    print(f"Type of first element in traintest_data_slices: {type(slices_list[0])}")
-
-
-    # Print the results
-    for i, slice_df in enumerate(slices_list):
-        print(f"Slice {i+1}:\n{slice_df}\n")
-        
-    #traintest_data_slices_list = cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len)
-
-    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_FixLenGRU_{traintest_data_len}_{SN}.txt")
-
-    with open(td_file, "w") as datafile:
-        generate_traintest_data(slices_list , "Train")
-
-
-#============================= Testing Data ============================================#
+    #============================= Testing Data ============================================#
     testing_start_date = "2023-07-01"
     testing_end_date = "2023-12-31"
 
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
-    
-    ohlc_df = load_data(testing_start_date, testing_end_date)
-
-    testing_data_slices_list = cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len)
-
-    td_file = os.path.join(data_dir, f"{symbol}_TestingData_FixLenGRU_{traintest_data_len}_{SN}.txt")
-
-    with open(td_file, "w") as datafile:
-        generate_traintest_data(testing_data_slices_list, "Test")
+    process_data(testing_start_date, testing_end_date, "Testing")
 
     #============================= Prediction Data ============================================#
-    training_start_date = "2023-06-01"
-    training_end_date = "2023-06-30"
-
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
+    predict_start_date = "2023-06-01"
+    predict_end_date = "2023-06-30"
     
-    ohlc_df = load_data(training_start_date, training_end_date)
-
-    traintest_data_slices_list = cut_traintest_slice(ohlc_df, traintest_data_len+2, target_len)
-
-    td_file = os.path.join(data_dir, f"{symbol}_PredictData_FixLenGRU_{traintest_data_len}_{SN}.txt")
-
-    with open(td_file, "w") as datafile:
-        generate_predict_data(traintest_data_slices_list,"Predict")
+    process_data(predict_start_date, predict_end_date, "Predict")
