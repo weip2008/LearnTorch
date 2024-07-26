@@ -52,7 +52,7 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
 def process_chunk(ohlc_chunk, traintest_data_len, target_len):
     return cut_traintest_slice(ohlc_chunk, traintest_data_len, target_len)
 
-def parallel_cut_traintest_slice(ohlc_df, traintest_data_len, target_len, num_threads=5):
+def parallel_cut_traintest_slice(ohlc_df, traintest_data_len, target_len, num_threads=10):
     # Split the DataFrame into chunks
     chunk_size = len(ohlc_df) // num_threads
     chunks = [ohlc_df[i:i + chunk_size] for i in range(0, len(ohlc_df), chunk_size)]
@@ -68,7 +68,7 @@ def parallel_cut_traintest_slice(ohlc_df, traintest_data_len, target_len, num_th
 
     
     
-def cut_predect_slice(ohlc_df, traintest_data_len):
+''' def cut_predect_slice(ohlc_df, traintest_data_len):
     total_len = traintest_data_len + target_len
     traintest_data_slices = []
     
@@ -98,7 +98,7 @@ def cut_predect_slice(ohlc_df, traintest_data_len):
     
     
     return traintest_data_slices
-
+ '''
 
 def convert_df_to_string(df):
     # Extract the "Normalized_Price" column as a list
@@ -278,17 +278,12 @@ def load_data(query_start, query_end):
 def process_data(start_date, end_date, datatype):
     print(f"---------------------------{datatype}----------------------------------")
     print("1. Load data")
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
-    
+    print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+ 
     ohlc_df = load_data(start_date, end_date)
     print(f"Length of ohlc_df: {len(ohlc_df)}")
     
-
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
+    print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     print("2. Cut slices")    
     # Use multi-threading to cut the DataFrame into slices
@@ -300,10 +295,8 @@ def process_data(start_date, end_date, datatype):
     # Print the length of the slices list
     print(f"Number of slices: {slices_length}")
     
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
-    
+    print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
     print("3. Generate training/testing data file")
     #td_file = os.path.join(data_dir, f"{symbol}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
 
@@ -314,9 +307,8 @@ def process_data(start_date, end_date, datatype):
         generate_traintest_file(slices_list , datatype)
 
     print("4. Finish")
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
+    print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
 
     print(f"---------------------------{datatype}----------------------------------")
     return
