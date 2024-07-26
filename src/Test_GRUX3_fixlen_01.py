@@ -3,10 +3,15 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
+import pandas as pd
 import time
 from datetime import datetime
 
-import pandas as pd
+
+
+file_path = 'data/SPX_TrainingData_FixLenGRU_60_660.txt'
+save_path = 'GRU_model_with_fixed_length_data_660.pth'
+
 def load_data(file_path):
     data = []
     targets = []
@@ -36,10 +41,8 @@ def load_data(file_path):
     return data, targets
 
 # Example usage
-print("1. Load data")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-file_path = 'data/SPX_TrainingData_FixLenGRU_180_640.txt'
+print(f"1. Load training data from {file_path}")
 data, targets = load_data(file_path)
 
 print("Data shape:", data.shape)
@@ -63,7 +66,7 @@ print("2. Define dataset and dataloader")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 dataset = FixedLengthDataset(data, targets)
-dataloader = DataLoader(dataset, batch_size=256, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=512, shuffle=True)
 
 # Define the GRU model
 class GRUModel(nn.Module):
@@ -78,7 +81,7 @@ class GRUModel(nn.Module):
         return output
 
 # Instantiate the model, define the loss function and the optimizer
-print("3. Isnstantiate the model, define the loss function and the optimize")
+print("3. Instantiate the model, define the loss function and the optimize")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 model = GRUModel(input_size=5, hidden_size=50, output_size=3)  # Output size is now 3
@@ -114,9 +117,8 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} seconds')
 
 # Save the model, optimizer state, and losses
-print("4. Save the model, optimizer state, and losses")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-save_path = 'GRU_model_with_fixed_length_data_640.pth'
+print(f"4. Save the model, optimizer state, and losses to {save_path}")
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),

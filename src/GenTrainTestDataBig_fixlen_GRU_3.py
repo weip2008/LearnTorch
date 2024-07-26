@@ -337,11 +337,11 @@ if __name__ == "__main__":
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    traintest_data_len = 180
+    traintest_data_len = 60
     target_len = 3
 
     # Series Number for output training/testing data set pairs
-    SN = "640"
+    SN = "660"
         
     symbol = "SPX"
     #symbol = "MES=F"
@@ -352,10 +352,10 @@ if __name__ == "__main__":
     # Define the SQLite database file directory
     data_dir = "data"
 
-    db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
+    db_file = os.path.join(data_dir, "stock_bigdata_2010-2023.db")
   
     #============================= Training Data ============================================#
-    training_start_date = "2019-01-01"
+    training_start_date = "2010-11-14"
     training_end_date = "2023-06-30"
 
     process_data(training_start_date, training_end_date, "Training")
