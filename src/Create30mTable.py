@@ -6,11 +6,11 @@ symbol = "SPX"
 
 # Define the table name as a string variable
 table_name_1m = "SPX_1m"
-table_name_5m = "SPX_5m"
+table_name_30m = "SPX_30m"
 
 # Define the SQLite database file directory
 data_dir = "data"
-db_file = os.path.join(data_dir, "stock_bigdata_2010-2023.db")
+db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
 #db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
 
 # Define the start and end dates for the query
@@ -40,7 +40,7 @@ print(ohlc_df.tail(10))
 print("==================================================")
 
 # Resample to 5-minute intervals
-ohlc_5min_df = ohlc_df.resample('5min').agg({
+ohlc_5min_df = ohlc_df.resample('30min').agg({
     'Open': 'first',
     'High': 'max',
     'Low': 'min',
@@ -58,7 +58,7 @@ print(ohlc_5min_df.tail(10))
 
 # Create a new table SPX_5m
 create_table_query = f'''
-CREATE TABLE IF NOT EXISTS {table_name_5m} (
+CREATE TABLE IF NOT EXISTS {table_name_30m} (
     Datetime TEXT PRIMARY KEY,
     Open REAL,
     High REAL,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS {table_name_5m} (
 cursor.execute(create_table_query)
 
 # Insert the data into the new table
-ohlc_5min_df.to_sql(table_name_5m, conn, if_exists='replace', index=False)
+ohlc_5min_df.to_sql(table_name_30m, conn, if_exists='replace', index=False)
 
 # Commit the transaction and close the connection
 conn.commit()

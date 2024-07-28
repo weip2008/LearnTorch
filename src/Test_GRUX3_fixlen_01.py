@@ -9,8 +9,8 @@ from datetime import datetime
 
 
 
-file_path = 'data/SPX_TrainingData_FixLenGRU_60_660.txt'
-save_path = 'GRU_model_with_fixed_length_data_660.pth'
+file_path = 'data/SPX_TrainingData_FixLenGRU_180_800.txt'
+save_path = 'GRU_model_with_fixed_length_data_800.pth'
 
 def load_data(file_path):
     data = []

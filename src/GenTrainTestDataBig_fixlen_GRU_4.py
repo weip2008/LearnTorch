@@ -27,9 +27,14 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
         
         # 3. Cut the slice length traintest_data_len + target_len
         slice_df = ohlc_df.iloc[current_start:current_end + target_len + 1]
+        if IsDebug:
+            print(slice_df.head(10))
+            print(slice_df.tail(10))
         
         # Drop the 'Open', 'High', and 'Low' columns
         slice_df = slice_df.drop(columns=['Open', 'High', 'Low'])
+        if IsDebug:
+            print(slice_df)
         
         # Normalize the 'Close' column
         slice_df['Normalized_Price'] = normalize(slice_df['Close'])
@@ -44,7 +49,7 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
         traintest_data_slices.append(slice_df)
         
         # Update current_end to the start of the next slice
-        current_end = current_start + target_len
+        current_end = current_start + (traintest_data_len // 10)*9
     
     return traintest_data_slices
 
@@ -52,7 +57,7 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
 def process_chunk(ohlc_chunk, traintest_data_len, target_len):
     return cut_traintest_slice(ohlc_chunk, traintest_data_len, target_len)
 
-def parallel_cut_traintest_slice(ohlc_df, traintest_data_len, target_len, num_threads=6):
+def parallel_cut_traintest_slice(ohlc_df, traintest_data_len, target_len, num_threads=1):
     # Split the DataFrame into chunks
     chunk_size = len(ohlc_df) // num_threads
     chunks = [ohlc_df[i:i + chunk_size] for i in range(0, len(ohlc_df), chunk_size)]
@@ -67,38 +72,7 @@ def parallel_cut_traintest_slice(ohlc_df, traintest_data_len, target_len, num_th
 
 
     
-    
-''' def cut_predect_slice(ohlc_df, traintest_data_len):
-    total_len = traintest_data_len + target_len
-    traintest_data_slices = []
-    
-    current_end = len(ohlc_df)
-    while current_end >= total_len:
-        # 1. Count back target_len
-        current_end -= target_len+1
-        
-        # 2. Count back traintest_data_len
-        current_start = current_end - traintest_data_len + 1
-        
-        # Ensure we don't go out of bounds
-        if current_start < 0:
-            break
-        
-        # 3. Cut the slice length traintest_data_len + target_lenif
-        slice_df = ohlc_df.iloc[current_start:current_end + target_len + 1]
-        # if IsDebug:
-        #     print("Results dataframe length:", len(slice_df))  
-        #     print(slice_df)
-        
-        traintest_data_slices.append(slice_df)
-        
-        # Update current_end to the start of the next slice
-        #current_end = current_start + target_len
-        current_end = current_end - target_len
-    
-    
-    return traintest_data_slices
- '''
+
 
 def convert_df_to_string(df):
     # Extract the "Normalized_Price" column as a list
@@ -262,7 +236,8 @@ def load_data(query_start, query_end):
     ohlc_df = query_result_df
     ohlc_df['Datetime'] = pd.to_datetime(ohlc_df['Datetime'])
     ohlc_df.set_index('Datetime', inplace=True)
-    ohlc_df = ohlc_df.drop(columns=['Volume'])
+    #ohlc_df = ohlc_df.drop(columns=['Volume'])
+    ohlc_df = ohlc_df.dropna()
 
     if IsDebug:
         #print("Time elapsed:", time_elapsed, "seconds")
@@ -329,17 +304,17 @@ if __name__ == "__main__":
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    traintest_data_len = 60
+    traintest_data_len = 180
     target_len = 3
 
     # Series Number for output training/testing data set pairs
-    SN = "660"
+    SN = "800"
         
     symbol = "SPX"
     #symbol = "MES=F"
 
     # Define the table name as a string variable
-    table_name = "SPX_1m"
+    table_name = "SPX_30m"
     #table_name = "MES=F_1m"
     # Define the SQLite database file directory
     data_dir = "data"
@@ -353,7 +328,7 @@ if __name__ == "__main__":
     process_data(training_start_date, training_end_date, "Training")
     
     #============================= Testing Data ============================================#
-    testing_start_date = "2023-07-01"
+    testing_start_date = "2023-01-01"
     testing_end_date = "2023-12-31"
 
     process_data(testing_start_date, testing_end_date, "Testing")
