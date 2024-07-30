@@ -3,9 +3,9 @@ import torch.nn as nn
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
-test_file_path = 'data/SPX_TestingData_FixLenGRU_180_800.txt'
-model_file = 'GRU_model_with_fixed_length_data_800.pth'
-predict_file_path = 'data/SPX_PredictData_FixLenGRU_180_800.txt'
+test_file_path = 'data/SPX_TestingData_FixLenGRU_180_900.txt'
+model_file = 'GRU_model_with_fixed_length_data_900.pth'
+predict_file_path = 'data/SPX_PredictData_FixLenGRU_180_900.txt'
 
 # Define the function to load data
 def load_testing_data(file_path):
@@ -71,7 +71,8 @@ test_dataloader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
 # Load the saved model
 print("3. Load the saved model.")
-model = GRUModel(input_size=5, hidden_size=50, output_size=3)
+#model = GRUModel(input_size=5, hidden_size=50, output_size=3)
+model = GRUModel(input_size=3, hidden_size=50, output_size=3)
 print(f"Load model {model_file}")
 checkpoint = torch.load(model_file)
 model.load_state_dict(checkpoint['model_state_dict'])
