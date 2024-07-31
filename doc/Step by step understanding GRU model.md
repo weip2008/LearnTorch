@@ -291,3 +291,118 @@ for hs in hidden_sizes:
 
 This code trains and evaluates the GRU model with different `hidden_size` values, allowing you to observe the impact on training loss and overall performance.
 
+### forward() Function in GRU model
+The `forward()` function in a GRU model defines how the input data flows through the network to produce an output. It involves passing the input data through the GRU layer(s) and then through the fully connected (linear) layer to produce the final predictions.
+
+Here's a detailed explanation of the `forward()` function:
+
+```python
+class GRUModel(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(GRUModel, self).__init__()
+        # Define the GRU layer
+        self.gru = nn.GRU(input_size, hidden_size, batch_first=True)
+        # Define the fully connected layer
+        self.fc = nn.Linear(hidden_size, output_size)
+
+    def forward(self, x):
+        # Pass the input through the GRU layer
+        output, h_n = self.gru(x)
+        # Pass the final hidden state through the fully connected layer to get the final output
+        output = self.fc(h_n[-1])
+        return output
+```
+
+### Explanation of the Components
+
+1. **GRU Layer Initialization:**
+    ```python
+    self.gru = nn.GRU(input_size, hidden_size, batch_first=True)
+    ```
+    - `input_size`: Number of features in the input data (e.g., the number of columns in each time step).
+    - `hidden_size`: Number of units in the GRU hidden state.
+    - `batch_first=True`: Specifies that the input and output tensors are provided as (batch_size, sequence_length, input_size).
+
+2. **Fully Connected Layer Initialization:**
+    ```python
+    self.fc = nn.Linear(hidden_size, output_size)
+    ```
+    - `hidden_size`: The size of the hidden state output from the GRU.
+    - `output_size`: Number of output features (e.g., the number of predictions you want to make).
+
+### Detailed Explanation of the `forward()` Method
+
+1. **Input through GRU Layer:**
+    ```python
+    output, h_n = self.gru(x)
+    ```
+    - `x`: Input tensor of shape (batch_size, sequence_length, input_size).
+    - `output`: Tensor containing the output features (h_t) from the GRU for each time step (shape: (batch_size, sequence_length, hidden_size)).
+    - `h_n`: Tensor containing the hidden state for the last time step (shape: (num_layers, batch_size, hidden_size)).
+
+    In this case, since `num_layers` is 1 by default, `h_n` has the shape (1, batch_size, hidden_size).
+
+2. **Pass Final Hidden State through Fully Connected Layer:**
+    ```python
+    output = self.fc(h_n[-1])
+    ```
+    - `h_n[-1]`: The final hidden state of the GRU, taken from the last layer (shape: (batch_size, hidden_size)). In the case of a single-layer GRU, this is just `h_n` itself.
+    - `self.fc(h_n[-1])`: Passes the final hidden state through the fully connected layer to produce the final output (shape: (batch_size, output_size)).
+
+    The fully connected layer linearly transforms the hidden state to the desired output size, which is the number of predictions.
+
+3. **Return the Output:**
+    ```python
+    return output
+    ```
+    - The final output is returned, which is the model's prediction based on the input sequence.
+
+### Putting it All Together
+
+When you call the `forward()` function during the training or inference process, the input data (a batch of sequences) goes through the following steps:
+1. **GRU Layer Processing:**
+   - The input sequences are processed by the GRU layer, which updates its hidden states based on the input data and previous hidden states.
+   - The GRU layer outputs the hidden states for each time step, and the final hidden state after processing the entire sequence.
+
+2. **Fully Connected Layer Processing:**
+   - The final hidden state is then passed through the fully connected layer to transform it into the desired output format.
+
+3. **Output:**
+   - The transformed output is returned as the model's prediction.
+
+### Example with Dummy Data
+
+Here's an example with dummy data to illustrate the flow through the `forward()` method:
+
+```python
+import torch
+import torch.nn as nn
+
+# Define the GRU model class
+class GRUModel(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(GRUModel, self).__init__()
+        self.gru = nn.GRU(input_size, hidden_size, batch_first=True)
+        self.fc = nn.Linear(hidden_size, output_size)
+
+    def forward(self, x):
+        output, h_n = self.gru(x)
+        output = self.fc(h_n[-1])
+        return output
+
+# Instantiate the model
+input_size = 3
+hidden_size = 50
+output_size = 3
+model = GRUModel(input_size, hidden_size, output_size)
+
+# Create dummy input data (batch_size=2, sequence_length=10, input_size=3)
+dummy_input = torch.randn(2, 10, 3)
+
+# Pass the dummy input through the model
+dummy_output = model(dummy_input)
+
+print(f"Dummy output: {dummy_output}")
+```
+
+In this example, `dummy_input` is a tensor representing a batch of 2 sequences, each of length 10, with 3 features per time step. The model processes this input through the GRU and fully connected layers, producing `dummy_output`, which is the model's prediction.

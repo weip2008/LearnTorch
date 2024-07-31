@@ -10,7 +10,7 @@ from datetime import datetime
 
 
 file_path = 'data/SPX_TrainingData_FixLenGRU_180_900.txt'
-save_path = 'GRU_model_with_fixed_length_data_900.pth'
+save_path = 'GRU_model_with_fixed_length_data_902.pth'
 
 def load_data(file_path):
     data = []
@@ -84,7 +84,7 @@ class GRUModel(nn.Module):
 print("3. Instantiate the model, define the loss function and the optimize")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-model = GRUModel(input_size=3, hidden_size=50, output_size=3)  # Output size is now 3
+model = GRUModel(input_size=3, hidden_size=120, output_size=3)  # Output size is now 3
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=1.5e-4)
 
