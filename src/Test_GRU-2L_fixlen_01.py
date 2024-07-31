@@ -5,8 +5,8 @@ from torch.utils.data import Dataset, DataLoader
 import time
 from datetime import datetime
 
-training_file_path = 'data/SPX_TrainingData_FixLenGRU_180_900.txt'
-model_save_path = 'GRU_2layer_with_fixed_length_data_951.pth'
+training_file_path = 'data/SPX_30m_TrainingData_FixLenGRU_120_1000.txt'
+model_save_path = 'GRU_2layer_fixlen_30m_120_1001.pth'
 
 # Define the function to load data
 def load_data(file_path):
@@ -81,21 +81,34 @@ train_dataloader = DataLoader(train_dataset, batch_size=256, shuffle=True)
 
 
 # Initialize the model, loss function, and optimizer
-print("3. Instantiate the model, define the loss function and the optimize")
+print("3. Instantiate the model, define the loss function and the optimizer")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 model = GRUModel(input_size=3, hidden_size=50, output_size=3)  # Change input_size to 3
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)  # Adjust learning rate every 10 epochs
 
 # Training loop
 print("4. Start training loop")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
+''' ### Changes Made:
+1. **Learning Rate Scheduler**: Added `scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)` to decrease the learning rate every 10 epochs.
+2. **Early Stopping**: Implemented early stopping to stop training if there's no improvement in validation loss for a given number of epochs (`patience`).
+ '''
 num_epochs = 20
 losses = []
+patience = 5  # Number of epochs to wait for improvement before stopping
+best_loss = float('inf')
+epochs_no_improve = 0
+early_stop = False
 model.train()  # Set the model to training mode
 
 for epoch in range(num_epochs):
+    if early_stop:
+        print("Early stopping")
+        break
+
     epoch_start_time = time.time()
     epoch_loss = 0.0
     num_batches = 0
@@ -112,6 +125,17 @@ for epoch in range(num_epochs):
 
     avg_loss = epoch_loss / num_batches
     losses.append(avg_loss)
+    scheduler.step()  # Update the learning rate
+    
+    if avg_loss < best_loss:
+        best_loss = avg_loss
+        epochs_no_improve = 0
+        torch.save(model.state_dict(), 'best_model.pth')  # Save the best model
+    else:
+        epochs_no_improve += 1
+        if epochs_no_improve == patience:
+            early_stop = True
+
     epoch_end_time = time.time()
     epoch_duration = epoch_end_time - epoch_start_time
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} seconds')
