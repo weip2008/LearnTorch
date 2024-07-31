@@ -1,17 +1,14 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
 import numpy as np
-import pandas as pd
+from torch.utils.data import Dataset, DataLoader
 import time
 from datetime import datetime
 
+training_file_path = 'data/SPX_TrainingData_FixLenGRU_180_900.txt'
+model_save_path = 'GRU_2layer_with_fixed_length_data_951.pth'
 
-
-file_path = 'data/SPX_TrainingData_FixLenGRU_180_900.txt'
-save_path = 'GRU_model_with_fixed_length_data_903.pth'
-
+# Define the function to load data
 def load_data(file_path):
     data = []
     targets = []
@@ -32,7 +29,6 @@ def load_data(file_path):
             # Append to the respective lists
             data.append(data_row)
             targets.append(target_row)
-            #targets.append(target_row[0])  # Ensure target_row is a 1D array
     
     # Convert lists to numpy arrays
     data = np.array(data)
@@ -40,17 +36,7 @@ def load_data(file_path):
     
     return data, targets
 
-# Example usage
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-print(f"1. Load training data from {file_path}")
-data, targets = load_data(file_path)
-
-print("Data shape:", data.shape)
-print("Targets shape:", targets.shape)
-#print(targets)
-
-
-# Create a custom dataset
+# Define the custom dataset
 class FixedLengthDataset(Dataset):
     def __init__(self, data, targets):
         self.data = data
@@ -62,46 +48,59 @@ class FixedLengthDataset(Dataset):
     def __getitem__(self, idx):
         return torch.tensor(self.data[idx], dtype=torch.float32), torch.tensor(self.targets[idx], dtype=torch.float32)
 
-print("2. Define dataset and dataloader")
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-dataset = FixedLengthDataset(data, targets)
-dataloader = DataLoader(dataset, batch_size=512, shuffle=True)
-
-# Define the GRU model
+# Define the GRU model with 2 layers
 class GRUModel(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
+    def __init__(self, input_size, hidden_size, output_size, num_layers=2):
         super(GRUModel, self).__init__()
-        self.gru = nn.GRU(input_size, hidden_size, batch_first=True)
+        self.gru = nn.GRU(input_size, hidden_size, num_layers=num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
 
     def forward(self, x):
-        output, h_n = self.gru(x)
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)  # Initialize hidden state
+        output, h_n = self.gru(x, h0)
         output = self.fc(h_n[-1])
         return output
 
-# Instantiate the model, define the loss function and the optimizer
+print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+print(f"1. Load training data from {training_file_path}")
+# Load the training data
+#training_file_path = 'data/SPX_TrainingData_FixLenGRU_180_900.txt'
+train_data, train_targets = load_data(training_file_path)
+
+print("Data shape:", train_data.shape)
+print("Targets shape:", train_targets.shape)
+
+
+# Create DataLoader for training data
+print("2. Define dataset and dataloader")
+print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+train_dataset = FixedLengthDataset(train_data, train_targets)
+train_dataloader = DataLoader(train_dataset, batch_size=256, shuffle=True)
+
+
+# Initialize the model, loss function, and optimizer
 print("3. Instantiate the model, define the loss function and the optimize")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-model = GRUModel(input_size=3, hidden_size=100, output_size=3)  # Output size is now 3
-#model = GRUModel(input_size=3, hidden_size=120, output_size=3)  # Output size is now 3
+model = GRUModel(input_size=3, hidden_size=50, output_size=3)  # Change input_size to 3
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=1.5e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 # Training loop
 print("4. Start training loop")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-num_epochs = 50
+num_epochs = 20
 losses = []
-model.train()
+model.train()  # Set the model to training mode
+
 for epoch in range(num_epochs):
     epoch_start_time = time.time()
     epoch_loss = 0.0
     num_batches = 0
     
-    for inputs, targets in dataloader:
+    for inputs, targets in train_dataloader:
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = criterion(outputs, targets)
@@ -114,17 +113,17 @@ for epoch in range(num_epochs):
     avg_loss = epoch_loss / num_batches
     losses.append(avg_loss)
     epoch_end_time = time.time()
-    epoch_duration = (epoch_end_time - epoch_start_time)  # convert to minutes
+    epoch_duration = epoch_end_time - epoch_start_time
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} seconds')
 
 # Save the model, optimizer state, and losses
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-print(f"5. Save the model, optimizer state, and losses to {save_path}")
+print(f"5. Save the model, optimizer state, and losses to {model_save_path}")
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
-    'losses': losses
-}, save_path)
+    'losses': losses,
+}, model_save_path)
 
-print(f"Training results saved to {save_path}")
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+
