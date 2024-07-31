@@ -5,8 +5,8 @@ from torch.utils.data import Dataset, DataLoader
 import time
 from datetime import datetime
 
-training_file_path = 'data/SPX_30m_TrainingData_FixLenGRU_120_1000.txt'
-model_save_path = 'GRU_2layer_fixlen_30m_120_1001.pth'
+training_file_path = 'data\SPX_30m_TrainingData_FixLenGRU_150_1001.txt'
+model_save_path = 'GRU_2layer_fixlen_30m_150_1001.pth'
 
 # Define the function to load data
 def load_data(file_path):
