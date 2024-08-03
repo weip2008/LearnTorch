@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
-import numpy as np
 from torch.utils.data import Dataset, DataLoader
+import numpy as np
 
-test_file_path = 'data/SPX_TestingData_FixLenGRU_180_900.txt'
-model_file = 'GRU_model_with_fixed_length_data_903.pth'
-predict_file_path = 'data/SPX_PredictData_FixLenGRU_180_900.txt'
+
+test_file_path = 'data\SPX_30m_TestingData_FixLenGRU_150_1001.txt'
+model_path = 'GRU_2layer_fixlen_30m_150_1001.pth'
+predict_file_path = 'data\SPX_30m_PredictData_FixLenGRU_150_1001.txt'
 
 # Define the function to load data
 def load_testing_data(file_path):
@@ -47,49 +48,47 @@ class FixedLengthDataset(Dataset):
     def __getitem__(self, idx):
         return torch.tensor(self.data[idx], dtype=torch.float32), torch.tensor(self.targets[idx], dtype=torch.float32)
 
-# Define the GRU model
+
+# Define the GRU model with 2 layers
 class GRUModel(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
+    def __init__(self, input_size, hidden_size, output_size, num_layers=2):
         super(GRUModel, self).__init__()
-        self.gru = nn.GRU(input_size, hidden_size, batch_first=True)
+        self.gru = nn.GRU(input_size, hidden_size, num_layers=num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
 
     def forward(self, x):
-        output, h_n = self.gru(x)
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)  # Initialize hidden state
+        output, h_n = self.gru(x, h0)
         output = self.fc(h_n[-1])
         return output
 
+# Function to load the trained model
+def load_model(model_path, input_size, hidden_size, output_size, num_layers):
+    model = GRUModel(input_size, hidden_size, output_size, num_layers)
+    checkpoint = torch.load(model_path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.eval()
+    return model
+
+
+
+# Load the trained model
+#model_path = 'GRU_model_with_fixed_length_data_603.pth'
+model = load_model(model_path, input_size=3, hidden_size=50, output_size=3, num_layers=2)
+
+
+
 # Load the testing data
-print("1. Load test data.")
-print(f"Load test data file {test_file_path}")
+#testing_file_path = 'data/SPX_TestingData_FixLenGRU_180_900.txt'
 test_data, test_targets = load_testing_data(test_file_path)
 
-# Create a DataLoader for the testing data
-print("2. Create dataloader.")
+# Create DataLoader for testing data
 test_dataset = FixedLengthDataset(test_data, test_targets)
 test_dataloader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
-# Load the saved model
-print("3. Load the saved model.")
-#model = GRUModel(input_size=5, hidden_size=50, output_size=3)
-#model = GRUModel(input_size=3, hidden_size=50, output_size=3)
-#model = GRUModel(input_size=3, hidden_size=80, output_size=3)
-model = GRUModel(input_size=3, hidden_size=100, output_size=3)
-#model = GRUModel(input_size=3, hidden_size=120, output_size=3)
-print(f"Load model {model_file}")
-checkpoint = torch.load(model_file)
-model.load_state_dict(checkpoint['model_state_dict'])
-model.eval()
-
-# Load the saved model
-# model = GRUModel(input_size=5, hidden_size=50, output_size=3)
-# checkpoint = torch.load('GRU_model_with_fixed_length_data_603.pth')
-# model.load_state_dict(checkpoint['model_state_dict'])
-# model.eval()
-
-
 # Evaluate the model on the testing data
-print("4. Evaluate the model on test data.")
 test_loss = 0.0
 all_targets = []
 all_outputs = []
@@ -104,13 +103,7 @@ with torch.no_grad():
         all_outputs.extend(outputs.numpy())
 
 avg_test_loss = test_loss / len(test_dataloader)
-print("--------------- Test Results ---------------")
 print(f'Test Loss (MSE): {avg_test_loss:.8f}')
-# Mean Squared Error (MSE) measures the average squared difference between the predicted values 
-# and the actual values.
-# A lower MSE indicates that the model’s predictions are closer to the actual values. 
-# Test Loss (MSE): 0.014 suggests that, on average, the squared difference between the 
-# predicted and actual values is quite small.
 
 # Calculate additional metrics manually
 all_targets = np.array(all_targets)
@@ -119,29 +112,26 @@ all_outputs = np.array(all_outputs)
 # Mean Absolute Error (MAE)
 mae = np.mean(np.abs(all_targets - all_outputs))
 print(f'Mean Absolute Error (MAE): {mae:.8f}')
-# MAE measures the average absolute difference between the predicted values and the actual values.
-# It gives an idea of how much the predictions deviate from the actual values on average. 
-# Mean Absolute Error (MAE): 0.074 means on average, the model’s predictions are off by about 0.074 
-# units from the actual values.
 
 # R-squared (R2)
 ss_res = np.sum((all_targets - all_outputs) ** 2)
 ss_tot = np.sum((all_targets - np.mean(all_targets, axis=0)) ** 2)
 r2 = 1 - (ss_res / ss_tot)
 print(f'R-squared (R2): {r2:.8f}')
-# R-squared is a statistical measure that represents the proportion of the variance for a 
-# dependent variable that’s explained by an independent variable or variables in a regression model.
-# R-squared (R2): 0.894  indicates that approximately 89.94% of the variance in the target variable
-# is explained by the model. This is a high value, suggesting that the model fits the data well.
+ 
 
-# MSE and MAE are both measures of prediction error, with lower values indicating better performance.
-# R2 is a measure of how well the model explains the variability of the target data, 
-#    with values closer to 1 indicating a better fit
-print("---------------------------------------------")
-
-#====================== Prediction ----------------------
+ #====================== Prediction ----------------------
 print("5. Predict feture values.")
 
+# # Predict function for new data
+# def predict_new_data(new_data, model):
+#     model.eval()
+#     with torch.no_grad():
+#         data_tensor = torch.tensor(new_data, dtype=torch.float32)
+#         data_tensor = data_tensor.unsqueeze(0)  # Add batch dimension
+#         predictions = model(data_tensor)
+#         return predictions.squeeze().numpy()
+    
 # Function to prepare new data for prediction
 def prepare_new_data(data):
     # Convert to numpy array and reshape

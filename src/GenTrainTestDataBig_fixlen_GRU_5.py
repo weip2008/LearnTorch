@@ -92,18 +92,18 @@ def df_slice_to_string(df):
     return str(result)
 
 
-# Function to convert DataFrame slice to string format with numeric date and time
-def df_slice_to_string_with_numeric_datetime(df):
-    result = [
-        (convert_to_day_and_time(row.name)[0], convert_to_day_and_time(row.name)[1], row['Normalized_Price'], row['Velocity'], row['Acceleration'])
-        for _, row in df.iterrows()
-    ]
-    return str(result)
+# # Function to convert DataFrame slice to string format with numeric date and time
+# def df_slice_to_string_with_numeric_datetime(df):
+#     result = [
+#         (convert_to_day_and_time(row.name)[0], convert_to_day_and_time(row.name)[1], row['Normalized_Price'], row['Velocity'], row['Acceleration'])
+#         for _, row in df.iterrows()
+#     ]
+#     return str(result)
 
 
 def generate_traintest_file(tddf_list, datatype):
     
-    td_file = os.path.join(data_dir, f"{symbol}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
+    td_file = os.path.join(data_dir, f"{table_name}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
     print(td_file)
 
     with open(td_file, "w") as datafile:
@@ -139,7 +139,7 @@ def generate_traintest_file(tddf_list, datatype):
 
 def generate_predict_data(tddf_list, datatype):
     count = 0
-    td_file = os.path.join(data_dir, f"{symbol}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
+    td_file = os.path.join(data_dir, f"{table_name}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
     print(td_file)
 
     with open(td_file, "w") as datafile:
@@ -280,7 +280,6 @@ def process_data(start_date, end_date, datatype):
     print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     print("3. Generate training/testing data file")
-    #td_file = os.path.join(data_dir, f"{symbol}_{datatype}Data_FixLenGRU_{traintest_data_len}_{SN}.txt")
 
     #with open(td_file, "w") as datafile:
     if datatype == "Predict":
@@ -311,11 +310,11 @@ if __name__ == "__main__":
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    traintest_data_len = 180
+    traintest_data_len = 150
     target_len = 3
 
     # Series Number for output training/testing data set pairs
-    SN = "900"
+    SN = "1001"
         
     symbol = "SPX"
     #symbol = "MES=F"
