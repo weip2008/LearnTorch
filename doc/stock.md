@@ -1,5 +1,19 @@
 <h1>Idea of AI Stock Modeling</h1>
 
+## To Do list
+### Classified (man labeled buy/sell)
+* use savgol_filter() to smooth data before calculate velocity & acceleration(compare with SMA)
+* try different NN model (GRU, ...)
+* try different activate functions (relu, sigmoid, ...)
+* try different loss functions ()
+* try different optimizers ()
+* testing on real data (实操)
+
+### Future forecast
+* backtesting on our own data
+* testing on real data (实操)
+
+
 1. use boolinger line to determine long/short points(max:long, min:short value)
 2. smooth (9, 15) all data, use the smoothed data as close[array]
 3. calculate vilocity for all points(array)
@@ -16,8 +30,11 @@
 
 <!-- code_chunk_output -->
 
+- [To Do list](#to-do-list)
+  - [Classified (man labeled buy/sell)](#classified-man-labeled-buysell)
+  - [Future forecast](#future-forecast)
 - [Idea of selecting long,short,hold points](#idea-of-selecting-longshorthold-points)
-- [To-do list:](#to-do-list)
+- [To-do list:](#to-do-list-1)
   - [Data Normalization](#data-normalization)
 - [Create datasets](#create-datasets)
 - [save and load datasets from file](#save-and-load-datasets-from-file)
