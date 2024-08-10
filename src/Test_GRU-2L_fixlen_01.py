@@ -96,7 +96,7 @@ print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 1. **Learning Rate Scheduler**: Added `scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)` to decrease the learning rate every 10 epochs.
 2. **Early Stopping**: Implemented early stopping to stop training if there's no improvement in validation loss for a given number of epochs (`patience`).
  '''
-num_epochs = 20
+''' num_epochs = 20
 losses = []
 patience = 5  # Number of epochs to wait for improvement before stopping
 best_loss = float('inf')
@@ -139,6 +139,32 @@ for epoch in range(num_epochs):
     epoch_end_time = time.time()
     epoch_duration = epoch_end_time - epoch_start_time
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} seconds')
+ '''
+ 
+num_epochs = 20
+losses = []
+model.train()
+for epoch in range(num_epochs):
+    epoch_start_time = time.time()
+    epoch_loss = 0.0
+    num_batches = 0
+    
+    for inputs, targets in train_dataloader:
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
+        loss.backward()
+        nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        optimizer.step()
+        epoch_loss += loss.item()
+        num_batches += 1
+
+    avg_loss = epoch_loss / num_batches
+    losses.append(avg_loss)
+    epoch_end_time = time.time()
+    epoch_duration = (epoch_end_time - epoch_start_time)  # convert to minutes
+    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.8f}, Duration: {epoch_duration:.2f} seconds')
+
 
 # Save the model, optimizer state, and losses
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
