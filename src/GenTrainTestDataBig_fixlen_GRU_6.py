@@ -325,7 +325,7 @@ if __name__ == "__main__":
     target_len = 3
 
     # Series Number for output training/testing data set pairs
-    SN = "1002"
+    SN = "1003"
         
     symbol = "SPX"
     #symbol = "MES=F"
@@ -340,7 +340,7 @@ if __name__ == "__main__":
   
     #============================= Training Data ============================================#
     training_start_date = "2010-11-14"
-    training_end_date = "2023-06-30"
+    training_end_date = "2023-12-31"
 
     process_data(training_start_date, training_end_date, "Training")
     
