@@ -57,6 +57,7 @@
   - [Generate Training \& Testing Data](#generate-training--testing-data)
   - [Create a GRU model](#create-a-gru-model)
   - [Forcast Future Stock Price Range](#forcast-future-stock-price-range)
+- [Activate Functions](#activate-functions)
 
 <!-- /code_chunk_output -->
 
@@ -837,3 +838,4 @@ Prediction for sequence 9: [0.95848805 0.94515836 0.9446089 ]
 Real  data for sequence 9: [0.91780397 0.92152605 0.8560794 ]
 ```
 
+## Activate Functions
