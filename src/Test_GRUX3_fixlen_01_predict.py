@@ -181,6 +181,7 @@ if predictions.ndim == 0:
     predictions = np.expand_dims(predictions, axis=0)
 
 # Post-process and print predictions
+print("               slice index [  close(t) close(t+1) close(t+2)]")
 for i, prediction in enumerate(predictions):
     print("----------------------------------------------------------------")
     print(f'Prediction for sequence {i}: {prediction}')
