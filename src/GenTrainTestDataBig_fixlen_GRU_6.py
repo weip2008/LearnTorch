@@ -58,7 +58,8 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
 def process_chunk(ohlc_chunk, traintest_data_len, target_len):
     return cut_traintest_slice(ohlc_chunk, traintest_data_len, target_len)
 
-def parallel_cut_traintest_slice(ohlc_df, traintest_data_len, target_len, num_threads):
+# my CPU is 9th Gen. Intel i5-9400, it has 6 cores and support total 6 threads
+def parallel_cut_traintest_slice(ohlc_df, traintest_data_len, target_len, num_threads=6):
     # Split the DataFrame into chunks
     chunk_size = len(ohlc_df) // num_threads
     chunks = [ohlc_df[i:i + chunk_size] for i in range(0, len(ohlc_df), chunk_size)]
