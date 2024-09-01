@@ -5,7 +5,7 @@ import numpy as np
 
 
 test_file_path = 'data\SPX_30m_TestingData_FixLenGRU_150_1003.txt'
-model_path = 'GRU_2layer_fixlen_30m_150_1003.pth'
+model_path = 'GRU_3layer_fixlen_30m_150_1103.pth'
 predict_file_path = 'data\SPX_30m_PredictData_FixLenGRU_150_1003.txt'
 
 # Define the function to load data
@@ -49,9 +49,9 @@ class FixedLengthDataset(Dataset):
         return torch.tensor(self.data[idx], dtype=torch.float32), torch.tensor(self.targets[idx], dtype=torch.float32)
 
 
-# Define the GRU model with 2 layers
+# Define the GRU model with 3 layers
 class GRUModel(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers=2):
+    def __init__(self, input_size, hidden_size, output_size, num_layers=3):
         super(GRUModel, self).__init__()
         self.gru = nn.GRU(input_size, hidden_size, num_layers=num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
@@ -59,9 +59,15 @@ class GRUModel(nn.Module):
         self.hidden_size = hidden_size
 
     def forward(self, x):
-        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)  # Initialize hidden state
+        # Initialize hidden state for all layers
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
+        
+        # Pass the input through the GRU layers
         output, h_n = self.gru(x, h0)
+        
+        # Use the hidden state from the last layer and the last time step for prediction
         output = self.fc(h_n[-1])
+        
         return output
 
 # Function to load the trained model
@@ -76,7 +82,7 @@ def load_model(model_path, input_size, hidden_size, output_size, num_layers):
 
 # Load the trained model
 #model_path = 'GRU_model_with_fixed_length_data_603.pth'
-model = load_model(model_path, input_size=3, hidden_size=50, output_size=3, num_layers=2)
+model = load_model(model_path, input_size=3, hidden_size=50, output_size=3, num_layers=3)
 
 
 

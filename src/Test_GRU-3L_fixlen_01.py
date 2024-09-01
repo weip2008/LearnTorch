@@ -1,4 +1,13 @@
-# 2 Layer GRU model
+# 3 Layer GRU model
+# Workflow for a 3-Layer GRU
+#   *Input: The input data flows through the first GRU layer, which processes the data sequence step-by-step.
+#   *Layer 1 to Layer 2: The output of Layer 1 is used as the input for Layer 2.
+#   *Layer 2 to Layer 3: Similarly, Layer 2's output is passed to Layer 3.
+#   *Final Output: The final output is derived from the hidden state of the last layer (Layer 3) and is 
+#       passed through a fully connected layer to produce the model's prediction.
+# This model can handle more complex temporal dependencies and capture richer patterns in sequential data 
+# due to the added depth of the 3 layers.
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -7,7 +16,7 @@ import time
 from datetime import datetime
 
 training_file_path = 'data\SPX_30m_TrainingData_FixLenGRU_150_1003.txt'
-model_save_path = 'GRU_2layer_fixlen_30m_150_1003.pth'
+model_save_path = 'GRU_3layer_fixlen_30m_150_1103.pth'
 
 # Define the function to load data
 def load_data(file_path):
@@ -49,9 +58,9 @@ class FixedLengthDataset(Dataset):
     def __getitem__(self, idx):
         return torch.tensor(self.data[idx], dtype=torch.float32), torch.tensor(self.targets[idx], dtype=torch.float32)
 
-# Define the GRU model with 2 layers
+# Define the GRU model with 3 layers
 class GRUModel(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers=2):
+    def __init__(self, input_size, hidden_size, output_size, num_layers=3):
         super(GRUModel, self).__init__()
         self.gru = nn.GRU(input_size, hidden_size, num_layers=num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
@@ -59,9 +68,15 @@ class GRUModel(nn.Module):
         self.hidden_size = hidden_size
 
     def forward(self, x):
-        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)  # Initialize hidden state
+        # Initialize hidden state for all layers
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
+        
+        # Pass the input through the GRU layers
         output, h_n = self.gru(x, h0)
+        
+        # Use the hidden state from the last layer and the last time step for prediction
         output = self.fc(h_n[-1])
+        
         return output
 
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

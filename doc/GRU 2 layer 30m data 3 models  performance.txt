@@ -1,0 +1,304 @@
+d:/workspace/LearnTorch/src/Test_GRU-2L_fixlen_01.py
+Current date and time: 2024-08-21 22:23:40
+1. Load training data from data\SPX_30m_TrainingData_FixLenGRU_150_1001.txt
+Data shape: (7360, 150, 3)
+Targets shape: (7360, 3)
+2. Define dataset and dataloader
+Current date and time: 2024-08-21 22:23:52
+3. Instantiate the model, define the loss function and the optimizer
+Current date and time: 2024-08-21 22:23:52
+4. Start training loop
+Current date and time: 2024-08-21 22:23:55
+Epoch 1/20, Loss: 0.16986209, Duration: 10.37 seconds
+Epoch 2/20, Loss: 0.03447489, Duration: 8.81 seconds
+Epoch 3/20, Loss: 0.01112719, Duration: 8.61 seconds
+Epoch 4/20, Loss: 0.00870702, Duration: 8.70 seconds
+Epoch 5/20, Loss: 0.00798573, Duration: 8.60 seconds
+Epoch 6/20, Loss: 0.00776189, Duration: 8.65 seconds
+Epoch 7/20, Loss: 0.00767911, Duration: 8.61 seconds
+Epoch 8/20, Loss: 0.00768979, Duration: 8.67 seconds
+Epoch 9/20, Loss: 0.00762400, Duration: 8.60 seconds
+Epoch 10/20, Loss: 0.00758123, Duration: 9.15 seconds
+Epoch 11/20, Loss: 0.00757122, Duration: 9.92 seconds
+Epoch 12/20, Loss: 0.00757894, Duration: 9.23 seconds
+Epoch 13/20, Loss: 0.00752545, Duration: 10.01 seconds
+Epoch 14/20, Loss: 0.00766824, Duration: 8.46 seconds
+Epoch 15/20, Loss: 0.00760495, Duration: 8.69 seconds
+Epoch 16/20, Loss: 0.00756617, Duration: 8.56 seconds
+Epoch 17/20, Loss: 0.00756277, Duration: 8.47 seconds
+Epoch 18/20, Loss: 0.00755997, Duration: 8.44 seconds
+Epoch 19/20, Loss: 0.00772544, Duration: 8.52 seconds
+Epoch 20/20, Loss: 0.00760844, Duration: 8.44 seconds
+Current date and time: 2024-08-21 22:26:52
+5. Save the model, optimizer state, and losses to GRU_2layer_fixlen_30m_150_1001.pth
+
+d:/workspace/LearnTorch/src/Test_GRU-2L_fixlen_01_predict.py
+Test Loss (MSE): 0.00770239
+Mean Absolute Error (MAE): 0.05281668
+R-squared (R2): 0.92713109
+5. Predict feture values.
+Load data\SPX_30m_PredictData_FixLenGRU_150_1001.txt
+Data shape: (10, 150, 3)
+Targets shape: (10, 3)
+----------------------------------------------------------------
+Prediction for sequence 0: [1.0050148 0.9941649 0.9929344]
+Real  data for sequence 0: [0.98929376 0.98947786 0.96199   ]
+----------------------------------------------------------------
+Prediction for sequence 1: [0.9065777 0.8956156 0.8931398]
+Real  data for sequence 1: [0.87969484 0.95013414 1.        ]
+----------------------------------------------------------------
+Prediction for sequence 2: [0.9115025  0.89834005 0.8943952 ]
+Real  data for sequence 2: [1.         0.97401612 0.99587222]
+----------------------------------------------------------------
+Prediction for sequence 3: [0.64649636 0.64388    0.64255005]
+Real  data for sequence 3: [0.64891766 0.68965798 0.66570169]
+----------------------------------------------------------------
+Prediction for sequence 4: [0.17027621 0.16817276 0.17008725]
+Real  data for sequence 4: [0.14185396 0.20439137 0.21858162]
+----------------------------------------------------------------
+Prediction for sequence 5: [0.08073454 0.07856234 0.08390958]
+Real  data for sequence 5: [0.05543716 0.11690555 0.11439834]
+----------------------------------------------------------------
+Prediction for sequence 6: [0.24590231 0.24498633 0.24745873]
+Real  data for sequence 6: [0.05584082 0.08964982 0.        ]
+----------------------------------------------------------------
+Prediction for sequence 7: [0.11724472 0.11551189 0.11645111]
+Real  data for sequence 7: [0.2160684  0.22018179 0.1303189 ]
+----------------------------------------------------------------
+Prediction for sequence 8: [0.1732185  0.17336619 0.17775539]
+Real  data for sequence 8: [0.17169491 0.13538586 0.07786936]
+----------------------------------------------------------------
+Prediction for sequence 9: [0.04897022 0.04661932 0.05162714]
+Real  data for sequence 9: [0.06546649 0.03706244 0.00910818]
+
+==========================================================================
+
+
+d:/workspace/LearnTorch/src/Test_GRU-2L_fixlen_01.py
+Current date and time: 2024-08-21 22:28:55
+1. Load training data from data\SPX_30m_TrainingData_FixLenGRU_150_1002.txt
+Data shape: (7326, 150, 3)
+Targets shape: (7326, 3)
+2. Define dataset and dataloader
+Current date and time: 2024-08-21 22:29:07
+3. Instantiate the model, define the loss function and the optimizer
+Current date and time: 2024-08-21 22:29:07
+4. Start training loop
+Current date and time: 2024-08-21 22:29:07
+Epoch 1/20, Loss: 0.17883266, Duration: 8.46 seconds
+Epoch 2/20, Loss: 0.03676795, Duration: 8.38 seconds
+Epoch 3/20, Loss: 0.01171394, Duration: 8.45 seconds
+Epoch 4/20, Loss: 0.00896786, Duration: 8.40 seconds
+Epoch 5/20, Loss: 0.00790428, Duration: 8.44 seconds
+Epoch 6/20, Loss: 0.00748354, Duration: 8.44 seconds
+Epoch 7/20, Loss: 0.00738144, Duration: 8.48 seconds
+Epoch 8/20, Loss: 0.00728030, Duration: 8.62 seconds
+Epoch 9/20, Loss: 0.00731773, Duration: 8.49 seconds
+Epoch 10/20, Loss: 0.00726497, Duration: 8.49 seconds
+Epoch 11/20, Loss: 0.00735749, Duration: 8.38 seconds
+Epoch 12/20, Loss: 0.00724402, Duration: 8.46 seconds
+Epoch 13/20, Loss: 0.00725907, Duration: 8.42 seconds
+Epoch 14/20, Loss: 0.00724858, Duration: 8.44 seconds
+Epoch 15/20, Loss: 0.00727603, Duration: 8.48 seconds
+Epoch 16/20, Loss: 0.00725232, Duration: 8.40 seconds
+Epoch 17/20, Loss: 0.00727024, Duration: 8.39 seconds
+Epoch 18/20, Loss: 0.00732648, Duration: 8.37 seconds
+Epoch 19/20, Loss: 0.00726843, Duration: 8.49 seconds
+Epoch 20/20, Loss: 0.00725926, Duration: 8.53 seconds
+Current date and time: 2024-08-21 22:31:56
+5. Save the model, optimizer state, and losses to GRU_2layer_fixlen_30m_150_1002.pth
+
+d:/workspace/LearnTorch/src/Test_GRU-2L_fixlen_01_predict.py
+Test Loss (MSE): 0.00719622
+Mean Absolute Error (MAE): 0.05237148
+R-squared (R2): 0.93158338
+5. Predict feture values.
+Load data\SPX_30m_PredictData_FixLenGRU_150_1002.txt
+Data shape: (10, 150, 3)
+Targets shape: (10, 3)
+----------------------------------------------------------------
+Prediction for sequence 0: [1.008684  1.0042315 1.0038817]
+Real  data for sequence 0: [0.98929376 0.98947786 0.96199   ]
+----------------------------------------------------------------
+Prediction for sequence 1: [0.905683  0.9033264 0.9023537]
+Real  data for sequence 1: [0.87969484 0.95013414 1.        ]
+----------------------------------------------------------------
+Prediction for sequence 2: [0.91636103 0.91871756 0.9176238 ]
+Real  data for sequence 2: [1.         0.97401612 0.99587222]
+----------------------------------------------------------------
+Prediction for sequence 3: [0.64748824 0.65340567 0.6448674 ]
+Real  data for sequence 3: [0.64891766 0.68965798 0.66570169]
+----------------------------------------------------------------
+Prediction for sequence 4: [0.16547686 0.16954988 0.17151046]
+Real  data for sequence 4: [0.14185396 0.20439137 0.21858162]
+----------------------------------------------------------------
+Prediction for sequence 5: [0.07876088 0.08134114 0.08564579]
+Real  data for sequence 5: [0.05543716 0.11690555 0.11439834]
+----------------------------------------------------------------
+Prediction for sequence 6: [0.24383579 0.24921858 0.24715671]
+Real  data for sequence 6: [0.05584082 0.08964982 0.        ]
+----------------------------------------------------------------
+Prediction for sequence 7: [0.11082302 0.1152372  0.11827585]
+Real  data for sequence 7: [0.2160684  0.22018179 0.1303189 ]
+----------------------------------------------------------------
+Prediction for sequence 8: [0.17376381 0.18003106 0.17724721]
+Real  data for sequence 8: [0.17169491 0.13538586 0.07786936]
+----------------------------------------------------------------
+Prediction for sequence 9: [0.04443664 0.04642648 0.05262996]
+Real  data for sequence 9: [0.06546649 0.03706244 0.00910818]
+
+===================================================================
+
+d:/workspace/LearnTorch/src/GenTrainTestDataBig_fixlen_GRU_6.py
+2.2.2
+---------------------------Training----------------------------------
+1. Load data
+Current date and time: 2024-08-22 14:24:11
+Length of ohlc_df: 152858
+Current date and time: 2024-08-22 14:24:12
+2. Cut slices
+Number of slices: 7602
+Current date and time: 2024-08-22 14:24:27
+3. Generate training/testing data file
+data\SPX_30m_TrainingData_FixLenGRU_150_1003.txt
+4. Finish
+Current date and time: 2024-08-22 14:25:16
+---------------------------Training----------------------------------
+---------------------------Testing----------------------------------
+1. Load data
+Current date and time: 2024-08-22 14:25:16
+Length of ohlc_df: 10081
+Current date and time: 2024-08-22 14:25:16
+2. Cut slices
+Number of slices: 462
+Current date and time: 2024-08-22 14:25:17
+3. Generate training/testing data file
+data\SPX_30m_TestingData_FixLenGRU_150_1003.txt
+4. Finish
+Current date and time: 2024-08-22 14:25:20
+---------------------------Testing----------------------------------
+---------------------------Predict----------------------------------
+1. Load data
+Current date and time: 2024-08-22 14:25:20
+Length of ohlc_df: 684
+Current date and time: 2024-08-22 14:25:20
+2. Cut slices
+Number of slices: 27
+Current date and time: 2024-08-22 14:25:21
+3. Generate training/testing data file
+data\SPX_30m_PredictData_FixLenGRU_150_1003.txt
+4. Finish
+---------------------------Predict----------------------------------
+
+
+
+d:/workspace/LearnTorch/src/Test_GRU-2L_fixlen_01.py
+Current date and time: 2024-08-22 14:28:58
+1. Load training data from data\SPX_30m_TrainingData_FixLenGRU_150_1003.txt
+Data shape: (7602, 150, 3)
+Targets shape: (7602, 3)
+2. Define dataset and dataloader
+Current date and time: 2024-08-22 14:29:11
+3. Instantiate the model, define the loss function and the optimizer
+Current date and time: 2024-08-22 14:29:11
+4. Start training loop
+Current date and time: 2024-08-22 14:29:14
+Epoch 1/20, Loss: 0.12108416, Duration: 12.58 seconds
+Epoch 2/20, Loss: 0.02738946, Duration: 10.99 seconds
+Epoch 3/20, Loss: 0.01083391, Duration: 20.93 seconds
+Epoch 4/20, Loss: 0.00866357, Duration: 26.00 seconds
+Epoch 5/20, Loss: 0.00771832, Duration: 26.68 seconds
+Epoch 6/20, Loss: 0.00744490, Duration: 28.51 seconds
+Epoch 7/20, Loss: 0.00745643, Duration: 27.01 seconds
+Epoch 8/20, Loss: 0.00743418, Duration: 26.54 seconds
+Epoch 9/20, Loss: 0.00743025, Duration: 26.34 seconds
+Epoch 10/20, Loss: 0.00744858, Duration: 21.62 seconds
+Epoch 11/20, Loss: 0.00735249, Duration: 16.28 seconds
+Epoch 12/20, Loss: 0.00738260, Duration: 12.31 seconds
+Epoch 13/20, Loss: 0.00735135, Duration: 10.63 seconds
+Epoch 14/20, Loss: 0.00733059, Duration: 10.28 seconds
+Epoch 15/20, Loss: 0.00738574, Duration: 9.92 seconds
+Epoch 16/20, Loss: 0.00733165, Duration: 10.36 seconds
+Epoch 17/20, Loss: 0.00730998, Duration: 10.14 seconds
+Epoch 18/20, Loss: 0.00728806, Duration: 10.91 seconds
+Epoch 19/20, Loss: 0.00735003, Duration: 10.54 seconds
+Epoch 20/20, Loss: 0.00736971, Duration: 10.80 seconds
+Current date and time: 2024-08-22 14:34:53
+5. Save the model, optimizer state, and losses to GRU_2layer_fixlen_30m_150_1003.pth
+
+(env) D:\workspace\LearnTorch>d:/workspace/LearnTorch/env/Scripts/python.exe d:/workspace/LearnTorch/src/Test_GRU-3L_fixlen_01.py
+Current date and time: 2024-08-22 14:44:06
+1. Load training data from data\SPX_30m_TrainingData_FixLenGRU_150_1003.txt
+Data shape: (7602, 150, 3)
+Targets shape: (7602, 3)
+2. Define dataset and dataloader
+Current date and time: 2024-08-22 14:44:19
+3. Instantiate the model, define the loss function and the optimizer
+Current date and time: 2024-08-22 14:44:19
+4. Start training loop
+Current date and time: 2024-08-22 14:44:20
+Epoch 1/20, Loss: 0.14884416, Duration: 13.70 seconds
+Epoch 2/20, Loss: 0.03281132, Duration: 13.49 seconds
+Epoch 3/20, Loss: 0.01121927, Duration: 13.69 seconds
+Epoch 4/20, Loss: 0.00860532, Duration: 14.05 seconds
+Epoch 5/20, Loss: 0.00768373, Duration: 13.82 seconds
+Epoch 6/20, Loss: 0.00749798, Duration: 13.57 seconds
+Epoch 7/20, Loss: 0.00747515, Duration: 13.55 seconds
+Epoch 8/20, Loss: 0.00738759, Duration: 13.62 seconds
+Epoch 9/20, Loss: 0.00753205, Duration: 13.68 seconds
+Epoch 10/20, Loss: 0.00735454, Duration: 13.61 seconds
+Epoch 11/20, Loss: 0.00728594, Duration: 15.11 seconds
+Epoch 12/20, Loss: 0.00732938, Duration: 13.62 seconds
+Epoch 13/20, Loss: 0.00728749, Duration: 13.63 seconds
+Epoch 14/20, Loss: 0.00738933, Duration: 13.52 seconds
+Epoch 15/20, Loss: 0.00732938, Duration: 13.54 seconds
+Epoch 16/20, Loss: 0.00726738, Duration: 13.51 seconds
+Epoch 17/20, Loss: 0.00736024, Duration: 13.67 seconds
+Epoch 18/20, Loss: 0.00735053, Duration: 13.65 seconds
+Epoch 19/20, Loss: 0.00730932, Duration: 13.75 seconds
+Epoch 20/20, Loss: 0.00732071, Duration: 13.60 seconds
+Current date and time: 2024-08-22 14:48:54
+5. Save the model, optimizer state, and losses to GRU_2layer_fixlen_30m_150_1103.pth
+
+d:/workspace/LearnTorch/src/Test_GRU-2L_fixlen_01_predict.py
+Test Loss (MSE): 0.00721073
+Mean Absolute Error (MAE): 0.05220857
+R-squared (R2): 0.93138047
+5. Predict feture values.
+Load data\SPX_30m_PredictData_FixLenGRU_150_1003.txt
+Data shape: (10, 150, 3)
+Targets shape: (10, 3)
+----------------------------------------------------------------
+Prediction for sequence 0: [0.991729   0.98616445 0.9804971 ]
+Real  data for sequence 0: [0.98929376 0.98947786 0.96199   ]
+----------------------------------------------------------------
+Prediction for sequence 1: [0.8904304 0.8859187 0.882439 ]
+Real  data for sequence 1: [0.87969484 0.95013414 1.        ]
+----------------------------------------------------------------
+Prediction for sequence 2: [0.90056926 0.9008666  0.9017081 ]
+Real  data for sequence 2: [1.         0.97401612 0.99587222]
+----------------------------------------------------------------
+Prediction for sequence 3: [0.63749987 0.6364923  0.6347372 ]
+Real  data for sequence 3: [0.64891766 0.68965798 0.66570169]
+----------------------------------------------------------------
+Prediction for sequence 4: [0.16342172 0.16932179 0.17227022]
+Real  data for sequence 4: [0.14185396 0.20439137 0.21858162]
+----------------------------------------------------------------
+Prediction for sequence 5: [0.07530602 0.08253223 0.0868328 ]
+Real  data for sequence 5: [0.05543716 0.11690555 0.11439834]
+----------------------------------------------------------------
+Prediction for sequence 6: [0.24013504 0.24440953 0.24669674]
+Real  data for sequence 6: [0.05584082 0.08964982 0.        ]
+----------------------------------------------------------------
+Prediction for sequence 7: [0.11141379 0.11826359 0.12393616]
+Real  data for sequence 7: [0.2160684  0.22018179 0.1303189 ]
+----------------------------------------------------------------
+Prediction for sequence 8: [0.16940168 0.17478868 0.17912707]
+Real  data for sequence 8: [0.17169491 0.13538586 0.07786936]
+----------------------------------------------------------------
+Prediction for sequence 9: [0.04217147 0.05043574 0.05516459]
+Real  data for sequence 9: [0.06546649 0.03706244 0.00910818]
+
+
+
+
