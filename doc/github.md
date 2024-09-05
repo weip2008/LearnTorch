@@ -133,3 +133,18 @@ Resolving deltas: 100% (16/16), done.
 
 
 ```
+
+```
+> git push origin master:master
+error: RPC failed; HTTP 400 curl 22 The requested URL returned error: 400
+fatal: the remote end hung up unexpectedly
+fatal: the remote end hung up unexpectedly
+Everything up-to-date
+```
+
+Increase Git Buffer Size
+Sometimes large pushes can cause this error due to buffer size limits. You can increase the buffer size using this command:
+
+```
+git config http.postBuffer 524288000  # 500MB
+```
