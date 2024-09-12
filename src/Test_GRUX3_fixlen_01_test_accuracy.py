@@ -57,7 +57,7 @@ class GRUModel(nn.Module):
         return output
 
 # Load the testing data
-test_file_path = 'data/SPX_TestingData_FixLenGRU_603.txt'
+test_file_path = 'data/SPX_TestingData_FixLenGRU_800.txt'
 test_data, test_targets = load_testing_data(test_file_path)
 
 # Create a DataLoader for the testing data

@@ -25,6 +25,9 @@
 7. create model
 8. use the model to test training data
 
+## References
+* [3 Must-Know Algorithms for Automating Chart Pattern Trading in Python](https://www.youtube.com/watch?v=X31hyMhB-3s)
+* [1. Rolling Window](../src/findPeaks.py)
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
@@ -33,6 +36,7 @@
 - [To Do list](#to-do-list)
   - [Classified (man labeled buy/sell)](#classified-man-labeled-buysell)
   - [Future forecast](#future-forecast)
+- [References](#references)
 - [Idea of selecting long,short,hold points](#idea-of-selecting-longshorthold-points)
 - [To-do list:](#to-do-list-1)
   - [Data Normalization](#data-normalization)
@@ -829,6 +833,8 @@ def cut_traintest_slice(ohlc_df, traintest_data_len, target_len):
 * [GRU explaination from ChatGPT](<GRU 2 layer model.md>)
 ![](images/gru.svg)
 * [Generate GRU model and save to a file](../src/Test_GRUX3_fixlen_01.py)
+* [1003 data, 1003 model 2 layer GRU model](../src/Test_GRU-2L_fixlen_01.py)
+output: [](GRU_2layer_fixlen_30m_150_1003.pth)
 
 🔔⚡️Experience
 1. epoch: when loss does NOT go down, epoch size is enough.

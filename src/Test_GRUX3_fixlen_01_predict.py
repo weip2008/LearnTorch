@@ -3,9 +3,9 @@ import torch.nn as nn
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
-test_file_path = 'data/SPX_TestingData_FixLenGRU_180_900.txt'
-model_file = 'GRU_model_with_fixed_length_data_903.pth'
-predict_file_path = 'data/SPX_PredictData_FixLenGRU_180_900.txt'
+test_file_path = 'data/SPX_TestingData_FixLenGRU_180_800.txt'
+model_file = 'GRU_model_with_fixed_length_data_800.pth'
+predict_file_path = 'data/SPX_PredictData_FixLenGRU_180_800.txt'
 
 # Define the function to load data
 def load_testing_data(file_path):
