@@ -56,7 +56,7 @@ def rw_extremes(data: np.array, order:int):
 
 
 if __name__ == "__main__":
-    data = pd.read_csv('BTCUSDT86400.csv')
+    data = pd.read_csv('TechnicalAnalysisAutomation/BTCUSDT86400.csv')
     data['date'] = data['date'].astype('datetime64[s]')
     data = data.set_index('date')
 
