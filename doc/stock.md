@@ -1,6 +1,25 @@
 <h1>Idea of AI Stock Modeling</h1>
 
 ## To Do list
+
+```mermaid
+graph TB
+
+Data[✔️Collect Data <br>⚡️more needed]
+Proc["Data Preprocess <br>(Top-Bottom, Slice)"]
+Classify[Classified Model<br>long term]
+Forecast[Forecasting Model<br>short term]
+Trod[Troditional Algrithm]
+Pred[Use model predict]
+BS[Buy & Sell]
+Back[Back Testing]
+
+Data-->Proc-->Classify-->Pred-->BS-->Back-->Proc
+Proc-->Trod-->BS
+Proc-->Forecast-->Pred
+```
+💡👉 Make decisions using more than one model.
+
 ### Classified (man labeled buy/sell)
 * use savgol_filter() to smooth data before calculate velocity & acceleration(compare with SMA)
 * try different NN model (GRU, ...)
@@ -45,7 +64,7 @@
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -58,7 +77,7 @@
 - [可变长的时间序列](#可变长的时间序列)
 - [GRU model](#gru-model)
 - [Load Stock Data to sqlite database](#load-stock-data-to-sqlite-database)
-  - [Generate Training \& Testing Data](#generate-training--testing-data)
+  - [Generate Training & Testing Data](#generate-training--testing-data)
   - [Create a GRU model](#create-a-gru-model)
   - [Forcast Future Stock Price Range](#forcast-future-stock-price-range)
 - [Activate Functions](#activate-functions)
