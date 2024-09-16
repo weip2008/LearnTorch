@@ -479,7 +479,7 @@ if __name__ == "__main__":
     #tdLen = 30
 
     # Series Number for output training/testing data set pairs
-    SN = "301"
+    SN = "350"
         
     # ZigZag parameters
     deviation = 0.0015  # Percentage
@@ -511,7 +511,7 @@ if __name__ == "__main__":
         print(f"tddf_low_list length:{len(tddf_low_list)}\n")
         print(f"tddf_high_list length:{len(tddf_high_list)}\n")
 
-    td_file = os.path.join(data_dir, f"{symbol}_TrainingData_2HL_{SN}.csv")
+    td_file = os.path.join(data_dir, f"{table_name}_TrainingData_2HL_{SN}.csv")
 
     with open(td_file, "w") as datafile:
         generate_training_data(tddf_low_list, TradePosition.LONG)
@@ -528,7 +528,7 @@ if __name__ == "__main__":
 
     tddf_low_list, tddf_high_list = gen_highlow_list(testing_start_date, testing_end_date)
 
-    td_file = os.path.join(data_dir, f"{symbol}_TestingData_2HL_{SN}.csv")
+    td_file = os.path.join(data_dir, f"{table_name}_TestingData_2HL_{SN}.csv")
 
     with open(td_file, "w") as datafile:
         #generate_training_data(patterns_df)
