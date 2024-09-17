@@ -36,88 +36,95 @@ def cut_slice(ohlc_df, start_index, end_index):
     return section_df
 
 
-def gen_hold_list_index(df):
-    """
-    Generates new index numbers by inserting two integers evenly between consecutive index numbers.
+# def gen_hold_list_index(df):
+#     """
+#     Generates new index numbers by inserting two integers evenly between consecutive index numbers.
 
-    Args:
-        df (pd.DataFrame): Input DataFrame.
+#     Args:
+#         df (pd.DataFrame): Input DataFrame.
 
-    Returns:
-        list: List of newly generated index numbers.
-    """
-    index_column = df.index
-    new_index = []
+#     Returns:
+#         list: List of newly generated index numbers.
+#     """
+#     index_column = df.index
+#     new_index = []
 
-    for i in range(len(index_column) - 1):
-        steps = (index_column[i+1] - index_column[i]) // 3
-        new_index.append(index_column[i]+steps)
-        new_index.append(index_column[i]+steps*2)
+#     for i in range(len(index_column) - 1):
+#         steps = (index_column[i+1] - index_column[i]) // 3
+#         new_index.append(index_column[i]+steps)
+#         new_index.append(index_column[i]+steps*2)
 
-    # Add the last index
-    new_index.append(index_column[-1])
+#     # Add the last index
+#     new_index.append(index_column[-1])
 
-    return new_index 
+#     return new_index 
 
+
+#def list_to_string(price_list):
+#    return ', '.join(map(str, price_list))
 
 def list_to_string(price_list):
-    return ', '.join(map(str, price_list))
+    # Convert each tuple into a string with the format '(Datetime, Close)' and wrap the whole string in []
+    return '[' + ', '.join([f"({dt.strftime('%Y-%m-%d %H:%M:%S')}, {close})" for dt, close in price_list]) + ']'
 
 # Convert training data list to string           
-def convert_list_to_string(tddf_list):
-    formatted_strings = []
-    for section_df in tddf_list:
-        formatted_str = "["
-        for index, row in section_df.iterrows():
-            formatted_str += "({}, {}, {}), ".format(index, row['Price'], row['Volume'])
-        formatted_str = formatted_str[:-2]  # Remove the last comma and space
-        formatted_str += "]"
-        formatted_strings.append(formatted_str)
-    return formatted_strings
+# def convert_list_to_string(tddf_list):
+#     formatted_strings = []
+#     for section_df in tddf_list:
+#         formatted_str = "["
+#         for index, row in section_df.iterrows():
+#             formatted_str += "({}, {}, {}), ".format(index, row['Price'], row['Volume'])
+#         formatted_str = formatted_str[:-2]  # Remove the last comma and space
+#         formatted_str += "]"
+#         formatted_strings.append(formatted_str)
+#     return formatted_strings
     
-def convert_to_day_and_time(timestamp):
-    # Get the day of the week (Monday=0, Sunday=6)
-    day_of_week_numeric = timestamp.weekday() + 1
+# def convert_to_day_and_time(timestamp):
+#     # Get the day of the week (Monday=0, Sunday=6)
+#     day_of_week_numeric = timestamp.weekday() + 1
 
-    # Convert the timestamp to a datetime object (to handle timezone)
-    dt = timestamp.to_pydatetime()
+#     # Convert the timestamp to a datetime object (to handle timezone)
+#     dt = timestamp.to_pydatetime()
 
-    # Calculate the time in float format
-    time_float = dt.hour + dt.minute / 60 + dt.second / 3600
+#     # Calculate the time in float format
+#     time_float = dt.hour + dt.minute / 60 + dt.second / 3600
 
-    return day_of_week_numeric, time_float
+#     return day_of_week_numeric, time_float
 
 # Normalization function
-def normalize(series):
-    return (series - series.min()) / (series.max() - series.min())
+# def normalize(series):
+#     return (series - series.min()) / (series.max() - series.min())
 
 def gen_list(processing_df):
     price_list = []
 
-    processing_df['Normalized_Price'] = normalize(processing_df['Close'])
+    #processing_df['Normalized_Price'] = normalize(processing_df['Close'])
     
     if IsDebug:
         print(processing_df)
         plot_prices(processing_df)
     
-    for j in range(0, len(processing_df)):
+    # Get the first and last row as tuples (Datetime, Close)
+    first_row = (processing_df.index[0], processing_df.iloc[0]['Close'])
+    last_row = (processing_df.index[-1], processing_df.iloc[-1]['Close'])
 
-        normalized_price_current = processing_df.iloc[j]['Normalized_Price']
-        index_current = processing_df.index[j]
-        
-        #price_list.append((index_current, normalized_price_current))
-        price_list.append((normalized_price_current))
+    # Append the values to price_list
+    price_list.append(first_row)
+    price_list.append(last_row)
+
+    # Check the price_list
+    print(price_list)
 
     return price_list
 
     # Example usage:
     # acceleration_data = calculate_acceleration(velocity_list)
 
-def write_training_data(TradePosition, acceleration_list, csvfile):
+def write_backtesting_data(TradePosition, price_list, csvfile):
     # Initialize an empty string to store the result
     #result = ""
     
-    trainingdata_str = list_to_string(acceleration_list)
+    backtestingdata_str = list_to_string(price_list)
     
     # Iterate over each tuple in the acceleration_list
     # for acceleration_tuple in acceleration_list:
@@ -125,7 +132,7 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
     #     result += ",".join(map(str, acceleration_tuple)) 
     
     if (TradePosition is TradePosition.SHORT):        
-        result = "0,1," + trainingdata_str + "\n"
+        result = "0,1," + backtestingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
@@ -134,7 +141,7 @@ def write_training_data(TradePosition, acceleration_list, csvfile):
         return
     
     if (TradePosition is TradePosition.LONG):
-        result = "1,0," + trainingdata_str + "\n"
+        result = "1,0," + backtestingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
@@ -187,9 +194,9 @@ def generate_training_data(tddf_highlow_list, position):
             print("\nCalculated price list length:", len(tddf_price_list), "\n",tddf_price_list) 
 
         if IsDebug:
-            print("\nGenerate training data:")
+            print("\nGenerate backtesting data:")
 
-        write_training_data(position, tddf_price_list, datafile)
+        write_backtesting_data(position, tddf_price_list, datafile)
     
     outputfile.close()    
     return
@@ -237,19 +244,27 @@ def plot_prices(df):
     ax1.set_ylim(df['Close'].min(), df['Close'].max())
 
     # Create a twin y-axis to plot Normalized Price
-    ax2 = ax1.twinx()
-    ax2.plot(df.index, df['Normalized_Price'], color='red', label='Normalized Price', linestyle='-', marker='x')
-    ax2.set_ylabel('Normalized Price', color='red')
-    ax2.tick_params(axis='y', labelcolor='red')
-    ax2.set_ylim(df['Normalized_Price'].min(), df['Normalized_Price'].max())
+    # ax2 = ax1.twinx()
+    # ax2.plot(df.index, df['Normalized_Price'], color='red', label='Normalized Price', linestyle='-', marker='x')
+    # ax2.set_ylabel('Normalized Price', color='red')
+    # ax2.tick_params(axis='y', labelcolor='red')
+    # ax2.set_ylim(df['Normalized_Price'].min(), df['Normalized_Price'].max())
 
     # Add a legend to differentiate the plots
+    # lines_1, labels_1 = ax1.get_legend_handles_labels()
+    # lines_2, labels_2 = ax2.get_legend_handles_labels()
+    # ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper left')
+
+    # fig.tight_layout()
+    # plt.title('Close Price and Normalized Price')
+    # plt.show()
+    
+    # Add a legend to differentiate the plots
     lines_1, labels_1 = ax1.get_legend_handles_labels()
-    lines_2, labels_2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper left')
+    ax1.legend(lines_1, labels_1, loc='upper left')
 
     fig.tight_layout()
-    plt.title('Close Price and Normalized Price')
+    plt.title('Close Price Price')
     plt.show()
 
 
@@ -482,17 +497,17 @@ if __name__ == "__main__":
     #tdLen = 30
 
     # Series Number for output training/testing data set pairs
-    SN = "375"
+    SN = "100"
         
     # ZigZag parameters
     deviation = 0.0015  # Percentage
         
-    symbol = "SPX"
+    #symbol = "SPX"
     #symbol = "MES=F"
 
     # Define the table name as a string variable
     table_name = "SPX_1m"
-    #table_name = "MES=F_1m"
+
     # Define the SQLite database file directory
     data_dir = "data"
 
@@ -511,11 +526,11 @@ if __name__ == "__main__":
     print("Current date and time:", formatted_now)
     
     tddf_short_list, tddf_long_list = gen_highlow_list(training_start_date, training_end_date)
-    if IsDebug:
-        print(f"tddf_short_list length:{len(tddf_short_list)}\n")
-        print(f"tddf_long_list length:{len(tddf_long_list)}\n")
+    #if IsDebug:
+    print(f"tddf_short_list length:{len(tddf_short_list)}\n")
+    print(f"tddf_long_list length:{len(tddf_long_list)}\n")
 
-    td_file = os.path.join(data_dir, f"{table_name}_TrainingData_2HL_{SN}.csv")
+    td_file = os.path.join(data_dir, f"{table_name}_Backtesting_{SN}.csv")
 
     with open(td_file, "w") as datafile:
         generate_training_data(tddf_long_list, TradePosition.LONG)
@@ -524,7 +539,7 @@ if __name__ == "__main__":
 
 
     #============================= Testing Data ============================================#
-    testing_start_date = "2023-03-01"
+    ''' testing_start_date = "2023-03-01"
     testing_end_date = "2023-06-31"
     
     now = datetime.now()
@@ -542,4 +557,4 @@ if __name__ == "__main__":
 
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
+    print("Current date and time:", formatted_now) '''
