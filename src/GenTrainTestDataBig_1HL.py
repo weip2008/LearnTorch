@@ -103,10 +103,12 @@ def gen_list(processing_df):
     for j in range(0, len(processing_df)):
 
         normalized_price_current = processing_df.iloc[j]['Normalized_Price']
+        price_current = processing_df.iloc[j]['Close']
         index_current = processing_df.index[j]
         
         #price_list.append((index_current, normalized_price_current))
-        price_list.append((normalized_price_current))
+        #price_list.append((normalized_price_current))
+        price_list.append((price_current))
 
     return price_list
 
@@ -229,14 +231,14 @@ def plot_prices(df):
     # Plotting
     fig, ax1 = plt.subplots()
 
-    # Plot Close prices
+     # Plot Close prices
     ax1.plot(df.index, df['Close'], color='blue', label='Close Price', linestyle='-', marker='o')
     ax1.set_xlabel('Datetime')
     ax1.set_ylabel('Close Price', color='blue')
     ax1.tick_params(axis='y', labelcolor='blue')
     ax1.set_ylim(df['Close'].min(), df['Close'].max())
 
-    # Create a twin y-axis to plot Normalized Price
+    '''# Create a twin y-axis to plot Normalized Price
     ax2 = ax1.twinx()
     ax2.plot(df.index, df['Normalized_Price'], color='red', label='Normalized Price', linestyle='-', marker='x')
     ax2.set_ylabel('Normalized Price', color='red')
@@ -250,7 +252,17 @@ def plot_prices(df):
 
     fig.tight_layout()
     plt.title('Close Price and Normalized Price')
-    plt.show()
+    plt.show() '''
+    
+
+
+    # Add a legend to differentiate the plots
+    lines_1, labels_1 = ax1.get_legend_handles_labels()
+
+    ax1.legend(lines_1 , labels_1 , loc='upper left')
+
+    fig.tight_layout()
+    plt.title('Close Price')
 
 
 
@@ -260,7 +272,7 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
     
     # Initialize variables
     in_long_position = False  # Track whether we are in a buy position
-    previous_point = None
+    #previous_point = None
     buy_time = None
     sell_time = None
     hold_time = None  
@@ -292,17 +304,14 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                 hold_time = sell_time - buy_time                
                 profit = sell_price - buy_price - longtradecost
                 if profit > 0: 
-                    if previous_point is not None:
-                        section_df = cut_slice(ohlc_df, previous_point, sell_time)                        
-                    else:
-                        section_df = cut_slice(ohlc_df, buy_time, sell_time)
+                    section_df = cut_slice(ohlc_df, buy_time, sell_time)
                         
                     if (section_df is not None):
                         #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
                         long_list.append(section_df) 
                         
                     in_long_position = False
-                    previous_point = buy_time
+                    #previous_point = buy_time
                     if IsDebug:
                         print(f"At {time}, LONG sell price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
                 
@@ -357,17 +366,14 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                 hold_time = sell_time - buy_time                   
                 profit = -1 * (sell_price - buy_price) - shorttradecost
                 if profit > 0: 
-                    if previous_point is not None:
-                        section_df = cut_slice(ohlc_df, previous_point, sell_time)                        
-                    else:
-                        section_df = cut_slice(ohlc_df, buy_time, sell_time)
+                    section_df = cut_slice(ohlc_df, buy_time, sell_time)
                         
                     if (section_df is not None):
                         #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
                         short_list.append(section_df) 
                     
                     in_short_position = False
-                    previous_point = buy_time
+                    #previous_point = buy_time
                     if IsDebug:
                         print(f"At {time}, SHORT buy  price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
                     
@@ -387,8 +393,6 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
             print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
 
     return short_list, long_list
-
-
 
 def gen_highlow_list(query_start, query_end):
     # Connect to the SQLite database
@@ -479,13 +483,14 @@ if __name__ == "__main__":
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    #tdLen = 30
+    traintest_data_len = 60
 
     # Series Number for output training/testing data set pairs
-    SN = "375"
+    SN = "385"
         
     # ZigZag parameters
-    deviation = 0.0025  # Percentage
+    deviation = 0.0015  # Percentage
+    #deviation = 0.002  # Percentage
         
     symbol = "SPX"
     #symbol = "MES=F"

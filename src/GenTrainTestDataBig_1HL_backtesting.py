@@ -31,191 +31,74 @@ def cut_slice(ohlc_df, start_index, end_index):
     # Create a copy of the section of the original DataFrame
     # Start from start_pos up to and including end_pos
     section_df = ohlc_df.iloc[start_pos:end_pos + 1].copy()
-    section_df.drop(['Open', 'High', 'Low', 'Volume'], axis=1, inplace=True)
+    section_df.drop(['Volume'], axis=1, inplace=True)
     
+    if IsDebug:
+        print (section_df)
+        
     return section_df
 
 
-def gen_hold_list_index(df):
-    """
-    Generates new index numbers by inserting two integers evenly between consecutive index numbers.
 
-    Args:
-        df (pd.DataFrame): Input DataFrame.
-
-    Returns:
-        list: List of newly generated index numbers.
-    """
-    index_column = df.index
-    new_index = []
-
-    for i in range(len(index_column) - 1):
-        steps = (index_column[i+1] - index_column[i]) // 3
-        new_index.append(index_column[i]+steps)
-        new_index.append(index_column[i]+steps*2)
-
-    # Add the last index
-    new_index.append(index_column[-1])
-
-    return new_index 
-
-
-def list_to_string(price_list):
-    return ', '.join(map(str, price_list))
-
-# Convert training data list to string           
-def convert_list_to_string(tddf_list):
-    formatted_strings = []
-    for section_df in tddf_list:
-        formatted_str = "["
-        for index, row in section_df.iterrows():
-            formatted_str += "({}, {}, {}), ".format(index, row['Price'], row['Volume'])
-        formatted_str = formatted_str[:-2]  # Remove the last comma and space
-        formatted_str += "]"
-        formatted_strings.append(formatted_str)
-    return formatted_strings
-    
-def convert_to_day_and_time(timestamp):
-    # Get the day of the week (Monday=0, Sunday=6)
-    day_of_week_numeric = timestamp.weekday() + 1
-
-    # Convert the timestamp to a datetime object (to handle timezone)
-    dt = timestamp.to_pydatetime()
-
-    # Calculate the time in float format
-    time_float = dt.hour + dt.minute / 60 + dt.second / 3600
-
-    return day_of_week_numeric, time_float
-
-# Normalization function
-def normalize(series):
-    return (series - series.min()) / (series.max() - series.min())
-
-def gen_list(processing_df):
-    price_list = []
-
-    processing_df['Normalized_Price'] = normalize(processing_df['Close'])
-    
-    if IsDebug:
-        print(processing_df)
-        plot_prices(processing_df)
-    
-    for j in range(0, len(processing_df)):
-
-        normalized_price_current = processing_df.iloc[j]['Normalized_Price']
-        index_current = processing_df.index[j]
+def write_backtesting_data(TradePosition, processing_df, csvfile, first_write):
+    # Decide the file mode and whether to write the header
+    if first_write:
+        mode = 'w'  # Write mode for the first round
+        header = True
+    else:
+        mode = 'a'  # Append mode for subsequent rounds
+        header = False
         
-        #price_list.append((index_current, normalized_price_current))
-        price_list.append((normalized_price_current))
-
-    return price_list
-
-    # Example usage:
-    # acceleration_data = calculate_acceleration(velocity_list)
-
-def write_training_data(TradePosition, acceleration_list, csvfile):
-    # Initialize an empty string to store the result
-    #result = ""
-    
-    trainingdata_str = list_to_string(acceleration_list)
-    
-    # Iterate over each tuple in the acceleration_list
-    # for acceleration_tuple in acceleration_list:
-    #     # Convert each element of the tuple to a string and concatenate them
-    #     result += ",".join(map(str, acceleration_tuple)) 
-    
     if (TradePosition is TradePosition.SHORT):        
-        result = "0,1," + trainingdata_str + "\n"
-        if IsDebug:
-            print(result)
-        # Parse the input string into separate fields
-        #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
-        csvfile.write(result)
+        # result = "0,1," + backtestingdata_str + "\n"
+        # if IsDebug:
+        #     print(result)
+        # # Parse the input string into separate fields
+        # #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
+        # csvfile.write(result)
         return
     
     if (TradePosition is TradePosition.LONG):
-        result = "1,0," + trainingdata_str + "\n"
         if IsDebug:
-            print(result)
-        # Parse the input string into separate fields
-        #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
-        csvfile.write(result)
-
-    return
-
-
-def write_testing_data(TradePosition, acceleration_list, csvfile):
-    # for testing data, the first number is index of "LONG, SHORT" series!
-    # so if it's LONG, SHORT is 1;
+            print(processing_df)
+            plot_prices(processing_df)
     
-    trainingdata_str = list_to_string(acceleration_list)
-   
-    if (TradePosition is TradePosition.LONG):
-        result = "0," + trainingdata_str + "\n"
-        if IsDebug:
-            print(result)
-    
-        csvfile.write(result)
-        return
+        # Select the first and last row of data
+        result_df = pd.concat([processing_df.iloc[[0]], processing_df.iloc[[-1]]])
 
+        # Add the 'Signal' column with 1 for the first row and -1 for the last row
+        result_df['Signal'] = [1, -1]
         
-    if (TradePosition is TradePosition.SHORT):        
-        result = "1," + trainingdata_str + "\n"
         if IsDebug:
-            print(result)
+            print(result_df)
+
+        # Append the data to the CSV file, using the header only for the first call
+        result_df.to_csv(csvfile, mode=mode, header=header, index=True)
         
-        csvfile.write(result)
-            
     return
 
 
 
-def generate_training_data(tddf_highlow_list, position):
-    
-    filename = 'stockdata/TrainingDataGenLog_'+ str(position)+".log"
-    # Open a file in write mode
-    outputfile = open(filename, 'w')
-     
-    # Iterate over each tuple in tddf_highlow_list starting from the second tuple
+def generate_training_data(csvfile, tddf_highlow_list, position):
+    # Initialize flag to control whether to write header and not append
+    first_write = True
+
+    # Iterate over each tuple in tddf_highlow_list
     for i in range(0, len(tddf_highlow_list)):
         processing_df = tddf_highlow_list[i]
+
         if IsDebug:
             print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
-            
-        tddf_price_list = gen_list(processing_df)
-        if IsDebug:
-            print("\nCalculated price list length:", len(tddf_price_list), "\n",tddf_price_list) 
 
         if IsDebug:
-            print("\nGenerate training data:")
+            print("\nGenerate backtesting data:")
 
-        write_training_data(position, tddf_price_list, datafile)
-    
-    outputfile.close()    
-    return
+        # Write backtesting data, managing the first write flag
+        write_backtesting_data(position, processing_df, csvfile, first_write)
 
-def generate_testing_data(tddf_highlow_list, position):
-    
-    filename = 'stockdata/TestingDataGenLog_'+ str(position)+".log"
-    # Open a file in write mode
-    outputfile = open(filename, 'w')
- 
-    # Iterate over each tuple in tddf_highlow_list starting from the second tuple
-    for i in range(0, len(tddf_highlow_list)):
-        processing_df = tddf_highlow_list[i]
-        if IsDebug:
-            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
-            
-        tddf_price_list = gen_list(processing_df)
-        if IsDebug:
-            print("\nCalculated price list length:", len(tddf_price_list), "\n",tddf_price_list) 
-        
-        if IsDebug:
-            print("\nGenerate training data:")
+        # After the first write, set first_write to False to use append mode next time
+        first_write = False
 
-        write_testing_data(position, tddf_price_list, datafile)
-    
-    outputfile.close()    
     return
 
 
@@ -237,20 +120,29 @@ def plot_prices(df):
     ax1.set_ylim(df['Close'].min(), df['Close'].max())
 
     # Create a twin y-axis to plot Normalized Price
-    ax2 = ax1.twinx()
-    ax2.plot(df.index, df['Normalized_Price'], color='red', label='Normalized Price', linestyle='-', marker='x')
-    ax2.set_ylabel('Normalized Price', color='red')
-    ax2.tick_params(axis='y', labelcolor='red')
-    ax2.set_ylim(df['Normalized_Price'].min(), df['Normalized_Price'].max())
+    # ax2 = ax1.twinx()
+    # ax2.plot(df.index, df['Normalized_Price'], color='red', label='Normalized Price', linestyle='-', marker='x')
+    # ax2.set_ylabel('Normalized Price', color='red')
+    # ax2.tick_params(axis='y', labelcolor='red')
+    # ax2.set_ylim(df['Normalized_Price'].min(), df['Normalized_Price'].max())
 
     # Add a legend to differentiate the plots
+    # lines_1, labels_1 = ax1.get_legend_handles_labels()
+    # lines_2, labels_2 = ax2.get_legend_handles_labels()
+    # ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper left')
+
+    # fig.tight_layout()
+    # plt.title('Close Price and Normalized Price')
+    # plt.show()
+    
+    # Add a legend to differentiate the plots
     lines_1, labels_1 = ax1.get_legend_handles_labels()
-    lines_2, labels_2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper left')
+    ax1.legend(lines_1, labels_1, loc='upper left')
 
     fig.tight_layout()
-    plt.title('Close Price and Normalized Price')
+    plt.title('Close Price Price')
     plt.show()
+
 
 
 
@@ -260,7 +152,7 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
     
     # Initialize variables
     in_long_position = False  # Track whether we are in a buy position
-    previous_point = None
+    #previous_point = None
     buy_time = None
     sell_time = None
     hold_time = None  
@@ -292,17 +184,14 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                 hold_time = sell_time - buy_time                
                 profit = sell_price - buy_price - longtradecost
                 if profit > 0: 
-                    if previous_point is not None:
-                        section_df = cut_slice(ohlc_df, previous_point, sell_time)                        
-                    else:
-                        section_df = cut_slice(ohlc_df, buy_time, sell_time)
+                    section_df = cut_slice(ohlc_df, buy_time, sell_time)
                         
                     if (section_df is not None):
                         #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
                         long_list.append(section_df) 
                         
                     in_long_position = False
-                    previous_point = buy_time
+                    #previous_point = buy_time
                     if IsDebug:
                         print(f"At {time}, LONG sell price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
                 
@@ -357,17 +246,14 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                 hold_time = sell_time - buy_time                   
                 profit = -1 * (sell_price - buy_price) - shorttradecost
                 if profit > 0: 
-                    if previous_point is not None:
-                        section_df = cut_slice(ohlc_df, previous_point, sell_time)                        
-                    else:
-                        section_df = cut_slice(ohlc_df, buy_time, sell_time)
+                    section_df = cut_slice(ohlc_df, buy_time, sell_time)
                         
                     if (section_df is not None):
                         #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
                         short_list.append(section_df) 
                     
                     in_short_position = False
-                    previous_point = buy_time
+                    #previous_point = buy_time
                     if IsDebug:
                         print(f"At {time}, SHORT buy  price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
                     
@@ -387,7 +273,6 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
             print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
 
     return short_list, long_list
-
 
 
 def gen_highlow_list(query_start, query_end):
@@ -462,8 +347,10 @@ def gen_highlow_list(query_start, query_end):
     short_list, long_list = check_patterns(ohlc_df, patterns_df)
     return short_list, long_list
 
+
+
 #
-# ================================================================================#
+# ================================== MAIN ==============================================#
 if __name__ == "__main__":
     print(pd.__version__)
     #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
@@ -473,26 +360,20 @@ if __name__ == "__main__":
         format=' %(levelname)s => %(message)s'
         )
 
-    IsDebug = True
-
-    #Trainning Data Length
-    # average number of working days in a month is 21.7, based on a five-day workweek
-    # so 45 days is total for two months working days
-    # 200 days is one year working days
-    #tdLen = 30
+    IsDebug = False
 
     # Series Number for output training/testing data set pairs
-    SN = "375"
+    SN = "101"
         
     # ZigZag parameters
-    deviation = 0.0025  # Percentage
+    deviation = 0.0015  # Percentage
         
-    symbol = "SPX"
+    #symbol = "SPX"
     #symbol = "MES=F"
 
     # Define the table name as a string variable
     table_name = "SPX_1m"
-    #table_name = "MES=F_1m"
+
     # Define the SQLite database file directory
     data_dir = "data"
 
@@ -504,42 +385,20 @@ if __name__ == "__main__":
     
     #============================= Training Data ============================================#
     training_start_date = "2023-01-01"
-    training_end_date = "2023-06-31"
+    training_end_date = "2023-12-31"
 
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
     print("Current date and time:", formatted_now)
     
     tddf_short_list, tddf_long_list = gen_highlow_list(training_start_date, training_end_date)
-    if IsDebug:
-        print(f"tddf_short_list length:{len(tddf_short_list)}\n")
-        print(f"tddf_long_list length:{len(tddf_long_list)}\n")
+    #if IsDebug:
+    print(f"tddf_short_list length:{len(tddf_short_list)}\n")
+    print(f"tddf_long_list length:{len(tddf_long_list)}\n")
 
-    td_file = os.path.join(data_dir, f"{table_name}_TrainingData_2HL_{SN}.csv")
+    td_file = os.path.join(data_dir, f"{table_name}_Backtesting_{SN}.csv")
 
-    with open(td_file, "w") as datafile:
-        generate_training_data(tddf_long_list, TradePosition.LONG)
-        generate_training_data(tddf_short_list, TradePosition.SHORT)
+    generate_training_data(td_file, tddf_long_list, TradePosition.LONG)
+    #generate_training_data(tddf_short_list, TradePosition.SHORT)
         
 
-
-    #============================= Testing Data ============================================#
-    testing_start_date = "2023-03-01"
-    testing_end_date = "2023-06-31"
-    
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
-
-    tddf_short_list, tddf_long_list = gen_highlow_list(testing_start_date, testing_end_date)
-
-    td_file = os.path.join(data_dir, f"{table_name}_TestingData_2HL_{SN}.csv")
-
-    with open(td_file, "w") as datafile:
-        #generate_training_data(patterns_df)
-        generate_testing_data(tddf_long_list, TradePosition.LONG)
-        generate_testing_data(tddf_short_list, TradePosition.SHORT)
-
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
