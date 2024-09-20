@@ -149,6 +149,8 @@ def plot_prices(df):
 def check_patterns(ohlc_df, patterns_df, IsDebug = True):
     short_list = []
     long_list = []
+    long_profit= []
+    short_profit = []
     
     # Initialize variables
     in_long_position = False  # Track whether we are in a buy position
@@ -184,6 +186,7 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                 hold_time = sell_time - buy_time                
                 profit = sell_price - buy_price - longtradecost
                 if profit > 0: 
+                    long_profit.append(np.floor(profit))
                     section_df = cut_slice(ohlc_df, buy_time, sell_time)
                         
                     if (section_df is not None):
@@ -209,6 +212,8 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
         else:
             print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
     
+    total_long_profit = sum(long_profit)
+    print(total_long_profit)
     if IsDebug:
         print("\n\n=======================================================================\n\n")
         
@@ -245,7 +250,8 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
                 sell_time = idx
                 hold_time = sell_time - buy_time                   
                 profit = -1 * (sell_price - buy_price) - shorttradecost
-                if profit > 0: 
+                if profit > 0:
+                    short_profit.append(np.floor(profit)) 
                     section_df = cut_slice(ohlc_df, buy_time, sell_time)
                         
                     if (section_df is not None):
@@ -271,7 +277,10 @@ def check_patterns(ohlc_df, patterns_df, IsDebug = True):
         
         else:
             print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
-
+    
+    total_short_profit = sum(short_profit)
+    print(total_short_profit)
+    
     return short_list, long_list
 
 
@@ -366,7 +375,7 @@ if __name__ == "__main__":
     SN = "101"
         
     # ZigZag parameters
-    deviation = 0.0015  # Percentage
+    deviation = 0.0010  # Percentage
         
     #symbol = "SPX"
     #symbol = "MES=F"
@@ -380,8 +389,8 @@ if __name__ == "__main__":
     db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
     
     # tradecost for each trade
-    longtradecost = 5.00
-    shorttradecost = 15.00
+    longtradecost = 1.00
+    shorttradecost = 1.00
     
     #============================= Training Data ============================================#
     training_start_date = "2023-01-01"
