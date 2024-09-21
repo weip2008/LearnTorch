@@ -27,7 +27,7 @@ def cut_slice(ohlc_df, end_index, traintest_data_len):
     # Get the positional indices of the timestamps
     end_pos = ohlc_df.index.get_loc(end_index)  
     #start_pos = ohlc_df.index.get_loc(start_index)
-    start_pos = end_pos - traintest_data_len + 2
+    start_pos = end_pos - traintest_data_len 
     end_pos = end_pos + 2    # ADD one more step after reach H/L point!!! add one more for Python nature
     
     # Ensure start_pos is less than or equal to end_pos
@@ -105,6 +105,117 @@ def convert_to_day_and_time(timestamp):
 # Normalization function
 def normalize(series):
     return (series - series.min()) / (series.max() - series.min())
+
+
+def calculate_velocity(processing_df):
+    velocity_list = []
+    
+    # Find the lowest price and corresponding volume in the DataFrame
+    #lowest_price, corresponding_volume = find_lowest_price_with_volume(processing_df)
+    
+    # Normalize 'Volume' and 'Price'
+    #processing_df['Normalized_Volume'] = normalize(processing_df['Volume'])
+    processing_df['Normalized_Price'] = normalize(processing_df['Close'])
+    
+    if IsDebug:
+        print(processing_df)
+    
+    for j in range(0, len(processing_df)-1):
+        # Extract Price from the current and previous rows
+        price_current = processing_df.iloc[j]['Close']
+        price_next = processing_df.iloc[j+1]['Close']
+        normalized_price_current = processing_df.iloc[j]['Normalized_Price']
+        normalized_price_next = processing_df.iloc[j+1]['Normalized_Price']
+
+        #print("Price_current:", Price_current)
+        #print("Price_previous:", Price_previous)
+        
+        #dY = price_current - price_previous
+        dY = normalized_price_next - normalized_price_current 
+        #print("dY:", dY)
+        
+        # Extract timestamps from the current and previous rows
+        #index_previous = processing_df.index[j - 1]
+        index_current = processing_df.index[j]
+        index_next = processing_df.index[j+1]
+        #print("index_current:", index_current)
+        #print("index_previous:", index_next)
+        
+        #dT = (index_next - index_current) / pd.Timedelta(minutes=1)  
+        #dT = index_current - index_previous 
+        #dT = (index_next - index_current) / tdLen
+        loc_current = processing_df.index.get_loc(index_current)
+        loc_next = processing_df.index.get_loc(index_next)
+
+        # Calculate dT based on the difference of locations
+        dT = loc_next - loc_current
+        #print("dT:", dT)
+                
+        # Calculate the velocity (dY/dT)
+        velocity = dY / dT
+        #print("velocity:", velocity)
+        
+        #datetime_current = processing_df.iloc[j]['Datetime']
+        #volume_current = processing_df.iloc[j]['Volume']
+        #normalized_volum_current = processing_df.iloc[j]['Normalized_Volume']
+        # Append the tuple with the "Velocity" column to tdohlc_df_high_velocity_list
+        velocity_list.append((index_current, normalized_price_current, velocity))
+
+    return velocity_list
+
+
+def calculate_acceleration(velocity_list):
+    """
+    Calculate acceleration based on a list of tuples containing velocity data.
+
+    Parameters:
+    - velocity_list: A list of tuples where each tuple contains velocity data.
+                     The tuple structure is assumed to be (index, Price, bb_bbm, velocity).
+
+    Returns:
+    - A list of tuples with the "Acceleration" column added.
+    """
+
+    acceleration_list = []
+
+    # Iterate over each tuple in velocity_list starting from the second tuple
+    for i in range(0, len(velocity_list)-1):
+        # Extract velocity data from the current and next tuples
+        next_tuple = velocity_list[i+1] 
+        current_tuple = velocity_list[i]
+        #previous_tuple = velocity_list[i - 1]
+
+        velocity_next = next_tuple[2]
+        velocity_current = current_tuple[2]  # velocity is stored at index 2 in the tuple
+        #velocity_previous = previous_tuple[2]
+
+        # Calculate the change in velocity
+        dV = velocity_next - velocity_current 
+        
+        #index_current = velocity_list[i].index
+        #index_previous = velocity_list[i-1].index
+        index_current = i
+        index_next = i+1
+        i#ndex_previous = i-1
+        #dT = index_current - index_previous
+        dT = index_next - index_current
+        
+        # Calculate acceleration (dV/dT)
+        acceleration = dV / dT
+        
+        #current_time = pd.to_datetime(current_tuple[0])
+        current_time = current_tuple[0]
+        #day_of_week_numeric, time_float = convert_to_day_and_time(index_current)
+        day_of_week_numeric, time_float = convert_to_day_and_time(current_time)
+
+        # Append the tuple with the "Acceleration" column to acceleration_list
+        #acceleration_list.append((index_current, current_tuple[1], velocity_current, acceleration))
+        acceleration_list.append((day_of_week_numeric, time_float, 
+                                  current_tuple[1],  current_tuple[2], acceleration))
+
+    return acceleration_list
+
+
 
 def gen_list(processing_df):
     price_list = []
@@ -187,7 +298,7 @@ def write_testing_data(TradePosition, data_list, csvfile):
 
 
 
-def generate_training_data(tddf_highlow_list, position):
+def generate_training_data(tddf_highlow_list, position, IsDebug=False):
     
     filename = 'stockdata/TrainingDataGenLog_'+ str(position)+".log"
     # Open a file in write mode
@@ -199,20 +310,28 @@ def generate_training_data(tddf_highlow_list, position):
         if IsDebug:
             print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
             
-        tddf_price_list = gen_list(processing_df)
+        #tddf_price_list = gen_list(processing_df)
+        tddf_velocity_list = calculate_velocity(processing_df)
         if IsDebug:
-            print("\nNormalized price list length:", len(tddf_price_list), "\n",tddf_price_list) 
-
+            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
+        
+        tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
+        if IsDebug:
+            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
+        
         if IsDebug:
             print("\nGenerate training data:")
-
+        
         # Write lengths to the file in the desired format
         outputfile.write(
-            f"{len(processing_df)}\n"
+            f"{len(processing_df)},"
+            f"{len(tddf_velocity_list)},"
+            f"{len(tddf_acceleration_list)}\n"
         ) 
         
-        write_training_data(position, tddf_price_list, datafile)
+        write_training_data(position, tddf_acceleration_list, datafile)
     
+        #print(i)
     outputfile.close()    
     return
 
@@ -228,20 +347,28 @@ def generate_testing_data(tddf_highlow_list, position):
         if IsDebug:
             print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
             
-        tddf_price_list = gen_list(processing_df)
+        #tddf_price_list = gen_list(processing_df)
+        tddf_velocity_list = calculate_velocity(processing_df)
         if IsDebug:
-            print("\nCalculated price list length:", len(tddf_price_list), "\n",tddf_price_list) 
+            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
+        
+        tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
+        if IsDebug:
+            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
         
         if IsDebug:
             print("\nGenerate testing data:")
-
+        
         # Write lengths to the file in the desired format
         outputfile.write(
-            f"{len(processing_df)}\n"
+            f"{len(processing_df)},"
+            f"{len(tddf_velocity_list)},"
+            f"{len(tddf_acceleration_list)}\n"
         ) 
         
-        write_testing_data(position, tddf_price_list, datafile)
+        write_testing_data(position, tddf_acceleration_list, datafile)
     
+        #print(i)
     outputfile.close()    
     return
 
@@ -263,7 +390,7 @@ def plot_prices(df):
     ax1.tick_params(axis='y', labelcolor='blue')
     ax1.set_ylim(df['Close'].min(), df['Close'].max())
 
-    '''# Create a twin y-axis to plot Normalized Price
+    # Create a twin y-axis to plot Normalized Price
     ax2 = ax1.twinx()
     ax2.plot(df.index, df['Normalized_Price'], color='red', label='Normalized Price', linestyle='-', marker='x')
     ax2.set_ylabel('Normalized Price', color='red')
@@ -277,18 +404,10 @@ def plot_prices(df):
 
     fig.tight_layout()
     plt.title('Close Price and Normalized Price')
-    plt.show() '''
+    plt.show() 
     
-
-
-    # Add a legend to differentiate the plots
-    lines_1, labels_1 = ax1.get_legend_handles_labels()
-
-    ax1.legend(lines_1 , labels_1 , loc='upper left')
-
-    fig.tight_layout()
-    plt.title('Close Price')
-
+    return
+  
 
 def check_patterns_length(ohlc_df, patterns_df, traintest_data_len, IsDebug=False):
     short_list = []
@@ -701,7 +820,7 @@ if __name__ == "__main__":
     traintest_data_len = 60
  
     # Series Number for output training/testing data set pairs
-    SN = "200"
+    SN = "300"
         
     # ZigZag parameters
     deviation = 0.0010  # Percentage
