@@ -43,7 +43,7 @@ def cut_slice(ohlc_df, end_index, traintest_data_len):
     #    print(e)    
     
     # for last section, maybe not enough data for a slice
-    if (len(section_df) < traintest_data_len):   
+    if (len(section_df) < (traintest_data_len+2)):   
         return None
    
     section_df.drop(['Open', 'High', 'Low', 'Volume'], axis=1, inplace=True)
@@ -75,8 +75,11 @@ def gen_hold_list_index(df):
     return new_index 
 
 
-def list_to_string(price_list):
+def list_to_string1(price_list):
     return ', '.join(map(str, price_list))
+
+def list_to_string(price_list):
+    return '[' + ', '.join(map(str, price_list)) + ']'
 
 # Convert training data list to string           
 def convert_list_to_string(tddf_list):
@@ -820,7 +823,7 @@ if __name__ == "__main__":
     traintest_data_len = 60
  
     # Series Number for output training/testing data set pairs
-    SN = "300"
+    SN = "400"
         
     # ZigZag parameters
     deviation = 0.0010  # Percentage

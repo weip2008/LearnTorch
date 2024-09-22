@@ -9,96 +9,116 @@ from datetime import datetime
 
 
 
-file_path = 'data/SPX_1m_TrainingData_HL_80_200.txt'
-save_path = 'GRU_model_with_LH_fixlen_data_200.pth'
+file_path = 'data/SPX_1m_TrainingData_HL_80_400.txt'
+save_path = 'GRU_model_with_LH_fixlen_data_201.pth'
 
 import numpy as np
 
-def load_data(file_path):
+
+def load_training_data(file_path):
+    data = []
+    signals = []
+
+    with open(file_path, 'r') as file:
+        for line in file:
+            # Split the line into data and target parts
+            signals_part, data_part = line.strip().split(',[')
+            
+            signal = int(signals_part.split(',')[0])
+            signals.append(signal)
+            
+            # Add the beginning bracket to the data part and opening bracket to the target part
+            data_part = '[' + data_part
+            
+            # Convert the string representations to actual lists
+            data_row = eval(data_part)
+            
+            # Append to the respective lists
+            data.append(data_row)
+            #targets.append(target_row[0])  # Ensure target_row is a 1D array
+    
+    # Convert lists to numpy arrays
+    data_np = np.array(data)
+    signals_np = np.array(signals).reshape(-1, 1)  # Reshape to (6883, 1)
+    
+    return data_np, signals_np
+
+def load_training_data1(file_path):
     data = []
     signals = []
     
     with open(file_path, 'r') as file:
         for line in file:
-            # Remove any surrounding whitespace and newline characters
-            line = line.strip()
+            # Split the line into signal part and data part
+            parts = line.strip().split('), (')
+            signal = int(parts[0].split(',')[0])
+            signals.append(signal)
             
-            # Split the line into 3 parts: signal, discard second number, and data part
-            parts = line.split(',', 2)  # Split into 3 parts: signal, discard, and the rest
+            # Process the tuples
+            tuples = []
+            for part in parts[1:]:
+                part = part.replace('(', '').replace(')', '')
+                elements = part.split(',')
+                elements = [float(e) for e in elements]  # Convert each element to float
+                tuples.append(elements)
             
-            # Extract the first part as the signal (keep the first number only)
-            data_signal = int(parts[0])  # Either '1' or '0'
-            
-            # The third part is the data series (normalized data)
-            data_part = parts[2]  # The rest of the line after dropping the second number
-            
-            # Convert the data part (comma-separated string) to a list of floats
-            data_row = [float(x) for x in data_part.split(',')]
-            
-            # Append the signal and data row to respective lists
-            signals.append(data_signal)
-            data.append(data_row)
-            
-    # Convert lists to NumPy arrays
-    signals_np = np.array(signals).reshape(-1, 1)  # Reshape to (6883, 1)
-    data_np = np.array(data)  # Should already be of shape (6883, 80)
+            data.append(tuples)
     
-    return data_np, signals_np
+    # Convert lists to numpy arrays
+    signals = np.array(signals)
+    data = np.array([np.array(row, dtype=float) for row in data], dtype=float)
+    
+    return data, signals
+
 
 # Example usage
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print(f"1. Load training data from {file_path}")
-data, signals = load_data(file_path)
+data, signals = load_training_data(file_path)
 
 print("Data shape:", data.shape)
 print("Targets shape:", signals.shape)
-print(data)
-print(signals)
+#print(data)
+#print(signals)
 
 
 
 # Custom dataset class for loading signals and data
 class TimeSeriesDataset(Dataset):
-    def __init__(self, signals, data):
-        self.signals = signals
+    def __init__(self, data, signals):
         self.data = data
-    
+        self.signals = signals
+
     def __len__(self):
         return len(self.data)
-    
+
     def __getitem__(self, idx):
-        # Return the data and its corresponding signal
-        return torch.tensor(self.data[idx], dtype=torch.float32), torch.tensor(self.signals[idx], dtype=torch.float32)
+        x = self.data[idx]
+        y = self.signals[idx]
+        return torch.tensor(x, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
 
 # Instantiate the dataset
-dataset = TimeSeriesDataset(signals, data)
+print("2. Define dataset and dataloader")
+print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+dataset = TimeSeriesDataset(data, signals)
 
 # Create DataLoader for batching
 batch_size = 32  # You can change the batch size as needed
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-# Define the GRU model
+# Define the GRU model with 2 layers
 class GRUModel(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers=2):  # Default set to 2 layers now
+    def __init__(self, input_size, hidden_size, output_size, num_layers=1):
         super(GRUModel, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        
-        # GRU layer with multiple layers
         self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True)
-        
-        # Fully connected layer to map hidden state to output
         self.fc = nn.Linear(hidden_size, output_size)
-    
+
     def forward(self, x):
-        # Initialize hidden state with zeros for all layers
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
-        
-        # Pass through GRU
         out, _ = self.gru(x, h0)
-        
-        # Pass the last hidden state output to the fully connected layer
-        out = self.fc(out[:, -1, :])  # Take the output of the last time step
+        out = self.fc(out[:, -1, :])
         return out
 
 # Instantiate the model, define the loss function and the optimizer
@@ -106,9 +126,9 @@ print("3. Instantiate the model, define the loss function and the optimize")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 # Define hyperparameters
-input_size = 80  # Number of features (length of each input sequence)
-hidden_size = 64  # Number of hidden units in the GRU
-output_size = 1   # Output size (1 for binary classification)
+input_size = 5  # Number of features in each tuple
+hidden_size = 64  # Number of features in the hidden state
+output_size = 1  # Number of output features (signal)
 num_layers = 2    # Number of GRU layers
 learning_rate = 0.0001  # Learning rate
 
@@ -116,11 +136,12 @@ learning_rate = 0.0001  # Learning rate
 model = GRUModel(input_size, hidden_size, output_size, num_layers)
 
 # Move model to GPU if available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#model.to(device)
 
 # Loss function: Binary Cross Entropy Loss
-criterion = nn.BCEWithLogitsLoss()  # Use with sigmoid for binary classification
+#criterion = nn.BCEWithLogitsLoss()  # Use with sigmoid for binary classification
+criterion = nn.MSELoss()
 
 # Optimizer: Adam
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -138,33 +159,32 @@ losses = []
 # Training loop
 num_epochs = 50  # Change as needed
 
+# Training loop
 for epoch in range(num_epochs):
-    model.train()  # Set the model to training mode
-    running_loss = 0.0
-    
-    for data, signals in dataloader:
-        # Move data and signals to the same device as the model
-        data, signals = data.to(device), signals.to(device)
+    epoch_start_time = time.time()
+    epoch_loss = 0
+    for inputs, targets in dataloader:
         
-        # Reshape data for GRU input (batch_size, sequence_length, input_size)
-        data = data.unsqueeze(1)  # Add a time dimension since GRU expects 3D input
+        # Move tensors to the appropriate device
+        #inputs, targets = inputs.to(model.device), targets.to(model.device)
         
         # Forward pass
-        outputs = model(data)
-        loss = criterion(outputs, signals)
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
         
         # Backward pass and optimization
-        optimizer.zero_grad()  # Zero the gradient buffers
-        loss.backward()  # Compute the gradients
-        optimizer.step()  # Update the model parameters
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
         
-        running_loss += loss.item() * data.size(0)
+        epoch_loss += loss.item()
     
-    # Compute epoch loss
-    epoch_loss = running_loss / len(dataset)
-    losses.append(epoch_loss)  # Store the loss for this epoch
-    
-    print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.6f}')
+    avg_epoch_loss = epoch_loss / len(dataloader)
+    losses.append(avg_epoch_loss)
+    #print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {avg_epoch_loss:.4f}')
+    epoch_end_time = time.time()
+    epoch_duration = epoch_end_time - epoch_start_time  # Duration in seconds
+    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_epoch_loss:.6f}, Duration: {epoch_duration:.2f} seconds')
 
 # Save the model, optimizer state, and losses
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
