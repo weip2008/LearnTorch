@@ -10,7 +10,7 @@ from datetime import datetime
 
 
 file_path = 'data/SPX_1m_TrainingData_HL_80_400.txt'
-save_path = 'GRU_model_with_LH_fixlen_data_201.pth'
+save_path = 'GRU_model_with_LH_fixlen_data_205.pth'
 
 import numpy as np
 
@@ -108,7 +108,7 @@ dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 # Define the GRU model with 2 layers
 class GRUModel(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers=1):
+    def __init__(self, input_size, hidden_size, output_size, num_layers):
         super(GRUModel, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
@@ -129,10 +129,11 @@ print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 input_size = 5  # Number of features in each tuple
 hidden_size = 64  # Number of features in the hidden state
 output_size = 1  # Number of output features (signal)
-num_layers = 2    # Number of GRU layers
+num_layers = 5    # Number of GRU layers
 learning_rate = 0.0001  # Learning rate
 
 # Instantiate the model
+print(f"Number of layers: {num_layers}")
 model = GRUModel(input_size, hidden_size, output_size, num_layers)
 
 # Move model to GPU if available
