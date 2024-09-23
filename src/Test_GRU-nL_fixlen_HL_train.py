@@ -9,9 +9,9 @@ from datetime import datetime
 
 
 
-training_file_path = 'data/SPX_1m_TrainingData_HL_80_400.txt'
-testing_file_path  = 'data/SPX_1m_TestingData_HL_80_400.txt'
-save_path = 'GRU_model_with_LH_fixlen_data_205.pth'
+training_file_path = 'data/SPX_1m_TrainingData_HL_80_410.txt'
+testing_file_path  = 'data/SPX_1m_TestingData_HL_80_410.txt'
+save_path = 'GRU_model_with_LH_fixlen_data_213.pth'
 
 import numpy as np
 
@@ -40,7 +40,8 @@ def load_training_data(training_file_path):
     
     # Convert lists to numpy arrays
     data_np = np.array(data)
-    signals_np = np.array(signals).reshape(-1, 1)  # Reshape to (6883, 1)
+    signals_np = np.array(signals).reshape(-1, 1)  
+    #signals_np = np.array(signals)  
     
     return data_np, signals_np
 
@@ -70,6 +71,7 @@ def load_testing_data(training_file_path):
     # Convert lists to numpy arrays
     data_np = np.array(data)
     signals_np = np.array(signals).reshape(-1, 1)  # Reshape to (6883, 1)
+    #signals_np = np.array(signals)
     
     return data_np, signals_np
 
@@ -84,7 +86,7 @@ print("Targets shape:", training_signals.shape)
 #print(data)
 #print(signals)
 
-print(f"1.2 Load testing data from {training_file_path}")
+print(f"1.2 Load testing data from {testing_file_path}")
 testing_data, testing_signals = load_testing_data(testing_file_path)
 
 print("Data shape:", testing_data.shape)
@@ -107,15 +109,15 @@ class TimeSeriesDataset(Dataset):
 # Instantiate the dataset
 print("2. Define dataset and dataloader")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-training_dataset = TimeSeriesDataset(training_data, training_signals)
-testing_dataset = TimeSeriesDataset(testing_data, testing_signals)
+train_dataset = TimeSeriesDataset(training_data, training_signals)
+val_dataset = TimeSeriesDataset(testing_data, testing_signals)
 
 # Create DataLoader for batching
 batch_size = 32  # You can change the batch size as needed
 # Training dataloader with shuffling
-training_dataloader = DataLoader(training_dataset, batch_size=batch_size, shuffle=True)
-# Testing dataloader without shuffling
-testing_dataloader = DataLoader(testing_dataset, batch_size=batch_size, shuffle=False)
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+# Validation dataloader with shuffling
+val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
 
 # Define the GRU model with 2 layers
 class GRUModel(nn.Module):
@@ -166,22 +168,17 @@ print("4. Start training loop")
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 # Hyperparameters
-learning_rate = 0.001
-num_epochs = 10
-
-# Loss and optimizer
-criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+num_epochs = 20
 
 # List to store losses
 train_losses = []
-test_losses = []
+val_losses = []
 
 for epoch in range(num_epochs):
     epoch_start_time = time.time()
     model.train()
     epoch_loss = 0
-    for inputs, targets in training_dataloader:
+    for inputs, targets in train_dataloader:
         outputs = model(inputs)
         loss = criterion(outputs, targets)
         optimizer.zero_grad()
@@ -189,7 +186,7 @@ for epoch in range(num_epochs):
         optimizer.step()
         epoch_loss += loss.item()
     
-    avg_epoch_loss = epoch_loss / len(training_dataloader)
+    avg_epoch_loss = epoch_loss / len(train_dataloader)
     train_losses.append(avg_epoch_loss)
     #print(f'Epoch [{epoch+1}/{num_epochs}], Training Loss: {avg_epoch_loss:.4f}')
     epoch_end_time = time.time()
@@ -197,16 +194,16 @@ for epoch in range(num_epochs):
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_epoch_loss:.6f}, Duration: {epoch_duration:.2f} seconds')
     
     
-    # Testing loss
+    # Validation loss
     model.eval()
-    test_loss = 0
+    val_loss = 0
     with torch.no_grad():
-        for test_inputs, test_targets in testing_dataloader:
-            test_outputs = model(test_inputs)
-            test_loss += criterion(test_outputs, test_targets).item()
-    avg_test_loss = test_loss / len(testing_dataloader)
-    test_losses.append(avg_test_loss)
-    print(f'    Testing Loss: {avg_test_loss:.6f}')
+        for val_inputs, val_targets in val_dataloader:
+            val_outputs = model(val_inputs)
+            val_loss += criterion(val_outputs, val_targets).item()
+    avg_val_loss = val_loss / len(val_dataloader)
+    val_losses.append(avg_val_loss)
+    print(f' Validation Loss: {avg_val_loss:.6f}')
     
     
 # Save the model, optimizer state, and losses
@@ -216,7 +213,7 @@ torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
     'train_losses': train_losses,
-    'test_losses': test_losses
+    'test_losses': val_losses
 }, save_path)
 
 

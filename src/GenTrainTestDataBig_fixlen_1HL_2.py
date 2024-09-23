@@ -1,4 +1,8 @@
 # This version read source data from SQLite database tables
+#
+# [1,0] stand for sell
+# [0,1] stand for buy
+# [0,1,1,0] test data means 4 set of [sell, buy, buy, sell]
 
 import sqlite3
 from datetime import datetime
@@ -227,7 +231,7 @@ def gen_list(processing_df):
     
     if IsDebug:
         print(processing_df)
-        #plot_prices(processing_df)
+        plot_prices(processing_df)
     
     for j in range(0, len(processing_df)):
 
@@ -282,7 +286,7 @@ def write_testing_data(TradePosition, data_list, csvfile):
     trainingdata_str = list_to_string(data_list)
    
     if (TradePosition is TradePosition.LONG):
-        result = "0," + trainingdata_str + "\n"
+        result = "1," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
     
@@ -291,7 +295,7 @@ def write_testing_data(TradePosition, data_list, csvfile):
 
         
     if (TradePosition is TradePosition.SHORT):        
-        result = "1," + trainingdata_str + "\n"
+        result = "0," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         
@@ -823,7 +827,7 @@ if __name__ == "__main__":
     traintest_data_len = 60
  
     # Series Number for output training/testing data set pairs
-    SN = "400"
+    SN = "410"
         
     # ZigZag parameters
     deviation = 0.0010  # Percentage
