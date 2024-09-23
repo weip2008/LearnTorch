@@ -605,7 +605,6 @@ def check_short_patterns(ohlc_df, patterns_df, short_traintest_data_len, IsDebug
 
 def gen_zigzag_patterns(query_start, query_end):
     deviation = float(config.deviation)    
-    query_start, query_end= config.training_start_date,config.training_end_date
 
     ds = DataSource()
     ds.queryDB(query_start, query_end)
