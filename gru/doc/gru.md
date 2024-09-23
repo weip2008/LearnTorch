@@ -19,17 +19,19 @@ Data-->Model-->Test
 - [Create GRU Model](#create-gru-model)
   - [Input](#input-1)
   - [Output](#output-1)
-  - [Test the model](#test-the-model)
+- [Test the model](#test-the-model)
   - [Input](#input-2)
   - [Output](#output-2)
 
 ## Todo
 1. change trainning data format
-2. clean code make all definitions at begining
-3. use class
-4. get rid of zigzagplus1.py
-5. optimize Debug
-6. optimize logging
+2. send Test output to a file for future reference
+3. all global variables should read from a configuration file
+4. clean code make all definitions at begining
+5. use class
+6. get rid of zigzagplus1.py
+7. optimize Debug
+8. optimize logging
 
 
 ## Generate Dataset
@@ -69,7 +71,7 @@ SQLite database file: [data/stock_bigdata_2019-2023.db]
 ### Output
 * [/GRU_model_with_LH_fixlen_data_501.pth](/GRU_model_with_LH_fixlen_data_501.pth)
 
-### Test the model
+## Test the model
 * [Test model get R-Square and MSE](../src/test.py)
   
 ### Input
