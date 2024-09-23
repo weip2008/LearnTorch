@@ -122,29 +122,34 @@ def categorize_output(output):
     else:
         return 0.0
 
+# Function to get the model output for a single input row
+def get_model_output(single_input):
+    single_input_tensor = torch.tensor(single_input, dtype=torch.float32).unsqueeze(0)  # Add batch dimension
+    model.eval()  # Set model to evaluation mode
+    with torch.no_grad():  # No need for gradients during testing
+        test_output = model(single_input_tensor)
+    return test_output.item()  # Return the single output as a scalar
+
+
 # Randomly select 10 rows from testing data
 random_indices = random.sample(range(len(testing_data)), sample_size)
-random_samples = testing_data[random_indices]
+random_datas = testing_data[random_indices]
 random_targets = testing_signals[random_indices]
 
-# Convert the random samples to tensor for model input
-random_samples_tensor = torch.tensor(random_samples, dtype=torch.float32)
-
-# Set model to evaluation mode and disable gradients
-model.eval()
-
-# Predict outputs for the random samples
-with torch.no_grad():
-    test_outputs = model(random_samples_tensor)
 
 # Print the output for each selected row
 print("Randomly selected 10 rows and their corresponding outputs:")
 for i in range(sample_size):
-    test_output = test_outputs[i].item()  # Get the predicted value
+    test_data = random_datas[i]
     test_target = random_targets[i].item()  # Get the actual target value
-    categorized_output = categorize_output(test_output)  # Categorize the output
-
+    
+    # Call get_model_output to get the predicted output
+    test_output = get_model_output(test_data)
+    
+    # Call categorize_output to categorize the predicted output
+    categorized_output = categorize_output(test_output)
+    
     # Print the test output, categorized output, and test target
-    print(f"Test Output: {test_output:.4f} => Categorized Output: {categorized_output}, Test Target: {test_target}")
+    print(f"Test Output: {test_output:.4f} => Categorized Output: {categorized_output}, \tTarget: {test_target}")
 
 

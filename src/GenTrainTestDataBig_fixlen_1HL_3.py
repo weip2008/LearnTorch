@@ -830,7 +830,7 @@ if __name__ == "__main__":
     traintest_data_len = 60
  
     # Series Number for output training/testing data set pairs
-    SN = "500"
+    SN = "300"
         
     # ZigZag parameters
     deviation = 0.0010  # Percentage
