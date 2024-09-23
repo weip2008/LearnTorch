@@ -6,15 +6,12 @@ import numpy as np
 import pandas as pd
 import time
 from datetime import datetime
-
-
+import numpy as np
+import random
 
 testing_file_path  = 'data/SPX_1m_TestingData_HL_80_400.txt'
 model_save_path = 'GRU_model_with_LH_fixlen_data_400.pth'
-output_results_path = 'data/SPX_1m_HL_80_500_GRU_fixlen_400.txt'
-
-import numpy as np
-
+sample_size = 20
 
 def load_testing_data(training_file_path):
     data = []
@@ -113,90 +110,42 @@ model = GRUModel(input_size, hidden_size, output_size, num_layers)
 print(f"3. Load trained model from {model_save_path}")
 checkpoint = torch.load(model_save_path)
 model.load_state_dict(checkpoint['model_state_dict'])
-model.eval()  # Set the model to evaluation mode
+#model.eval()  # Set the model to evaluation mode
 
 
-# Loss function: Binary Cross Entropy Loss
-#criterion = nn.BCEWithLogitsLoss()  # Use with sigmoid for binary classification
-criterion = nn.MSELoss()
+# Function to categorize the model output
+def categorize_output(output):
+    if 0.6 <= output <= 1.3:
+        return 1.0
+    elif -1.3 <= output <= -0.6:
+        return -1.0
+    else:
+        return 0.0
+
+# Function to get the model output for a single input row
+def get_model_output(single_input):
+    single_input_tensor = torch.tensor(single_input, dtype=torch.float32).unsqueeze(0)  # Add batch dimension
+    model.eval()  # Set model to evaluation mode
+    with torch.no_grad():  # No need for gradients during testing
+        test_output = model(single_input_tensor)
+    return test_output.item()  # Return the single output as a scalar
 
 
-# Training loop
-print("4. Start testing loop")
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+print(f"4. Pick random row from testing data, use trained model to predict signal.")
+# Generate a random index to select one row from the testing data
+random_index = random.randint(0, len(testing_data) - 1)  # Random index between 0 and len(testing_data)-1
+
+# Select the random row and corresponding target
+test_sample = testing_data[random_index]  # Take the randomly selected row
+test_target = testing_signals[random_index].item()  # Get the corresponding target
+
+# Call get_model_output to get the predicted output for the single row
+test_output = get_model_output(test_sample)
+
+# Call categorize_output to categorize the predicted output
+categorized_output = categorize_output(test_output)
+
+# Print the test output, categorized output, and test target
+print(f"Test Output: {test_output:.4f} => Categorized Output: {categorized_output}, \tTarget: {test_target}")
 
 
-# Evaluate the model on the testing data
-test_loss = 0
-all_targets = []
-all_outputs = []
-
-with torch.no_grad():
-    for test_inputs, test_targets in test_dataloader:
-        test_outputs = model(test_inputs)
-        loss = criterion(test_outputs, test_targets)
-        test_loss += loss.item()
-
-        all_targets.extend(test_targets.numpy())
-        all_outputs.extend(test_outputs.numpy())
-
-avg_test_loss = test_loss / len(test_dataloader)
-print(f'Test Loss (MSE): {avg_test_loss:.4f}')
-# Mean Squared Error (MSE) measures the average squared difference between the predicted values 
-# and the actual values.
-# A lower MSE indicates that the model’s predictions are closer to the actual values. 
-# Test Loss (MSE): 0.01045113 suggests that, on average, the squared difference between the 
-# predicted and actual values is quite small.
-
-# Calculate additional metrics manually
-all_targets = np.array(all_targets)
-all_outputs = np.array(all_outputs)
-
-# Mean Absolute Error (MAE)
-mae = np.mean(np.abs(all_targets - all_outputs))
-print(f'Mean Absolute Error (MAE): {mae:.4f}')
-# MAE measures the average absolute difference between the predicted values and the actual values.
-# It gives an idea of how much the predictions deviate from the actual values on average. 
-# Mean Absolute Error (MAE): 0.07155589 means on average, the model’s predictions are off by about 0.0716 
-# units from the actual values.
-
-# R-squared (R2)
-ss_res = np.sum((all_targets - all_outputs) ** 2)
-ss_tot = np.sum((all_targets - np.mean(all_targets, axis=0)) ** 2)
-r2 = 1 - (ss_res / ss_tot)
-print(f'R-squared (R2): {r2:.4f}')
-# R-squared is a statistical measure that represents the proportion of the variance for a 
-# dependent variable that’s explained by an independent variable or variables in a regression model.
-# R-squared (R2): 0.89939589  indicates that approximately 89.94% of the variance in the target variable
-# is explained by the model. This is a high value, suggesting that the model fits the data well.
-
-# MSE and MAE are both measures of prediction error, with lower values indicating better performance.
-# R2 is a measure of how well the model explains the variability of the target data, 
-#    with values closer to 1 indicating a better fit
-    
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-# Open a text file in write mode
-with open(output_results_path, 'w') as file:
-    # Loop through all targets and outputs
-    for target, output in zip(all_targets, all_outputs):
-        # Apply the logic to categorize the output as either 1 or 0
-        if 0.6 <= output <= 1.3:
-            categorized_output = 1.0
-        elif -1.3 <= output <= -0.6:
-            categorized_output = -1.0
-        else:
-            categorized_output = 0.0  # For cases outside defined ranges, do nothing
-
-        # Prepare the output string for each pair
-        output_string = f"Target{target} : Output[{output[0]:.4f}] -> Signal[{categorized_output}]\n"
-         
-        # Print to the screen
-        #print(output_string.strip())  # .strip() to avoid extra newlines
-
-        # Write the same output to the file
-        file.write(output_string)
-        
-print(f'Saved categorized signals to file : {output_results_path}')       
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        
