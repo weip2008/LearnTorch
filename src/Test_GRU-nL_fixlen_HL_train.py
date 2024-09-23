@@ -9,14 +9,14 @@ from datetime import datetime
 
 
 
-training_file_path = 'data/SPX_1m_TrainingData_HL_80_500.txt'
-testing_file_path  = 'data/SPX_1m_TestingData_HL_80_500.txt'
-save_path = 'GRU_model_with_LH_fixlen_data_501.pth'
+training_file_path = 'data/SPX_1m_TrainingData_HL_80_400.txt'
+testing_file_path  = 'data/SPX_1m_TestingData_HL_80_400.txt'
+save_path = 'GRU_model_with_LH_fixlen_data_401.pth'
 
 import numpy as np
 
 
-def load_training_data(training_file_path):
+def load_traintest_data(training_file_path):
     data = []
     signals = []
 
@@ -47,7 +47,7 @@ def load_training_data(training_file_path):
     
     return data_np, signals_np
 
-
+''' 
 def load_testing_data(training_file_path):
     data = []
     signals = []
@@ -77,11 +77,11 @@ def load_testing_data(training_file_path):
     
     return data_np, signals_np
 
-
+ '''
 # Example usage
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print(f"1.1 Load training data from {training_file_path}")
-training_data, training_signals = load_training_data(training_file_path)
+training_data, training_signals = load_traintest_data(training_file_path)
 
 print("Data shape:", training_data.shape)
 print("Targets shape:", training_signals.shape)
@@ -89,7 +89,7 @@ print("Targets shape:", training_signals.shape)
 #print(signals)
 
 print(f"1.2 Load testing data from {testing_file_path}")
-testing_data, testing_signals = load_testing_data(testing_file_path)
+testing_data, testing_signals = load_traintest_data(testing_file_path)
 
 print("Data shape:", testing_data.shape)
 print("Targets shape:", testing_signals.shape)
@@ -193,7 +193,7 @@ for epoch in range(num_epochs):
     #print(f'Epoch [{epoch+1}/{num_epochs}], Training Loss: {avg_epoch_loss:.4f}')
     epoch_end_time = time.time()
     epoch_duration = epoch_end_time - epoch_start_time  # Duration in seconds
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_epoch_loss:.6f}, Duration: {epoch_duration:.2f} seconds')
+    print(f'Epoch {epoch+1:2}/{num_epochs}, Loss: {avg_epoch_loss:.6f}, Duration: {epoch_duration:.2f} seconds')
     
     
     # Validation loss
@@ -205,7 +205,7 @@ for epoch in range(num_epochs):
             val_loss += criterion(val_outputs, val_targets).item()
     avg_val_loss = val_loss / len(val_dataloader)
     val_losses.append(avg_val_loss)
-    print(f' Validation Loss: {avg_val_loss:.6f}')
+    print(f'  Validation Loss: {avg_val_loss:.6f}')
     
     
 # Save the model, optimizer state, and losses
