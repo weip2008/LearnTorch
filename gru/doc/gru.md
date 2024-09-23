@@ -24,14 +24,17 @@ Data-->Model-->Test
   - [Output](#output-2)
 
 ## Todo
-1. change trainning data format
+1. ~~change trainning data format~~
 2. send Test output to a file for future reference
-3. all global variables should read from a configuration file
-4. clean code make all definitions at begining
-5. use class
-6. get rid of zigzagplus1.py
-7. optimize Debug
-8. optimize logging
+3. read output prediction data, find out accuracy
+4. all global variables should read from a configuration file
+5. clean code make all definitions at begining
+6. use class
+7. get rid of zigzagplus1.py
+8. optimize Debug
+9. optimize logging
+10. read any line of dataset, plot it on screen
+11. separate plot function from data process code
 
 
 ## Generate Dataset
@@ -99,3 +102,5 @@ Current date and time: 2024-09-23 09:36:58
 Saved categorized signals to file : data/SPX_1m_HL_80_500_GRU_fixlen_500.txt
 Current date and time: 2024-09-23 09:36:59
 ```
+
+* [data/SPX_1m_HL_80_500_GRU_fixlen_500.txt](/data/SPX_1m_HL_80_500_GRU_fixlen_500.txt)

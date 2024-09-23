@@ -15,10 +15,12 @@ import os
 from enum import Enum
 import zigzagplus1 as zz
 import statistics
+from logger import Logger
+from config import Config, execution_time
 
 class TradePosition(Enum):
     LONG = 1
-    SHORT = 0
+    SHORT = -1
 
 
 def cut_slice(ohlc_df, end_index, traintest_data_len):
@@ -124,8 +126,7 @@ def calculate_velocity(processing_df):
     #processing_df['Normalized_Volume'] = normalize(processing_df['Volume'])
     processing_df['Normalized_Price'] = normalize(processing_df['Close'])
     
-    if IsDebug:
-        print(processing_df)
+    log.debug(processing_df)
     
     for j in range(0, len(processing_df)-1):
         # Extract Price from the current and previous rows
@@ -229,8 +230,8 @@ def gen_list(processing_df):
 
     processing_df['Normalized_Price'] = normalize(processing_df['Close'])
     
-    if IsDebug:
-        print(processing_df)
+    log.debug(processing_df)
+    if (log.get_level()==logging.debug):
         plot_prices(processing_df)
     
     for j in range(0, len(processing_df)):
@@ -262,8 +263,7 @@ def write_training_data(TradePosition, data_list, csvfile):
     if (TradePosition is TradePosition.SHORT):        
         #result = "0,1," + trainingdata_str + "\n"
         result = "-1," + trainingdata_str + "\n"
-        if IsDebug:
-            print(result)
+        log.debug(result)
         # Parse the input string into separate fields
         #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
         csvfile.write(result)
@@ -272,8 +272,7 @@ def write_training_data(TradePosition, data_list, csvfile):
     if (TradePosition is TradePosition.LONG):
         #result = "1,0," + trainingdata_str + "\n"
         result = "1," + trainingdata_str + "\n"
-        if IsDebug:
-            print(result)
+        log.debug(result)
         # Parse the input string into separate fields
         #fields = result.split(r',\s*|\)\s*\(', result.strip('[]()'))
         csvfile.write(result)
@@ -289,8 +288,7 @@ def write_testing_data(TradePosition, data_list, csvfile):
    
     if (TradePosition is TradePosition.LONG):
         result = "1," + trainingdata_str + "\n"
-        if IsDebug:
-            print(result)
+        log.debug(result)
     
         csvfile.write(result)
         return
@@ -299,8 +297,7 @@ def write_testing_data(TradePosition, data_list, csvfile):
     if (TradePosition is TradePosition.SHORT):        
         #result = "0," + trainingdata_str + "\n"
         result = "-1," + trainingdata_str + "\n"
-        if IsDebug:
-            print(result)
+        log.debug(result)
         
         csvfile.write(result)
             
@@ -308,7 +305,7 @@ def write_testing_data(TradePosition, data_list, csvfile):
 
 
 
-def generate_training_data(tddf_highlow_list, position, IsDebug=False):
+def generate_training_data(tddf_highlow_list, position, datafile):
     
     filename = 'stockdata/TrainingDataGenLog_'+ str(position)+".log"
     # Open a file in write mode
@@ -317,20 +314,16 @@ def generate_training_data(tddf_highlow_list, position, IsDebug=False):
     # Iterate over each tuple in tddf_highlow_list starting from the second tuple
     for i in range(0, len(tddf_highlow_list)):
         processing_df = tddf_highlow_list[i]
-        if IsDebug:
-            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
+        log.debug(f"\ncurrent processing DataFrame size: {len(processing_df)}, \n {processing_df}")
             
         #tddf_price_list = gen_list(processing_df)
         tddf_velocity_list = calculate_velocity(processing_df)
-        if IsDebug:
-            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
+        log.debug(f"\nCalculated velocity list length: {len(tddf_velocity_list)}, \n {tddf_velocity_list}") 
         
         tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
-        if IsDebug:
-            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
+        log.debug(f"\nCalculated acceleration list length: {len(tddf_acceleration_list)}\n {tddf_acceleration_list}")
         
-        if IsDebug:
-            print("\nGenerate training data:")
+        log.debug("\nGenerate training data:")
         
         # Write lengths to the file in the desired format
         outputfile.write(
@@ -341,11 +334,10 @@ def generate_training_data(tddf_highlow_list, position, IsDebug=False):
         
         write_training_data(position, tddf_acceleration_list, datafile)
     
-        #print(i)
     outputfile.close()    
     return
 
-def generate_testing_data(tddf_highlow_list, position):
+def generate_testing_data(tddf_highlow_list, position, datafile):
     
     filename = 'stockdata/TestingDataGenLog_'+ str(position)+".log"
     # Open a file in write mode
@@ -354,20 +346,16 @@ def generate_testing_data(tddf_highlow_list, position):
     # Iterate over each tuple in tddf_highlow_list starting from the second tuple
     for i in range(0, len(tddf_highlow_list)):
         processing_df = tddf_highlow_list[i]
-        if IsDebug:
-            print("\ncurrent processing DataFrame size:", len(processing_df), "\n", processing_df)
+        log.debug(f"current processing DataFrame size: {len(processing_df)} \n {processing_df}")
             
         #tddf_price_list = gen_list(processing_df)
         tddf_velocity_list = calculate_velocity(processing_df)
-        if IsDebug:
-            print("\nCalculated velocity list length:", len(tddf_velocity_list), "\n",tddf_velocity_list) 
+        log.debug(f"Calculated velocity list length: {len(tddf_velocity_list)} \n{tddf_velocity_list}") 
         
         tddf_acceleration_list = calculate_acceleration(tddf_velocity_list)
-        if IsDebug:
-            print("\nCalculated acceleration list length:", len(tddf_acceleration_list), "\n", tddf_acceleration_list)
+        log.debug(f"Calculated acceleration list length: {len(tddf_acceleration_list)}\n{tddf_acceleration_list}")
         
-        if IsDebug:
-            print("\nGenerate testing data:")
+        log.debug("\nGenerate testing data:")
         
         # Write lengths to the file in the desired format
         outputfile.write(
@@ -420,6 +408,9 @@ def plot_prices(df):
   
 
 def check_patterns_length(ohlc_df, patterns_df, traintest_data_len, IsDebug=False):
+    longtradecost = float(config.longtradecost)
+    shorttradecost = float(config.shorttradecost)
+    
     short_list = []
     long_list = []
     median_long_hold_time = 0
@@ -449,11 +440,9 @@ def check_patterns_length(ohlc_df, patterns_df, traintest_data_len, IsDebug=Fals
                 buy_price = price
                 buy_time = idx
                 in_long_position = True
-                if IsDebug:
-                    print(f"At {time}, LONG buy  price: {buy_price:.2f} at {label} point")
+                log.debug(f"At {time}, LONG buy  price: {buy_price:.2f} at {label} point")
             else:
-                if IsDebug:
-                    print(f"At {time}, already in long position, ignoring signal {label} at price: {buy_price:.2f}")
+                log.debug(f"At {time}, already in long position, ignoring signal {label} at price: {buy_price:.2f}")
                 continue
         
         elif label[1] == 'H':
@@ -475,21 +464,18 @@ def check_patterns_length(ohlc_df, patterns_df, traintest_data_len, IsDebug=Fals
                     #     long_list.append(section_df) 
                         
                     in_long_position = False
-                    if IsDebug:
-                        print(f"At {time}, LONG sell price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                    log.debug(f"At {time}, LONG sell price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
                 
                     continue
                 else:
                     # if profit not > 0, just drop this L/H pair
                     in_long_position = False
-                    if IsDebug:
-                        print(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, ignore this pair.")         
+                    log.debug(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, ignore this pair.")         
             else:
-                if IsDebug:
-                    print(f"At {time}, Not in position, ignore sell signal at {label} point")
+                log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
                 continue        
         else:
-            print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+            log.info(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
 
     # Mean hold time
     mean_hold_time = statistics.mean(holdtime_list)
@@ -500,15 +486,14 @@ def check_patterns_length(ohlc_df, patterns_df, traintest_data_len, IsDebug=Fals
     # Standard deviation
     std_dev_hold_time = statistics.stdev(holdtime_list)
 
-    print("Long:")
-    print("Mean Hold Time:", mean_hold_time)
-    print("Median Hold Time:", median_hold_time)
-    print("Standard Deviation:", std_dev_hold_time)
+    log.info("Long:")
+    log.info(f"Mean Hold Time: {mean_hold_time}")
+    log.info(f"Median Hold Time: {median_hold_time}")
+    log.info(f"Standard Deviation: {std_dev_hold_time}")
     
     long_hold_time = int(np.ceil(mean_hold_time))
     
-    if IsDebug:
-        print("\n\n=======================================================================\n\n")
+    log.debug("\n\n=======================================================================\n\n")
         
     # essentially, "selling high and buying low" is the strategy for a short position.    
     in_short_position = False
@@ -532,12 +517,10 @@ def check_patterns_length(ohlc_df, patterns_df, traintest_data_len, IsDebug=Fals
                 buy_price = price
                 buy_time = time
                 in_short_position = True
-                if IsDebug:
-                    print(f"At {time}, SHORT sell price: {buy_price:.2f} at {label} point")
+                log.debug(f"At {time}, SHORT sell price: {buy_price:.2f} at {label} point")
             else:
                 in_short_position = False
-                if IsDebug:
-                    print(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}. Ignore this pair.")
+                log.debug(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}. Ignore this pair.")
                 continue
         
         elif label[1] == 'L':
@@ -558,23 +541,19 @@ def check_patterns_length(ohlc_df, patterns_df, traintest_data_len, IsDebug=Fals
                     #     short_list.append(section_df) 
                     
                     in_short_position = False
-                    if IsDebug:
-                        print(f"At {time}, SHORT buy  price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                    log.debug(f"At {time}, SHORT buy  price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
                     
                     continue
                 else:
                     # if profit not > 0 , just drop this L/H pair
                     in_short_position = False
-                    if IsDebug:
-                        print(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}")         
+                    log.debug(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}")         
             else:
-                if IsDebug:
-                    #print(f"Not in position, ignoring sell signal at {time}, {label}")
-                    print(f"At {time}, Not in position, ignore sell signal at {label} point")
+                log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
                 continue
         
         else:
-            print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+            log.info(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
 
     # Mean hold time
     mean_hold_time = statistics.mean(holdtime_list)
@@ -585,19 +564,22 @@ def check_patterns_length(ohlc_df, patterns_df, traintest_data_len, IsDebug=Fals
     # Standard deviation
     std_dev_hold_time = statistics.stdev(holdtime_list)
 
-    print("Short:")
-    print("Mean Hold Time:", mean_hold_time)
-    print("Median Hold Time:", median_hold_time)
-    print("Standard Deviation:", std_dev_hold_time)
+    log.info("Short:")
+    log.info(f"Mean Hold Time: {mean_hold_time}")
+    log.info(f"Median Hold Time: {median_hold_time}")
+    log.info(f"Standard Deviation: {std_dev_hold_time}")
     
     short_hold_time = int(np.ceil(mean_hold_time))
     
     avg_hold_time = int((short_hold_time + long_hold_time) / 2 )
-    print("Avg mean Hold Time:", avg_hold_time)
+    log.info(f"Avg mean Hold Time: {avg_hold_time}")
     
     return avg_hold_time
 
 def check_long_patterns(ohlc_df, patterns_df, long_traintest_data_len, IsDebug=False):
+    traintest_data_len = int(config.traintest_data_len)
+    longtradecost = float(config.longtradecost)
+
     long_list = []
     
     # Initialize variables
@@ -623,11 +605,9 @@ def check_long_patterns(ohlc_df, patterns_df, long_traintest_data_len, IsDebug=F
                 buy_price = price
                 buy_time = idx
                 in_long_position = True
-                if IsDebug:
-                    print(f"At {time}, LONG buy  price: {buy_price:.2f} at {label} point")
+                log.debug(f"At {time}, LONG buy  price: {buy_price:.2f} at {label} point")
             else:
-                if IsDebug:
-                    print(f"At {time}, already in long position, ignoring signal {label} at price: {buy_price:.2f}")
+                log.debug(f"At {time}, already in long position, ignoring signal {label} at price: {buy_price:.2f}")
                 continue
         
         elif label[1] == 'H':
@@ -642,31 +622,30 @@ def check_long_patterns(ohlc_df, patterns_df, long_traintest_data_len, IsDebug=F
                     section_df = cut_slice(ohlc_df, sell_time, long_traintest_data_len)                    
                         
                     if (section_df is not None):
-                        if IsDebug:
-                            print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
+                        log.debug(f"Sliced DataFrame:{len(section_df)}\n {section_df}")
                         long_list.append(section_df) 
                         
                     in_long_position = False
-                    if IsDebug:
-                        print(f"At {time}, LONG sell price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                    log.debug(f"At {time}, LONG sell price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
                 
                     continue
                 else:
                     # if profit not > 0, just drop this L/H pair
                     in_long_position = False
-                    if IsDebug:
-                        print(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, ignore this pair.")         
+                    log.warning(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, ignore this pair.")         
             else:
-                if IsDebug:
-                    print(f"At {time}, Not in position, ignore sell signal at {label} point")
+                log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
                 continue        
         else:
-            print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+            log.error(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
     
     return long_list
 
 
 def check_short_patterns(ohlc_df, patterns_df, short_traintest_data_len, IsDebug=False):
+    traintest_data_len = int(config.traintest_data_len)
+    shorttradecost = float(config.shorttradecost)
+
     short_list = []
         
     # essentially, "selling high and buying low" is the strategy for a short position.    
@@ -691,12 +670,10 @@ def check_short_patterns(ohlc_df, patterns_df, short_traintest_data_len, IsDebug
                 buy_price = price
                 buy_time = time
                 in_short_position = True
-                if IsDebug:
-                    print(f"At {time}, SHORT sell price: {buy_price:.2f} at {label} point")
+                log.debug(f"At {time}, SHORT sell price: {buy_price:.2f} at {label} point")
             else:
                 in_short_position = False
-                if IsDebug:
-                    print(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}. Ignore this pair.")
+                log.debug(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}. Ignore this pair.")
                 continue
         
         elif label[1] == 'L':
@@ -711,34 +688,36 @@ def check_short_patterns(ohlc_df, patterns_df, short_traintest_data_len, IsDebug
                     #section_df = cut_slice(ohlc_df, buy_time, sell_time)
                         
                     if (section_df is not None):
-                        if IsDebug:
-                            print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
+                        log.debug(f"Sliced DataFrame:{len(section_df)}\n {section_df}")
                         short_list.append(section_df) 
                     
                     in_short_position = False
-                    if IsDebug:
-                        print(f"At {time}, SHORT buy  price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                    log.debug(f"At {time}, SHORT buy  price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
                     
                     continue
                 else:
                     # if profit not > 0 , just drop this L/H pair
                     in_short_position = False
-                    if IsDebug:
-                        print(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}")         
+                    log.debug(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}")         
             else:
-                if IsDebug:
-                    #print(f"Not in position, ignoring sell signal at {time}, {label}")
-                    print(f"At {time}, Not in position, ignore sell signal at {label} point")
+                log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
                 continue
         
         else:
-            print(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+            log.error(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
 
     return short_list
 
 
 def gen_zigzag_patterns(query_start, query_end):
+    deviation = float(config.deviation)    
+    data_dir = config.data_dir
+    sqliteDB = config.sqlite_db
+    table_name = config.table_name
+
     # Connect to the SQLite database
+    db_file = os.path.join(data_dir, sqliteDB)
+
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
 
@@ -759,20 +738,16 @@ def gen_zigzag_patterns(query_start, query_end):
     ohlc_df.set_index('Datetime', inplace=True)
     #ohlc_df.dropna(subset, inplace=True)
 
-    if IsDebug:
-        #print("Time elapsed:", time_elapsed, "seconds")
-        print("Results dataframe length:", len(ohlc_df))  
-        #print("Data read from :", file_path)
-        print("Data read from table:", table_name)
-        # Print the first few rows of the DataFrame
-        print(ohlc_df.head(10))
-        print(ohlc_df.tail(10))
+
+    log.debug(f"Results dataframe length: {len(ohlc_df)}")  
+    log.debug(f"Data read from table: {table_name}")
+    log.debug(ohlc_df.head(10))
+    log.debug(ohlc_df.tail(10))
 
 
     # Calculate ZigZag
     zigzag = zz.calculate_zigzag(ohlc_df, deviation)
-    if IsDebug:
-        print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
+    log.debug(f"Zigzag list length:{len(zigzag)}\n {zigzag}")
 
     # Plot ZigZag
     zz.plot_zigzag(ohlc_df, zigzag)
@@ -787,104 +762,54 @@ def gen_zigzag_patterns(query_start, query_end):
     # The rows selected are those whose index labels match the index labels of the zigzag DataFrame (or Series).
     # In other words, it filters df to include only the rows where the index (Date) is present in the zigzag index.
     filtered_zigzag_df = ohlc_df.loc[zigzag.index]
-    if IsDebug:
-        print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
-
-    # Detect patterns
-    # df[df['Close'].isin(zigzag)] creates a new DataFrame 
-    # that contains only the rows from df 
-    # where the 'Close' value is in the zigzag list.
-    # patterns = detect_patterns(df[df['Close'].isin(zigzag)])
+    
+    log.debug(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n {filtered_zigzag_df}")
     patterns = zz.detect_patterns(filtered_zigzag_df)
 
-    # if IsDebug:
-    #     print("Patterns list:\n", patterns)
-
     patterns_df = zz.convert_list_to_df(patterns)
-    if IsDebug:
-        print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
+   
+    log.debug(f"Patterns dataframe length:{len(patterns_df)}\n {patterns_df}")  # Print to verify DataFrame structure
 
     zz.plot_patterns(ohlc_df, patterns_df)
 
     return ohlc_df, patterns_df
     
-    
+def generateTrainingDataset():
+    SN = config.sn
+    traintest_data_len = int(config.traintest_data_len)
+    table_name = config.table_name
+    data_dir = config.data_dir    
+    training_start_date = config.training_start_date
+    training_end_date = config.training_end_date
 
-#
-# ================================================================================#
-if __name__ == "__main__":
-    print(pd.__version__)
-    #logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
-    logging.basicConfig(
-        level=logging.INFO,  # Set the logging level to INFO or DEBUG
-        #format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        format=' %(levelname)s => %(message)s'
-        )
 
-    IsDebug = False
-
-    #Trainning Data Length
-    # average number of working days in a month is 21.7, based on a five-day workweek
-    # so 45 days is total for two months working days
-    # 200 days is one year working days
-    traintest_data_len = 60
- 
-    # Series Number for output training/testing data set pairs
-    SN = "500"
-        
-    # ZigZag parameters
-    deviation = 0.0010  # Percentage
-    #deviation = 0.002  # Percentage
-        
-    symbol = "SPX"
-    #symbol = "MES=F"
-
-    # Define the table name as a string variable
-    table_name = "SPX_1m"
-    #table_name = "MES=F_1m"
-    # Define the SQLite database file directory
-    data_dir = "data"
-
-    db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
-    
-    # tradecost for each trade
-    longtradecost = 1.00
-    shorttradecost = 1.00
-    
-    #============================= Training Data ============================================#
-    training_start_date = "2023-01-01"
-    training_end_date = "2023-12-31"
-
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
-    
     ohlc_df, patterns_df = gen_zigzag_patterns(training_start_date, training_end_date)
     
     traintest_data_len = check_patterns_length(ohlc_df, patterns_df, 60)    
     tddf_long_list = check_long_patterns(ohlc_df, patterns_df, traintest_data_len)
     tddf_short_list = check_short_patterns(ohlc_df, patterns_df, traintest_data_len)
     
-    if IsDebug:
-        print(f"tddf_short_list length:{len(tddf_short_list)}\n")
-        print(f"tddf_long_list length:{len(tddf_long_list)}\n")
+    log.debug(f"tddf_short_list length:{len(tddf_short_list)}\n")
+    log.debug(f"tddf_long_list length:{len(tddf_long_list)}\n")
 
     td_file = os.path.join(data_dir, \
         f"{table_name}_TrainingData_HL_{traintest_data_len}_{SN}.txt")
     
-    print(td_file)
+    log.info(td_file)
 
     with open(td_file, "w") as datafile:
-        generate_training_data(tddf_short_list, TradePosition.LONG)
-        generate_training_data(tddf_long_list, TradePosition.SHORT)
+        generate_training_data(tddf_short_list, TradePosition.LONG, datafile)
+        generate_training_data(tddf_long_list, TradePosition.SHORT, datafile)
 
-    #============================= Testing Data ============================================#
-    testing_start_date = "2023-10-01"
-    testing_end_date = "2023-12-31"
+def generateTestingDataset():
+    SN = config.sn
+    testing_start_date = config.testing_start_date
+    testing_end_date = config.testing_end_date
+    traintest_data_len = int(config.traintest_data_len)
+    table_name = config.table_name
+    data_dir = config.data_dir
     
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
+    currentTime()
 
     ohlc_df, patterns_df = gen_zigzag_patterns(testing_start_date, testing_end_date)
     
@@ -892,18 +817,32 @@ if __name__ == "__main__":
     tddf_long_list = check_long_patterns(ohlc_df, patterns_df, traintest_data_len)
     tddf_short_list = check_short_patterns(ohlc_df, patterns_df, traintest_data_len)
     
-    if IsDebug:
-        print(f"tddf_short_list length:{len(tddf_short_list)}\n")
-        print(f"tddf_long_list length:{len(tddf_long_list)}\n")
+    log.debug(f"tddf_short_list length:{len(tddf_short_list)}\n")
+    log.debug(f"tddf_long_list length:{len(tddf_long_list)}\n")
         
     td_file = os.path.join(data_dir, \
         f"{table_name}_TestingData_HL_{traintest_data_len}_{SN}.txt")
-    print(td_file)
+    log.info(td_file)
 
     with open(td_file, "w") as datafile:
-        generate_testing_data(tddf_short_list, TradePosition.LONG)
-        generate_testing_data(tddf_long_list, TradePosition.SHORT)
+        generate_testing_data(tddf_short_list, TradePosition.LONG, datafile)
+        generate_testing_data(tddf_long_list, TradePosition.SHORT, datafile)
 
-    now = datetime.now()
-    formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    print("Current date and time:", formatted_now)
+def currentTime():
+    formatted_now = datetime.now().strftime(config.time_format)
+    log.info(f'Current date and time: {formatted_now}')
+
+@execution_time
+def main():
+    generateTrainingDataset()
+    generateTestingDataset()
+    log.info("Done")
+
+# ================================================================================#
+if __name__ == "__main__":
+    log = Logger('gru/log/gru.log')
+    log.info(f'sqlite version: {pd.__version__}')
+
+    config = Config('gru/src/config.ini')
+
+    main()
