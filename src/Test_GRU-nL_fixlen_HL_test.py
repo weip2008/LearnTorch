@@ -9,9 +9,9 @@ from datetime import datetime
 
 
 
-testing_file_path  = 'data/SPX_1m_TestingData_HL_80_410.txt'
-model_save_path = 'GRU_model_with_LH_fixlen_data_213.pth'
-output_results_path = 'data/SPX_1m_HL_80_410_GRU_fixlen_213.txt'
+testing_file_path  = 'data/SPX_1m_TestingData_HL_80_500.txt'
+model_save_path = 'GRU_model_with_LH_fixlen_data_501.pth'
+output_results_path = 'data/SPX_1m_HL_80_500_GRU_fixlen_500.txt'
 
 import numpy as np
 
@@ -25,7 +25,7 @@ def load_testing_data(training_file_path):
             # Split the line into data and target parts
             signals_part, data_part = line.strip().split(',[')
             
-            signal = int(signals_part[0])
+            signal = int(signals_part.strip())
             signals.append(signal)
             
             # Add the beginning bracket to the data part and opening bracket to the target part
@@ -181,9 +181,9 @@ with open(output_results_path, 'w') as file:
     # Loop through all targets and outputs
     for target, output in zip(all_targets, all_outputs):
         # Apply the logic to categorize the output as either 1 or 0
-        if 0.7 <= output <= 1.3:
+        if 0.6 <= output <= 1.3:
             categorized_output = 1.0
-        elif -0.7 <= output <= 0.3:
+        elif -1.3 <= output <= -0.6:
             categorized_output = -1.0
         else:
             categorized_output = 0.0  # For cases outside defined ranges, do nothing

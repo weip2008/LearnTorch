@@ -9,9 +9,9 @@ from datetime import datetime
 
 
 
-training_file_path = 'data/SPX_1m_TrainingData_HL_80_410.txt'
-testing_file_path  = 'data/SPX_1m_TestingData_HL_80_410.txt'
-save_path = 'GRU_model_with_LH_fixlen_data_213.pth'
+training_file_path = 'data/SPX_1m_TrainingData_HL_80_500.txt'
+testing_file_path  = 'data/SPX_1m_TestingData_HL_80_500.txt'
+save_path = 'GRU_model_with_LH_fixlen_data_501.pth'
 
 import numpy as np
 
@@ -20,12 +20,14 @@ def load_training_data(training_file_path):
     data = []
     signals = []
 
+
     with open(training_file_path, 'r') as file:
         for line in file:
             # Split the line into data and target parts
             signals_part, data_part = line.strip().split(',[')
             
-            signal = int(signals_part.split(',')[0])
+            #signal = int(signals_part.split(',')[0])
+            signal = int(signals_part.strip())
             signals.append(signal)
             
             # Add the beginning bracket to the data part and opening bracket to the target part
@@ -55,7 +57,7 @@ def load_testing_data(training_file_path):
             # Split the line into data and target parts
             signals_part, data_part = line.strip().split(',[')
             
-            signal = int(signals_part[0])
+            signal = int(signals_part.strip())
             signals.append(signal)
             
             # Add the beginning bracket to the data part and opening bracket to the target part
