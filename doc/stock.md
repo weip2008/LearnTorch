@@ -64,7 +64,7 @@ Proc-->Forecast-->Pred
 - [velocity and acceleration](#velocity-and-acceleration)
 - [Training and test data design](#training-and-test-data-design)
 - [Add Weights on Data](#add-weights-on-data)
-- [Add hold as output as [long, hold, short]](#add-hold-as-output-as-long-hold-short)
+- [Add hold as output as \[long, hold, short\]](#add-hold-as-output-as-long-hold-short)
 - [Available Models](#available-models)
   - [卷积神经网络](#卷积神经网络)
   - [Recurrent Neural Network](#recurrent-neural-network)
@@ -77,9 +77,12 @@ Proc-->Forecast-->Pred
 - [可变长的时间序列](#可变长的时间序列)
 - [GRU model](#gru-model)
 - [Load Stock Data to sqlite database](#load-stock-data-to-sqlite-database)
-  - [Generate Training & Testing Data](#generate-training--testing-data)
+  - [Generate Training \& Testing Data](#generate-training--testing-data)
   - [Create a GRU model](#create-a-gru-model)
   - [Forcast Future Stock Price Range](#forcast-future-stock-price-range)
+- [GRU Action Forecast](#gru-action-forecast)
+  - [Generate Dataset](#generate-dataset)
+  - [Create GRU Model](#create-gru-model)
 - [Activate Functions](#activate-functions)
 
 <!-- /code_chunk_output -->
@@ -909,5 +912,33 @@ Real  data for sequence 9: [0.91780397 0.92152605 0.8560794 ]
 ```
 
 [what is R-Square, 1 is best, 0 is worse](R2.md)
+
+## GRU Action Forecast
+### Generate Dataset
+* [Generate dataset](../src/GenTrainTestDataBig_fixlen_1HL_3.py)
+1. traning dataset
+[](../data/SPX_1m_TrainingData_HL_80_400.txt)
+2. testing dataset
+[](../data/SPX_1m_TestingData_HL_80_400.txt)
+
+5 column data group
+1. day of weeek
+2. time of day
+3. close price
+4. velocity
+5. accelerat
+
+first column
+1=long
+0=short
+
+total 80 points end by long/short point for each row
+
+![](images/trainning_testing_data.png)
+
+### Create GRU Model
+* [](../src/Test_GRU-nL_fixlen_HL_train.py)
+* [](../src/Test_GRU-nL_fixlen_HL_test.py)
+
 
 ## Activate Functions
