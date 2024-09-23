@@ -260,7 +260,8 @@ def write_training_data(TradePosition, data_list, csvfile):
     #     result += ",".join(map(str, acceleration_tuple)) 
     
     if (TradePosition is TradePosition.SHORT):        
-        result = "0,1," + trainingdata_str + "\n"
+        #result = "0,1," + trainingdata_str + "\n"
+        result = "-1," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
@@ -269,7 +270,8 @@ def write_training_data(TradePosition, data_list, csvfile):
         return
     
     if (TradePosition is TradePosition.LONG):
-        result = "1,0," + trainingdata_str + "\n"
+        #result = "1,0," + trainingdata_str + "\n"
+        result = "1," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         # Parse the input string into separate fields
@@ -295,7 +297,8 @@ def write_testing_data(TradePosition, data_list, csvfile):
 
         
     if (TradePosition is TradePosition.SHORT):        
-        result = "0," + trainingdata_str + "\n"
+        #result = "0," + trainingdata_str + "\n"
+        result = "-1," + trainingdata_str + "\n"
         if IsDebug:
             print(result)
         
@@ -827,7 +830,7 @@ if __name__ == "__main__":
     traintest_data_len = 60
  
     # Series Number for output training/testing data set pairs
-    SN = "410"
+    SN = "500"
         
     # ZigZag parameters
     deviation = 0.0010  # Percentage
