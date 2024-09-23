@@ -25,20 +25,24 @@ Data-->Model-->Test
 
 ## Todo
 1. ~~change trainning data format~~
-2. send Test output to a file for future reference
-3. read output prediction data, find out accuracy
-4. all global variables should read from a configuration file
-5. clean code make all definitions at begining
-6. use class
-7. get rid of zigzagplus1.py
-8. optimize Debug
-9. optimize logging
+2. ~~all global variables should read from a configuration file~~
+3. ~~optimize Debug~~
+4. ~~optimize logging~~
+5. use class
+6. send Test output to a file for future reference
+7. read output prediction data, find out accuracy
+8. clean code make all definitions at begining
+9. get rid of zigzagplus1.py
 10. read any line of dataset, plot it on screen
-11. separate plot function from data process code
+11. ~~separate plot function from data process code~~
 
 
 ## Generate Dataset
+* [Define Logger class for whole project](../src/gru.py)
+* [Define global variables in cofig.ini](../src/config.py)
+* [load global variables from cofig.ini](../src/config.py)
 * [Generate dataset Source Code](../src/generateDataset.py)
+
 ### Output files
 1. [traning dataset](../data/SPX_1m_TrainingData_HL_80_500.txt)
 2. [testing dataset](../data/SPX_1m_TestingData_HL_80_500.txt)

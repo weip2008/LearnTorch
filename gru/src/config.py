@@ -4,6 +4,7 @@ All variable name in config.ini must be lowercase!
 import configparser
 import time
 import functools
+from gru import Logger
 
 class Config:
     def __init__(self, config_file):
@@ -37,11 +38,12 @@ def execution_time(func):
     """
     @functools.wraps(func)  # This preserves the original function's metadata
     def wrapper(*args, **kwargs):
+        log = Logger('gru/log/gru.log')
         start_time = time.time()  # Get the start time
         result = func(*args, **kwargs)  # Execute the wrapped function
         end_time = time.time()  # Get the end time
         execution_duration = end_time - start_time
-        print(f"Execution time of {func.__name__}: {execution_duration:.4f} seconds")
+        log.info(f"Execution time of {func.__name__}: {execution_duration:.4f} seconds")
         return result  # Return the result of the function
     return wrapper
 
