@@ -24,18 +24,25 @@ Data-->Model-->Test
   - [Output](#output-2)
 
 ## Todo
-1. change trainning data format
-2. send Test output to a file for future reference
-3. all global variables should read from a configuration file
-4. clean code make all definitions at begining
+1. ~~change trainning data format~~
+2. ~~all global variables should read from a configuration file~~
+3. ~~optimize Debug~~
+4. ~~optimize logging~~
 5. use class
-6. get rid of zigzagplus1.py
-7. optimize Debug
-8. optimize logging
+6. send Test output to a file for future reference
+7. read output prediction data, find out accuracy
+8. clean code make all definitions at begining
+9. get rid of zigzagplus1.py
+10. read any line of dataset, plot it on screen
+11. ~~separate plot function from data process code~~
 
 
 ## Generate Dataset
+* [Define Logger class for whole project](../src/gru.py)
+* [Define global variables in cofig.ini](../src/config.py)
+* [load global variables from cofig.ini](../src/config.py)
 * [Generate dataset Source Code](../src/generateDataset.py)
+
 ### Output files
 1. [traning dataset](../data/SPX_1m_TrainingData_HL_80_500.txt)
 2. [testing dataset](../data/SPX_1m_TestingData_HL_80_500.txt)
@@ -99,3 +106,5 @@ Current date and time: 2024-09-23 09:36:58
 Saved categorized signals to file : data/SPX_1m_HL_80_500_GRU_fixlen_500.txt
 Current date and time: 2024-09-23 09:36:59
 ```
+
+* [data/SPX_1m_HL_80_500_GRU_fixlen_500.txt](/data/SPX_1m_HL_80_500_GRU_fixlen_500.txt)

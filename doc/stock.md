@@ -940,5 +940,12 @@ total 80 points end by long/short point for each row
 * [](../src/Test_GRU-nL_fixlen_HL_train.py)
 * [](../src/Test_GRU-nL_fixlen_HL_test.py)
 
+![](images/GRU_sourceCodeSet.jpg)
+
+* [Generate dataset](../src/GenTrainTestDataBig_fixlen_1HL_4.py)
+* [Create model](../src/Test_GRU-nL_fixlen_HL_train.py)
+* [Test model](../src/Test_GRU-nL_fixlen_HL_test.py)
+* [Prediction](../src/Test_GRU-nL_fixlen_HL_predict.py)
+
 
 ## Activate Functions
