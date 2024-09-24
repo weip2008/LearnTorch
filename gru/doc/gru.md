@@ -3,10 +3,13 @@
 ```mermaid
 graph LR
 
-Data[generateDataset.py<br><br>SPX_1m_TrainingData_HL_80_500.txt<br>SPX_1m_TestingData_HL_80_500.txt]
-Model[gruModel.py<br><br>GRU_model_with_LH_fixlen_data_501.pth]
-Test[test.py]
+Data[SQLiteDB<br>generateDataset.py<br><br>SPX_1m_TrainingData_HL_80_500.txt<br>SPX_1m_TestingData_HL_80_500.txt]
+Model[SPX_1m_TrainingData_HL_80_500.txt<br>SPX_1m_TestingData_HL_80_500.txt<br>gruModel.py<br><br>GRU_model_with_LH_fixlen_data_501.pth]
+Test[GRU_model_with_LH_fixlen_data_501.pth<br>test.py]
+Pred[GRU_model_with_LH_fixlen_data_501.pth<br>predict.py<br>SPX_1m_HL_43_700_GRU_fixlen_500.txt]
+
 Data-->Model-->Test
+Model -->Pred
 ```
 
 ## Table of Contents
@@ -73,6 +76,8 @@ load --> zigzag --> pattern --> long --> short --> train --> test
 ![traning data with zigzag points](images/zigzag.png)
 ![](images/HH_LL__LH__HL-patterns.png)
 
+✏️☝️Need explaination of above image, ❓How to generate buy/sell points based on the image above☝️❓ Better to have plot to support.
+
 ### Output files
 1. [traning dataset](../data/SPX_1m_TrainingData_HL_80_500.txt)
 2. [testing dataset](../data/SPX_1m_TestingData_HL_80_500.txt)
@@ -86,7 +91,7 @@ load --> zigzag --> pattern --> long --> short --> train --> test
 
 * first column
 1=long
-0=short
+-1=short
 
 total 60 points end by long/short point for each row which will be total of 5X60=300 numbers
 
