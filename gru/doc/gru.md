@@ -28,37 +28,58 @@ Data-->Model-->Test
 2. ~~all global variables should read from a configuration file~~
 3. ~~optimize Debug~~
 4. ~~optimize logging~~
-5. use class
-6. send Test output to a file for future reference
-7. read output prediction data, find out accuracy
-8. clean code make all definitions at begining
-9. get rid of zigzagplus1.py
-10. read any line of dataset, plot it on screen
-11. ~~separate plot function from data process code~~
+5. ~~clean code make all definitions at begining~~
+6.  ~~separate plot function from data process code~~
+7. 🛠🎯use class
+8. send Test output to a file for future reference
+9. read output prediction data, find out accuracy
+10. get rid of zigzagplus1.py
+11. read any line of dataset, plot it on screen
 
 
 ## Generate Dataset
 * [Define Logger class for whole project](../src/gru.py)
-* [Define global variables in cofig.ini](../src/config.py)
+* [Define global variables in cofig.ini](../src/config.ini)
 * [load global variables from cofig.ini](../src/config.py)
 * [Generate dataset Source Code](../src/generateDataset.py)
+
+```py
+def gen_zigzag_patterns(query_start, query_end):
+  ... ...
+  return ohlc_df, patterns_df
+```
+![data frame from sqlite database](images/ohlc_df.png)
+![HH_LL_HL_LH patterns](images/patterns_df.png)
+
+```mermaid
+graph TB
+
+load["utilities<br>.DataSource.queryDB()"]
+zigzag["gen_zigzag_patterns()"]
+
+load --> zigzag
+```
+
+* [generate plots](../src/utilities.py)
+![traning data with zigzag points](images/zigzag.png)
+![](images/HH_LL__LH__HL-patterns.png)
 
 ### Output files
 1. [traning dataset](../data/SPX_1m_TrainingData_HL_80_500.txt)
 2. [testing dataset](../data/SPX_1m_TestingData_HL_80_500.txt)
 
-5 column data group
+* 5 column data group
 1. day of weeek
 2. time of day
 3. close price
 4. velocity
 5. accelerat
 
-first column
+* first column
 1=long
 0=short
 
-total 80 points end by long/short point for each row
+total 60 points end by long/short point for each row which will be total of 5X60=300 numbers
 
 ### Input
 SQLite database file: [data/stock_bigdata_2019-2023.db]

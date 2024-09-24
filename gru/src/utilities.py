@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 
 import zigzagplus1 as zz
 from gru import Logger
@@ -19,7 +20,6 @@ class DataSource:
         db_file = os.path.join(data_dir, sqliteDB)
         # Connect to the SQLite database
         DataSource.conn = sqlite3.connect(db_file)
-        cursor = DataSource.conn.cursor()
 
     def queryDB(self, query_start, query_end):
         table_name = DataSource.config.table_name
@@ -40,13 +40,15 @@ class DataSource:
         DataSource.log.debug(f"Data read from table: {table_name}")
         DataSource.log.debug(self.df.head(10))
         DataSource.log.debug(self.df.tail(10))   
+        self.zigzag = zz.calculate_zigzag(self.df, float(DataSource.config.deviation))
 
-
+    def getZigzag(self):
+        return self.zigzag
+    
     def getDataFrameFromDB(self):
         return self.df
 
     def plotDataFrame(self):
-        self.zigzag = zz.calculate_zigzag(self.df, float(DataSource.config.deviation))
         
         # Plot ZigZag
         zz.plot_zigzag(self.df, self.zigzag)
@@ -65,13 +67,64 @@ class DataSource:
         patterns_df = zz.convert_list_to_df(patterns)
         zz.plot_patterns(self.df, patterns_df)
 
+    def plot_prices(self):#
+        """
+        Plots the Close price and Normalized price on the same chart with dual y-axes.
+
+        Parameters:
+        df (pandas.DataFrame): DataFrame containing 'Close' and 'Normalized_Price' columns.
+        """
+        self.df['Normalized_Price'] = normalize(self.df['Close'])
+        # Plotting
+        fig, ax1 = plt.subplots()
+
+        # Plot Close prices
+        ax1.plot(self.df.index, self.df['Close'], color='blue', label='Close Price', linestyle='-', marker='o')
+        ax1.set_xlabel('Datetime')
+        ax1.set_ylabel('Close Price', color='blue')
+        ax1.tick_params(axis='y', labelcolor='blue')
+        ax1.set_ylim(self.df['Close'].min(), self.df['Close'].max())
+
+        # Create a twin y-axis to plot Normalized Price
+        ax2 = ax1.twinx()
+        ax2.plot(self.df.index, self.df['Normalized_Price'], color='red', label='Normalized Price', linestyle='-', marker='x')
+        ax2.set_ylabel('Normalized Price', color='red')
+        ax2.tick_params(axis='y', labelcolor='red')
+        ax2.set_ylim(self.df['Normalized_Price'].min(), self.df['Normalized_Price'].max())
+
+        # Add a legend to differentiate the plots
+        lines_1, labels_1 = ax1.get_legend_handles_labels()
+        lines_2, labels_2 = ax2.get_legend_handles_labels()
+        ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper left')
+
+        fig.tight_layout()
+        plt.title('Close Price and Normalized Price')
+        plt.show() 
+    
+ # Normalization function
+def normalize(series):
+    return (series - series.min()) / (series.max() - series.min())
+    
+def convert_to_day_and_time(timestamp):
+    # Get the day of the week (Monday=0, Sunday=6)
+    day_of_week_numeric = timestamp.weekday() + 1
+
+    # Convert the timestamp to a datetime object (to handle timezone)
+    dt = timestamp.to_pydatetime()
+
+    # Calculate the time in float format
+    time_float = dt.hour + dt.minute / 60 + dt.second / 3600
+
+    return day_of_week_numeric, time_float
+
 if __name__ == "__main__":
     # plot training zigzag
     train_ds = DataSource()
     query_start, query_end= DataSource.config.training_start_date, DataSource.config.training_end_date
     train_ds.queryDB(query_start, query_end)
-    train_ds.plotDataFrame()
     train_ds.plotPaterns()
+    train_ds.plotDataFrame()
+    train_ds.plot_prices()
 
     # plot testing zigzag
     test_ds = DataSource()
