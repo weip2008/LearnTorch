@@ -18,7 +18,7 @@ class Tester:
         self.buildLoader()
         self.defineModel()
         self.test()
-        Tester.log.info("================================= Done")
+        Tester.log.info("================================ Done")
 
     def load_data(self):
         testing_file_path = Tester.config.testing_file_path

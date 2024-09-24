@@ -42,6 +42,7 @@ Model -->Pred
 10. read output prediction data, find out accuracy
 11. get rid of zigzagplus1.py
 12. read any line of dataset, plot it on screen
+13. write unit test for all functions and classes
 
 
 ## Generate Dataset

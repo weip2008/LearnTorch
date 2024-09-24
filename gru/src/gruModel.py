@@ -73,6 +73,7 @@ class ModelGenerator:
         self.defineModel()
         self.train()
         self.save()
+        ModelGenerator.log.info("================================ Done")
 
     def loadData(self):
         training_file_path = ModelGenerator.config.training_file_path
@@ -91,7 +92,7 @@ class ModelGenerator:
         train_dataset = TimeSeriesDataset(self.training_data, self.training_signals)
         val_dataset = TimeSeriesDataset(self.testing_data, self.testing_signals)
         # Create DataLoader for batching
-        batch_size = int(config.batch_size)
+        batch_size = int(ModelGenerator.config.batch_size)
         # Training dataloader with shuffling
         self.train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         # Validation dataloader with shuffling
@@ -125,10 +126,10 @@ class ModelGenerator:
         scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.1)  # Reduce LR by 10x every 10 epochs
 
         # Training loop
-        log.info("4. Start training loop")
+        ModelGenerator.log.info("4. Start training loop")
 
         # Hyperparameters
-        num_epochs = int(config.num_epochs)
+        num_epochs = int(ModelGenerator.config.num_epochs)
 
         # List to store losses
         self.train_losses = []
@@ -166,9 +167,9 @@ class ModelGenerator:
             ModelGenerator.log.info(f' Validation Loss: {avg_val_loss:.6f}')
       
     def save(self):
-        save_path = ModelGenerator.config.save_path
+        save_path = ModelGenerator.config.model_save_path
         # Save the model, optimizer state, and losses
-        log.info(f"5. Save the model, optimizer state, and losses to {save_path}")
+        ModelGenerator.log.info(f"5. Save the model, optimizer state, and losses to {save_path}")
         torch.save({
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
@@ -177,7 +178,7 @@ class ModelGenerator:
         }, save_path)
 
 
-        log.info(f"Training model saved to {save_path}")
+        ModelGenerator.log.info(f"Training model saved to {save_path}")
 
 
 if __name__ == "__main__":

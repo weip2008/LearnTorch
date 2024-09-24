@@ -36,6 +36,7 @@ def plot_zigzag(df, zigzag):
     plt.figure(figsize=(10, 5))
     plt.plot(df['Close'], label='Close Price')
     plt.scatter(zigzag.index, zigzag, color='red', label='ZigZag')
+    plt.title("ZigZag Indicator on Close Prices")
     plt.legend()
     plt.show()
     return

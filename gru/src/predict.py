@@ -26,7 +26,7 @@ class Predictor:
         self.buildLoader()
         self.defineModel()
         self.predict()
-        Predictor.log.info("================================= Done")
+        Predictor.log.info("================================ Done")
 
 
     def load_data(self):

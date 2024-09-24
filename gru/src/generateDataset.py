@@ -30,9 +30,11 @@ class DataProcessor:
         self.query_start, self.query_end= DataSource.config.training_start_date, DataSource.config.training_end_date
         if not training:
             self.query_start, self.query_end= DataSource.config.testing_start_date,DataSource.config.testing_end_date
+
         self.ds.queryDB(self.query_start, self.query_end)
         self.df = self.ds.getDataFrameFromDB()
         self.gen_zigzag_patterns()
+
         if (DataProcessor.traintest_data_len is None):
             DataProcessor.traintest_data_len = self.check_patterns_length()
         tddf_long_list= self.check_long_patterns(DataProcessor.traintest_data_len)
@@ -614,7 +616,7 @@ def main():
     DataProcessor(training=True)
     DataProcessor(training=False)
     DataSource.conn.close()
-    log.info("Done")
+    log.info("================================ Done")
 
 # ================================================================================#
 if __name__ == "__main__":
