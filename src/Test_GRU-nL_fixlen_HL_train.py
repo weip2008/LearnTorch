@@ -9,9 +9,9 @@ from datetime import datetime
 
 
 
-training_file_path = 'data/SPX_1m_TrainingData_HL_80_400.txt'
-testing_file_path  = 'data/SPX_1m_TestingData_HL_80_400.txt'
-save_path = 'GRU_model_with_LH_fixlen_data_401.pth'
+training_file_path = 'data/SPX_1m_TrainingData_HL_43_600.txt'
+testing_file_path  = 'data/SPX_1m_TestingData_HL_43_600.txt'
+save_path = 'GRU_model_with_LH_fixlen_data_600.pth'
 
 import numpy as np
 
@@ -115,7 +115,7 @@ train_dataset = TimeSeriesDataset(training_data, training_signals)
 val_dataset = TimeSeriesDataset(testing_data, testing_signals)
 
 # Create DataLoader for batching
-batch_size = 32  # You can change the batch size as needed
+batch_size = 128  # You can change the batch size as needed
 # Training dataloader with shuffling
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 # Validation dataloader with shuffling

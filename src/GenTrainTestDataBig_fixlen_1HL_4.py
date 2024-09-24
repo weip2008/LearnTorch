@@ -18,6 +18,7 @@ import statistics
 
 class TradePosition(Enum):
     LONG = 1
+    HOLD = 0
     SHORT = -1
 
 
@@ -726,7 +727,7 @@ if __name__ == "__main__":
     traintest_data_len = 60
  
     # Series Number for output training/testing data set pairs
-    SN = "400"
+    SN = "600"
         
     # ZigZag parameters
     deviation = 0.0010  # Percentage
@@ -748,8 +749,8 @@ if __name__ == "__main__":
     shorttradecost = 1.00
     
     #============================= Training Data ============================================#
-    training_start_date = "2023-01-01"
-    training_end_date = "2023-12-31"
+    training_start_date = "2019-01-01"
+    training_end_date = "2023-06-31"
 
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -775,8 +776,8 @@ if __name__ == "__main__":
         generate_training_data(tddf_long_list, TradePosition.SHORT)
 
     #============================= Testing Data ============================================#
-    testing_start_date = "2023-10-01"
-    testing_end_date = "2023-12-31"
+    testing_start_date = "2023-03-01"
+    testing_end_date = "2023-09-31"
     
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
