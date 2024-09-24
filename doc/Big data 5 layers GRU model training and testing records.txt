@@ -1,0 +1,160 @@
+(env) D:\workspace\LearnTorch>d:/workspace/LearnTorch/env/Scripts/python.exe d:/workspace/LearnTorch/src/Test_GRU-nL_fixlen_HL_train.py
+Current date and time: 2024-09-24 08:12:58
+1.1 Load training data from data/SPX_1m_TrainingData_HL_54_800.txt
+Data shape: (132891, 54, 5)
+Targets shape: (132891, 1)
+1.2 Load testing data from data/SPX_1m_TestingData_HL_54_800.txt
+Data shape: (3411, 54, 5)
+Targets shape: (3411, 1)
+2. Define dataset and dataloader
+Current date and time: 2024-09-24 08:14:41
+3. Instantiate the model, define the loss function and the optimize
+Current date and time: 2024-09-24 08:14:41
+Number of layers: 5
+4. Start training loop
+Current date and time: 2024-09-24 08:14:44
+Epoch  1/20, Loss: 0.429873, Duration: 190.64 seconds
+  Validation Loss: 0.072158
+Epoch  2/20, Loss: 0.020328, Duration: 199.08 seconds
+  Validation Loss: 0.005407
+Epoch  3/20, Loss: 0.002990, Duration: 193.56 seconds
+  Validation Loss: 0.001652
+Epoch  4/20, Loss: 0.001288, Duration: 191.42 seconds
+  Validation Loss: 0.003869
+Epoch  5/20, Loss: 0.000922, Duration: 189.99 seconds
+  Validation Loss: 0.000298
+Epoch  6/20, Loss: 0.000511, Duration: 190.61 seconds
+  Validation Loss: 0.000192
+Epoch  7/20, Loss: 0.000526, Duration: 190.37 seconds
+  Validation Loss: 0.002114
+Epoch  8/20, Loss: 0.000309, Duration: 191.38 seconds
+  Validation Loss: 0.000064
+Epoch  9/20, Loss: 0.000416, Duration: 191.29 seconds
+  Validation Loss: 0.000100
+Epoch 10/20, Loss: 0.000155, Duration: 189.96 seconds
+  Validation Loss: 0.000026
+Epoch 11/20, Loss: 0.000116, Duration: 190.99 seconds
+  Validation Loss: 0.000045
+Epoch 12/20, Loss: 0.000255, Duration: 191.45 seconds
+  Validation Loss: 0.000934
+Epoch 13/20, Loss: 0.000224, Duration: 191.35 seconds
+  Validation Loss: 0.000091
+Epoch 14/20, Loss: 0.000213, Duration: 192.79 seconds
+  Validation Loss: 0.000039
+Epoch 15/20, Loss: 0.000020, Duration: 192.30 seconds
+  Validation Loss: 0.000015
+Epoch 16/20, Loss: 0.000016, Duration: 190.95 seconds
+  Validation Loss: 0.000012
+Epoch 17/20, Loss: 0.000008, Duration: 191.93 seconds
+  Validation Loss: 0.000006
+Epoch 18/20, Loss: 0.000126, Duration: 191.97 seconds
+  Validation Loss: 0.000159
+Epoch 19/20, Loss: 0.000014, Duration: 191.32 seconds
+  Validation Loss: 0.000004
+Epoch 20/20, Loss: 0.000089, Duration: 191.53 seconds
+  Validation Loss: 0.000054
+Current date and time: 2024-09-24 09:19:24
+5. Save the model, optimizer state, and losses to GRU_model_with_LH_fixlen_data_800.pth
+Training model saved to GRU_model_with_LH_fixlen_data_800.pth
+Current date and time: 2024-09-24 09:19:24
+
+(env) D:\workspace\LearnTorch>d:/workspace/LearnTorch/env/Scripts/python.exe d:/workspace/LearnTorch/src/Test_GRU-nL_fixlen_HL_test.py
+Current date and time: 2024-09-24 09:25:13
+1. Load testing data from data/SPX_1m_TestingData_HL_54_800.txt
+Data shape: (3411, 54, 5)
+Targets shape: (3411, 1)
+2. Define dataset and dataloader
+Current date and time: 2024-09-24 09:25:15
+3. Instantiate the model, define the loss function and the optimize
+Current date and time: 2024-09-24 09:25:15
+Number of layers: 5
+3. Load trained model from GRU_model_with_LH_fixlen_data_800.pth
+4. Start testing loop
+Current date and time: 2024-09-24 09:25:15
+Test Loss (MSE): 0.0001
+Mean Absolute Error (MAE): 0.0034
+R-squared (R2): 0.9999
+Current date and time: 2024-09-24 09:25:18
+Saved categorized signals to file : data/SPX_1m_HL_54_800_GRU_fixlen_800.txt
+Current date and time: 2024-09-24 09:25:19
+
+(env) D:\workspace\LearnTorch>d:/workspace/LearnTorch/env/Scripts/python.exe d:/workspace/LearnTorch/src/Test_GRU-nL_fixlen_HL_test.py
+Current date and time: 2024-09-24 09:26:34
+1. Load testing data from data/SPX_1m_PredictData_HL_54_750.txt
+Data shape: (3527, 54, 5)
+Targets shape: (3527, 1)
+2. Define dataset and dataloader
+Current date and time: 2024-09-24 09:26:37
+3. Instantiate the model, define the loss function and the optimize
+Current date and time: 2024-09-24 09:26:37
+Number of layers: 5
+3. Load trained model from GRU_model_with_LH_fixlen_data_800.pth
+4. Start testing loop
+Current date and time: 2024-09-24 09:26:37
+Test Loss (MSE): 0.0284
+Mean Absolute Error (MAE): 0.0236
+R-squared (R2): 0.9714
+Current date and time: 2024-09-24 09:26:40
+Saved categorized signals to file : data/SPX_1m_HL_54_800_GRU_fixlen_801.txt
+Current date and time: 2024-09-24 09:26:40
+
+
+(env) D:\workspace\LearnTorch>d:/workspace/LearnTorch/env/Scripts/python.exe d:/workspace/LearnTorch/src/Test_GRU-nL_fixlen_HL_predict.py
+Current date and time: 2024-09-24 09:28:29
+1. Load testing data from data/SPX_1m_PredictData_HL_54_750.txt
+Data shape: (3527, 54, 5)
+Targets shape: (3527, 1)
+2. Define dataset and dataloader
+Current date and time: 2024-09-24 09:28:32
+3. Instantiate the model, define the loss function and the optimize
+Current date and time: 2024-09-24 09:28:32
+Number of layers: 5
+Current date and time: 2024-09-24 09:28:29
+1. Load testing data from data/SPX_1m_PredictData_HL_54_750.txt
+Data shape: (3527, 54, 5)
+Targets shape: (3527, 1)
+2. Define dataset and dataloader
+Current date and time: 2024-09-24 09:28:32
+3. Instantiate the model, define the loss function and the optimize
+Current date and time: 2024-09-24 09:28:32
+Number of layers: 5
+Current date and time: 2024-09-24 09:28:32
+Number of layers: 5
+3. Load trained model from GRU_model_with_LH_fixlen_data_800.pth
+Randomly selected 10 rows and their corresponding outputs:
+Test Output: 0.9962 => Categorized Output: 1.0,         Target: 1
+Test Output: -1.0186 => Categorized Output: -1.0,       Target: -1
+Test Output: 0.9971 => Categorized Output: 1.0,         Target: 1
+Test Output: 0.9717 => Categorized Output: 1.0,         Target: 1
+Test Output: 0.9949 => Categorized Output: 1.0,         Target: 1
+Test Output: 0.9980 => Categorized Output: 1.0,         Target: 1
+Test Output: 0.9971 => Categorized Output: 1.0,         Target: 1
+Test Output: -0.9975 => Categorized Output: -1.0,       Target: -1
+Test Output: 1.0014 => Categorized Output: 1.0,         Target: 1
+Test Output: -0.9962 => Categorized Output: -1.0,       Target: -1
+Test Output: -1.0104 => Categorized Output: -1.0,       Target: -1
+Test Output: 0.9992 => Categorized Output: 1.0,         Target: 1
+Test Output: -0.9960 => Categorized Output: -1.0,       Target: -1
+Test Output: -1.0032 => Categorized Output: -1.0,       Target: -1
+Test Output: -1.0003 => Categorized Output: -1.0,       Target: -1
+Test Output: 1.0024 => Categorized Output: 1.0,         Target: 1
+Test Output: 0.9999 => Categorized Output: 1.0,         Target: 1
+Test Output: 0.9964 => Categorized Output: 1.0,         Target: 1
+Test Output: -0.9986 => Categorized Output: -1.0,       Target: -1
+Test Output: -1.0006 => Categorized Output: -1.0,       Target: -1
+
+
+(env) D:\workspace\LearnTorch>d:/workspace/LearnTorch/env/Scripts/python.exe d:/workspace/LearnTorch/src/Test_GRU-nL_fixlen_HL_predict1.py
+Current date and time: 2024-09-24 09:30:22
+1. Load testing data from data/SPX_1m_PredictData_HL_54_750.txt
+Data shape: (3527, 54, 5)
+Targets shape: (3527, 1)
+2. Define dataset and dataloader
+Current date and time: 2024-09-24 09:30:25
+3. Instantiate the model, define the loss function and the optimize
+Current date and time: 2024-09-24 09:30:25
+Number of layers: 5
+3. Load trained model from GRU_model_with_LH_fixlen_data_400.pth
+4. Pick random row from testing data, use trained model to predict signal.
+Test Output: -1.0023 => Categorized Output: -1.0,       Target: -1
+
