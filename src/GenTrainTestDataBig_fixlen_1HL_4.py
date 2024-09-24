@@ -727,7 +727,7 @@ if __name__ == "__main__":
     traintest_data_len = 60
  
     # Series Number for output training/testing data set pairs
-    SN = "600"
+    SN = "800"
         
     # ZigZag parameters
     deviation = 0.0010  # Percentage
@@ -742,15 +742,16 @@ if __name__ == "__main__":
     # Define the SQLite database file directory
     data_dir = "data"
 
-    db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
+    #db_file = os.path.join(data_dir, "stock_bigdata_2019-2023.db")
+    db_file = os.path.join(data_dir, "stock_bigdata_2010-2023.db")
     
     # tradecost for each trade
     longtradecost = 1.00
     shorttradecost = 1.00
     
     #============================= Training Data ============================================#
-    training_start_date = "2019-01-01"
-    training_end_date = "2023-06-31"
+    training_start_date = "2010-11-14"
+    training_end_date = "2023-12-30"
 
     now = datetime.now()
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
