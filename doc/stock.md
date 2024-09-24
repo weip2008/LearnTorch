@@ -56,6 +56,7 @@ Proc-->Forecast-->Pred
   - [Classified (man labeled buy/sell)](#classified-man-labeled-buysell)
   - [Future forecast](#future-forecast)
 - [References](#references)
+- [Getting started](#getting-started)
 - [Idea of selecting long,short,hold points](#idea-of-selecting-longshorthold-points)
 - [To-do list:](#to-do-list-1)
   - [Data Normalization](#data-normalization)
@@ -87,7 +88,14 @@ Proc-->Forecast-->Pred
 
 <!-- /code_chunk_output -->
 
+## Getting started
+* install all necessary modules
 
+```
+pip freeze > requirements.txt
+pip install -r requirements.txt
+```
+[All modules used in this project](../requirements.txt)
 
 ## Idea of selecting long,short,hold points
 
