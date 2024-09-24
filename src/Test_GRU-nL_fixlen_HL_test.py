@@ -8,7 +8,6 @@ import time
 from datetime import datetime
 
 
-
 testing_file_path  = 'data/SPX_1m_PredictData_HL_43_700.txt'
 model_save_path = 'GRU_model_with_LH_fixlen_data_600.pth'
 output_results_path = 'data/SPX_1m_HL_43_700_GRU_fixlen_700.txt'

@@ -63,7 +63,10 @@ if __name__ == '__main__':
     else:
         print("Host attribute is not found in the config")
     print(config.sqlite_db)
-
+    print(config.batch_size)
+    print(config.get("test",'port','8080')) 
+    print(config.get("database",'port','8080')) # Use a fallback, such as providing a default value, when one doesn't exist to prevent failure.
+    
     # Call the function to test
     result = example_function(1000000)
     print("Result:", result)
