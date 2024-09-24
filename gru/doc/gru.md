@@ -16,18 +16,17 @@ Model -->Pred
 - [Table of Contents](#table-of-contents)
 - [Todo](#todo)
 - [Generate Dataset](#generate-dataset)
-  - [Output files](#output-files)
   - [Input](#input)
-  - [Output](#output)
+  - [Output files](#output-files)
 - [Create GRU Model](#create-gru-model)
   - [Input](#input-1)
-  - [Output](#output-1)
+  - [Output](#output)
 - [Test the model](#test-the-model)
   - [Input](#input-2)
-  - [Output](#output-2)
+  - [Output](#output-1)
 - [Predict using the model](#predict-using-the-model)
   - [input](#input-3)
-  - [output](#output-3)
+  - [output](#output-2)
 
 ## Todo
 1. ~~change trainning data format~~
@@ -80,6 +79,9 @@ load --> zigzag --> pattern --> long --> short --> train --> test
 
 ✏️☝️Need explaination of above image, ❓How to generate buy/sell points based on the image above☝️❓ Better to have plot to support.
 
+### Input
+SQLite database file: [data/stock_bigdata_2019-2023.db]
+
 ### Output files
 1. [traning dataset](../data/SPX_1m_TrainingData_HL_80_500.txt)
 2. [testing dataset](../data/SPX_1m_TestingData_HL_80_500.txt)
@@ -97,13 +99,7 @@ load --> zigzag --> pattern --> long --> short --> train --> test
 
 total 60 points end by long/short point for each row which will be total of 5X60=300 numbers
 
-### Input
-SQLite database file: [data/stock_bigdata_2019-2023.db]
-
-### Output
 ![](images/trainning_testing_data.png)
-* [Trainning Dataset](/data/SPX_1m_TrainingData_HL_80_500.txt)
-* [Testing Dataset](/data/SPX_1m_TestingData_HL_80_500.txt)
 
 ## Create GRU Model
 * [Generate GRU Action Forecast model](../src/gruModel.py)

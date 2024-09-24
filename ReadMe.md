@@ -1,5 +1,6 @@
 <h1>Documents of This Projects</h1>
 
+* [GRU Forecast Model](gru/doc/gru.md)
 * [Understand pytorch module](doc/torch.md)
 * [Document of Stock Project](doc/stock.md)
   
