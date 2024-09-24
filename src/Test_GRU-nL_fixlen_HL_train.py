@@ -9,9 +9,9 @@ from datetime import datetime
 
 
 
-training_file_path = 'data/SPX_1m_TrainingData_HL_43_600.txt'
-testing_file_path  = 'data/SPX_1m_TestingData_HL_43_600.txt'
-save_path = 'GRU_model_with_LH_fixlen_data_600.pth'
+training_file_path = 'data/SPX_1m_TrainingData_HL_54_800.txt'
+testing_file_path  = 'data/SPX_1m_TestingData_HL_54_800.txt'
+save_path = 'GRU_model_with_LH_fixlen_data_800.pth'
 
 import numpy as np
 

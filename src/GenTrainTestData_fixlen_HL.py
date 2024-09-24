@@ -724,10 +724,10 @@ if __name__ == "__main__":
     # average number of working days in a month is 21.7, based on a five-day workweek
     # so 45 days is total for two months working days
     # 200 days is one year working days
-    traintest_data_len = 43
+    traintest_data_len = 54
  
     # Series Number for output training/testing data set pairs
-    SN = "700"
+    SN = "750"
         
     # ZigZag parameters
     deviation = 0.0010  # Percentage

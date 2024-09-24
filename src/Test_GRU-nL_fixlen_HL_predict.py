@@ -9,8 +9,9 @@ from datetime import datetime
 import numpy as np
 import random
 
-testing_file_path  = 'data/SPX_1m_TestingData_HL_80_400.txt'
-model_save_path = 'GRU_model_with_LH_fixlen_data_400.pth'
+#testing_file_path  = 'data/SPX_1m_TestingData_HL_80_400.txt'
+testing_file_path  = 'data/SPX_1m_PredictData_HL_54_750.txt'
+model_save_path = 'GRU_model_with_LH_fixlen_data_800.pth'
 sample_size = 20
 
 def load_testing_data(training_file_path):
