@@ -43,7 +43,7 @@ def execution_time(func):
         result = func(*args, **kwargs)  # Execute the wrapped function
         end_time = time.time()  # Get the end time
         execution_duration = end_time - start_time
-        log.info(f"Execution time of {func.__name__}: {execution_duration:.4f} seconds")
+        log.info(f"Execution time of {func.__name__}(): {execution_duration:.4f} seconds")
         return result  # Return the result of the function
     return wrapper
 
@@ -63,7 +63,10 @@ if __name__ == '__main__':
     else:
         print("Host attribute is not found in the config")
     print(config.sqlite_db)
-
+    print(config.batch_size)
+    print(config.get("test",'port','8080')) 
+    print(config.get("database",'port','8080')) # Use a fallback, such as providing a default value, when one doesn't exist to prevent failure.
+    
     # Call the function to test
     result = example_function(1000000)
     print("Result:", result)

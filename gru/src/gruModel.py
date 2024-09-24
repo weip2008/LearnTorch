@@ -35,11 +35,11 @@ class GRUModel(nn.Module):
         out = self.fc(out[:, -1, :])
         return out
 
-def load_data(training_file_path):
+def load_data(file_path):
     data = []
     signals = []
 
-    with open(training_file_path, 'r') as file:
+    with open(file_path, 'r') as file:
         for line in file:
             # Split the line into data and target parts
             signals_part, data_part = line.strip().split(',[')
@@ -102,11 +102,10 @@ class ModelGenerator:
         ModelGenerator.log.info("3. Instantiate the model, define the loss function and the optimize")
 
         # Define hyperparameters
-        input_size = int(config.input_size)
-        hidden_size = int(config.hidden_size)
-        output_size = int(config.output_size)
-        num_layers = int(config.num_layers)
-        learning_rate = float(config.learning_rate)
+        input_size = int(ModelGenerator.config.input_size)
+        hidden_size = int(ModelGenerator.config.hidden_size)
+        output_size = int(ModelGenerator.config.output_size)
+        num_layers = int(ModelGenerator.config.num_layers)
 
         # Instantiate the model
         ModelGenerator.log.info(f"Number of layers: {num_layers}")
