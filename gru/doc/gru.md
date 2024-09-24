@@ -48,6 +48,7 @@ Model -->Pred
 * [Define Logger class for whole project](../src/gru.py)
 * [Define global variables in cofig.ini](../src/config.ini)
 * [load global variables from cofig.ini](../src/config.py)
+
 * [Generate dataset Source Code](../src/generateDataset.py)
 
 ```py
@@ -153,7 +154,7 @@ SQLite database file: [data/stock_bigdata_2019-2023.db]
 * [the predict result file name is defined in config.ini](/data/SPX_1m_HL_43_700_GRU_fixlen_500.txt)
 
 ```txt
-arget[1.] : Output[0.9852] -> Signal[1.0]
+Target[1.] : Output[0.9852] -> Signal[1.0]
 Target[1.] : Output[0.9828] -> Signal[1.0]
 Target[1.] : Output[0.9788] -> Signal[1.0]
 Target[1.] : Output[0.9798] -> Signal[1.0]

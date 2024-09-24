@@ -23,6 +23,7 @@ class TradePosition(Enum):
     SHORT = -1
 
 class DataProcessor:
+    traintest_data_len = None
     def __init__(self, training=True):
         traintest_data_len = int(DataSource.config.traintest_data_len)
         self.ds = DataSource()
@@ -32,14 +33,14 @@ class DataProcessor:
         self.ds.queryDB(self.query_start, self.query_end)
         self.df = self.ds.getDataFrameFromDB()
         self.gen_zigzag_patterns()
+        if (DataProcessor.traintest_data_len is None):
+            DataProcessor.traintest_data_len = self.check_patterns_length()
+        tddf_long_list= self.check_long_patterns(DataProcessor.traintest_data_len)
+        tddf_short_list = self.check_short_patterns(DataProcessor.traintest_data_len)
         if training:
-            traintest_data_len = self.check_patterns_length()
-        tddf_long_list= self.check_long_patterns(traintest_data_len)
-        tddf_short_list = self.check_short_patterns(traintest_data_len)
-        if training:
-            self.generateTrain(tddf_short_list, tddf_long_list, traintest_data_len)
+            self.generateTrain(tddf_short_list, tddf_long_list, DataProcessor.traintest_data_len)
         else:
-            self.generateTest(tddf_short_list, tddf_long_list, traintest_data_len)
+            self.generateTest(tddf_short_list, tddf_long_list, DataProcessor.traintest_data_len)
 
     def gen_zigzag_patterns(self):
         zigzag = self.ds.getZigzag()
