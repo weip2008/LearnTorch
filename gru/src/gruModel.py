@@ -1,54 +1,41 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
-import pandas as pd
 import time
-from datetime import datetime
+from config import Config, execution_time
+from gru import Logger
 
 
+# Custom dataset class for loading signals and data
+class TimeSeriesDataset(Dataset):
+    def __init__(self, data, signals):
+        self.data = data
+        self.signals = signals
 
-training_file_path = 'data/SPX_1m_TrainingData_HL_80_500.txt'
-testing_file_path  = 'data/SPX_1m_TestingData_HL_80_500.txt'
-save_path = 'models/GRU_model_with_LH_fixlen_data_501.pth'
+    def __len__(self):
+        return len(self.data)
 
-import numpy as np
+    def __getitem__(self, idx):
+        x = self.data[idx]
+        y = self.signals[idx]
+        return torch.tensor(x, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
 
+class GRUModel(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size, num_layers):
+        super(GRUModel, self).__init__()
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+        self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, output_size)
 
-def load_training_data(training_file_path):
-    data = []
-    signals = []
+    def forward(self, x):
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
+        out, _ = self.gru(x, h0)
+        out = self.fc(out[:, -1, :])
+        return out
 
-
-    with open(training_file_path, 'r') as file:
-        for line in file:
-            # Split the line into data and target parts
-            signals_part, data_part = line.strip().split(',[')
-            
-            #signal = int(signals_part.split(',')[0])
-            signal = int(signals_part.strip())
-            signals.append(signal)
-            
-            # Add the beginning bracket to the data part and opening bracket to the target part
-            data_part = '[' + data_part
-            
-            # Convert the string representations to actual lists
-            data_row = eval(data_part)
-            
-            # Append to the respective lists
-            data.append(data_row)
-            #targets.append(target_row[0])  # Ensure target_row is a 1D array
-    
-    # Convert lists to numpy arrays
-    data_np = np.array(data)
-    signals_np = np.array(signals).reshape(-1, 1)  
-    #signals_np = np.array(signals)  
-    
-    return data_np, signals_np
-
-
-def load_testing_data(training_file_path):
+def load_data(training_file_path):
     data = []
     signals = []
 
@@ -77,147 +64,122 @@ def load_testing_data(training_file_path):
     
     return data_np, signals_np
 
+class ModelGenerator:
+    config = Config('gru/src/config.ini')
+    log = Logger('gru/log/gru.log')
+    def __init__(self):
+        self.loadData()
+        self.buildDataLoader()
+        self.defineModel()
+        self.train()
+        self.save()
 
-# Example usage
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-print(f"1.1 Load training data from {training_file_path}")
-training_data, training_signals = load_training_data(training_file_path)
+    def loadData(self):
+        training_file_path = ModelGenerator.config.training_file_path
+        testing_file_path = ModelGenerator.config.testing_file_path
 
-print("Data shape:", training_data.shape)
-print("Targets shape:", training_signals.shape)
-#print(data)
-#print(signals)
+        ModelGenerator.log.info(f"1.1 Load training data from {training_file_path}")
+        self.training_data, self.training_signals = load_data(training_file_path)
+        ModelGenerator.log.info(f"Data shape: {self.training_data.shape}")
+        ModelGenerator.log.info(f"Targets shape: {self.training_signals.shape}")
+        ModelGenerator.log.info(f"1.2 Load testing data from {testing_file_path}")
+        self.testing_data, self.testing_signals = load_data(testing_file_path)
 
-print(f"1.2 Load testing data from {testing_file_path}")
-testing_data, testing_signals = load_testing_data(testing_file_path)
+    def buildDataLoader(self):
+        # Instantiate the dataset
+        ModelGenerator.log.info("2. Define dataset and dataloader")
+        train_dataset = TimeSeriesDataset(self.training_data, self.training_signals)
+        val_dataset = TimeSeriesDataset(self.testing_data, self.testing_signals)
+        # Create DataLoader for batching
+        batch_size = int(config.batch_size)
+        # Training dataloader with shuffling
+        self.train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        # Validation dataloader with shuffling
+        self.val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
 
-print("Data shape:", testing_data.shape)
-print("Targets shape:", testing_signals.shape)
+    def defineModel(self):
+        # Instantiate the model, define the loss function and the optimizer
+        ModelGenerator.log.info("3. Instantiate the model, define the loss function and the optimize")
 
-# Custom dataset class for loading signals and data
-class TimeSeriesDataset(Dataset):
-    def __init__(self, data, signals):
-        self.data = data
-        self.signals = signals
+        # Define hyperparameters
+        input_size = int(config.input_size)
+        hidden_size = int(config.hidden_size)
+        output_size = int(config.output_size)
+        num_layers = int(config.num_layers)
+        learning_rate = float(config.learning_rate)
 
-    def __len__(self):
-        return len(self.data)
+        # Instantiate the model
+        ModelGenerator.log.info(f"Number of layers: {num_layers}")
+        self.model = GRUModel(input_size, hidden_size, output_size, num_layers)
 
-    def __getitem__(self, idx):
-        x = self.data[idx]
-        y = self.signals[idx]
-        return torch.tensor(x, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
+    @execution_time
+    def train(self):
+        learning_rate = float(ModelGenerator.config.learning_rate)
+        # Loss function: Binary Cross Entropy Loss
+        #criterion = nn.BCEWithLogitsLoss()  # Use with sigmoid for binary classification
+        criterion = nn.MSELoss()
 
-# Instantiate the dataset
-print("2. Define dataset and dataloader")
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-train_dataset = TimeSeriesDataset(training_data, training_signals)
-val_dataset = TimeSeriesDataset(testing_data, testing_signals)
+        # Optimizer: Adam
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
 
-# Create DataLoader for batching
-batch_size = 32  # You can change the batch size as needed
-# Training dataloader with shuffling
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-# Validation dataloader with shuffling
-val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
+        # Add a learning rate scheduler
+        scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.1)  # Reduce LR by 10x every 10 epochs
 
-# Define the GRU model with 2 layers
-class GRUModel(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers):
-        super(GRUModel, self).__init__()
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
-        self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_size, output_size)
+        # Training loop
+        log.info("4. Start training loop")
 
-    def forward(self, x):
-        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
-        out, _ = self.gru(x, h0)
-        out = self.fc(out[:, -1, :])
-        return out
+        # Hyperparameters
+        num_epochs = int(config.num_epochs)
 
-# Instantiate the model, define the loss function and the optimizer
-print("3. Instantiate the model, define the loss function and the optimize")
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        # List to store losses
+        self.train_losses = []
+        self.val_losses = []
 
-# Define hyperparameters
-input_size = 5  # Number of features in each tuple
-hidden_size = 64  # Number of features in the hidden state
-output_size = 1  # Number of output features (signal)
-num_layers = 5    # Number of GRU layers
-learning_rate = 0.0001  # Learning rate
-
-# Instantiate the model
-print(f"Number of layers: {num_layers}")
-model = GRUModel(input_size, hidden_size, output_size, num_layers)
-
-# Move model to GPU if available
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#model.to(device)
-
-# Loss function: Binary Cross Entropy Loss
-#criterion = nn.BCEWithLogitsLoss()  # Use with sigmoid for binary classification
-criterion = nn.MSELoss()
-
-# Optimizer: Adam
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
-# Add a learning rate scheduler
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)  # Reduce LR by 10x every 10 epochs
-
-# Training loop
-print("4. Start training loop")
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-# Hyperparameters
-num_epochs = 20
-
-# List to store losses
-train_losses = []
-val_losses = []
-
-for epoch in range(num_epochs):
-    epoch_start_time = time.time()
-    model.train()
-    epoch_loss = 0
-    for inputs, targets in train_dataloader:
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        epoch_loss += loss.item()
-    
-    avg_epoch_loss = epoch_loss / len(train_dataloader)
-    train_losses.append(avg_epoch_loss)
-    #print(f'Epoch [{epoch+1}/{num_epochs}], Training Loss: {avg_epoch_loss:.4f}')
-    epoch_end_time = time.time()
-    epoch_duration = epoch_end_time - epoch_start_time  # Duration in seconds
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_epoch_loss:.6f}, Duration: {epoch_duration:.2f} seconds')
-    
-    
-    # Validation loss
-    model.eval()
-    val_loss = 0
-    with torch.no_grad():
-        for val_inputs, val_targets in val_dataloader:
-            val_outputs = model(val_inputs)
-            val_loss += criterion(val_outputs, val_targets).item()
-    avg_val_loss = val_loss / len(val_dataloader)
-    val_losses.append(avg_val_loss)
-    print(f' Validation Loss: {avg_val_loss:.6f}')
-    
-    
-# Save the model, optimizer state, and losses
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-print(f"5. Save the model, optimizer state, and losses to {save_path}")
-torch.save({
-    'model_state_dict': model.state_dict(),
-    'optimizer_state_dict': optimizer.state_dict(),
-    'train_losses': train_losses,
-    'test_losses': val_losses
-}, save_path)
+        for epoch in range(num_epochs):
+            epoch_start_time = time.time()
+            self.model.train()
+            epoch_loss = 0
+            for inputs, targets in self.train_dataloader:
+                outputs = self.model(inputs)
+                loss = criterion(outputs, targets)
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+                epoch_loss += loss.item()
+            
+            avg_epoch_loss = epoch_loss / len(self.train_dataloader)
+            self.train_losses.append(avg_epoch_loss)
+            #print(f'Epoch [{epoch+1}/{num_epochs}], Training Loss: {avg_epoch_loss:.4f}')
+            epoch_end_time = time.time()
+            epoch_duration = epoch_end_time - epoch_start_time  # Duration in seconds
+            ModelGenerator.log.info(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_epoch_loss:.6f}, Duration: {epoch_duration:.2f} seconds')
+            
+            
+            # Validation loss
+            self.model.eval()
+            val_loss = 0
+            with torch.no_grad():
+                for val_inputs, val_targets in self.val_dataloader:
+                    val_outputs = self.model(val_inputs)
+                    val_loss += criterion(val_outputs, val_targets).item()
+            avg_val_loss = val_loss / len(self.val_dataloader)
+            self.val_losses.append(avg_val_loss)
+            ModelGenerator.log.info(f' Validation Loss: {avg_val_loss:.6f}')
+      
+    def save(self):
+        save_path = ModelGenerator.config.save_path
+        # Save the model, optimizer state, and losses
+        log.info(f"5. Save the model, optimizer state, and losses to {save_path}")
+        torch.save({
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'train_losses': self.train_losses,
+            'test_losses': self.val_losses
+        }, save_path)
 
 
-print(f"Training model saved to {save_path}")
-print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        log.info(f"Training model saved to {save_path}")
+
+
+if __name__ == "__main__":
+    ModelGenerator()

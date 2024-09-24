@@ -28,7 +28,7 @@ Data-->Model-->Test
 2. ~~all global variables should read from a configuration file~~
 3. ~~optimize Debug~~
 4. ~~optimize logging~~
-5. ~~clean code make all definitions at begining~~
+5. clean code make all definitions at begining
 6.  ~~separate plot function from data process code~~
 7. 🛠🎯use class
 8. send Test output to a file for future reference

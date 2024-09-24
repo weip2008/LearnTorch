@@ -41,7 +41,6 @@ class DataProcessor:
         else:
             self.generateTest(tddf_short_list, tddf_long_list, traintest_data_len)
 
-
     def gen_zigzag_patterns(self):
         zigzag = self.ds.getZigzag()
         log.debug(f"Zigzag list length:{len(zigzag)}\n{zigzag}")
@@ -608,9 +607,6 @@ def generate_testing_data(tddf_highlow_list, position,datafile):
         #print(i)
     outputfile.close()    
 
-def currentTime():
-    formatted_now = datetime.now().strftime(config.time_format)
-    log.info(f'Current date and time: {formatted_now}')
 
 @execution_time
 def main():
