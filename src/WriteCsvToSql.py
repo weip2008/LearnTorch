@@ -31,11 +31,11 @@ def read_CSV_file(csv_file_path):
 
 
 # Define the path to the CSV file
-#csv_file_path = os.path.join("stockdata", "AAPL_2024-05-06_2024-05-12_1m.csv")
-#csv_file_path = os.path.join("stockdata", "AAPL_2024-04-12_2024-05-19_1m.csv")
-#sv_file_path = os.path.join("stockdata", "AAPL_2024-05-20_2024-05-26_1m.csv")
-#csv_file_path = os.path.join("stockdata\\SPY_2024-04-11_2024-05-26_1m.csv")
-#csv_file_path = os.path.join("stockdata\\SPY_2024-04-11_2024-05-26_1m.csv")
+#csv_file_path = os.path.join("data", "AAPL_2024-05-06_2024-05-12_1m.csv")
+#csv_file_path = os.path.join("data", "AAPL_2024-04-12_2024-05-19_1m.csv")
+#sv_file_path = os.path.join("data", "AAPL_2024-05-20_2024-05-26_1m.csv")
+#csv_file_path = os.path.join("data\\SPY_2024-04-11_2024-05-26_1m.csv")
+#csv_file_path = os.path.join("data\\SPY_2024-04-11_2024-05-26_1m.csv")
 
 #csv_file_path = os.path.join("stockdata\\MES=F_max_2024-05-27_2024-06-03_1m.csv")
 #csv_file_path = os.path.join("stockdata\\MES=F_max_2024-05-28_2024-06-04_1m.csv")
@@ -59,7 +59,7 @@ csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-15_2024-09-22_1m.csv"
 # Define the table name as a string variable
 #table_name = "AAPL_1D"
 #table_name = "AAPL_1m"
-table_name = "SPY_1m"
+table_name = "SPX_1m"
 
 # Read data from the CSV file into a DataFrame
 #ohlcv = pd.read_csv(csv_file_path)
@@ -73,7 +73,7 @@ print(ohlcv)
 print("\n=============================1===Create/Insert=======================\n")
 
 # Define the SQLite database file
-db_file = os.path.join("stockdata", "stock_data.db")
+db_file = os.path.join("data", "stock_data_2024.db")
 
 # Connect to the SQLite database
 conn = sqlite3.connect(db_file)

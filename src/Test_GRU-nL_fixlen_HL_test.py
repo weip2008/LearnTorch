@@ -9,9 +9,9 @@ from datetime import datetime
 
 
 
-testing_file_path  = 'data/SPX_1m_TestingData_HL_43_600.txt'
+testing_file_path  = 'data/SPX_1m_PredictData_HL_43_700.txt'
 model_save_path = 'GRU_model_with_LH_fixlen_data_600.pth'
-output_results_path = 'data/SPX_1m_HL_43_600_GRU_fixlen_600.txt'
+output_results_path = 'data/SPX_1m_HL_43_700_GRU_fixlen_700.txt'
 
 import numpy as np
 
