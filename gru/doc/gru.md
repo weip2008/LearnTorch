@@ -122,24 +122,21 @@ SQLite database file: [data/stock_bigdata_2019-2023.db]
 ### Output
 
 ```txt
-Current date and time: 2024-09-23 09:36:55
-1. Load testing data from data/SPX_1m_TestingData_HL_80_500.txt
-Data shape: (1684, 80, 5)
-Targets shape: (1684, 1)
-2. Define dataset and dataloader
-Current date and time: 2024-09-23 09:36:56
-3. Instantiate the model, define the loss function and the optimize
-Current date and time: 2024-09-23 09:36:56
-Number of layers: 5
-3. Load trained model from GRU_model_with_LH_fixlen_data_501.pth
-4. Start testing loop
-Current date and time: 2024-09-23 09:36:56
-Test Loss (MSE): 0.00353319
-Mean Absolute Error (MAE): 0.02026430
-R-squared (R2): 0.99644500
-Current date and time: 2024-09-23 09:36:58
-Saved categorized signals to file : data/SPX_1m_HL_80_500_GRU_fixlen_500.txt
-Current date and time: 2024-09-23 09:36:59
+2024-09-24 11:13:37,788 - gru - INFO - 1. Load testing data from data/SPX_1m_TestingData_HL_80_500.txt
+2024-09-24 11:13:39,398 - gru - INFO - Data shape: (1684, 80, 5)
+2024-09-24 11:13:39,398 - gru - INFO - Targets shape: (1684, 1)
+2024-09-24 11:13:39,398 - gru - INFO - 2. Define dataset and dataloader
+2024-09-24 11:13:39,399 - gru - INFO - 3. Instantiate the model, define the loss function and the optimize
+2024-09-24 11:13:39,399 - gru - INFO - Number of layers: 5
+2024-09-24 11:13:39,400 - gru - INFO - 4. Load trained model from models/GRU_model_with_LH_fixlen_data_500.pth
+2024-09-24 11:13:39,405 - gru - INFO - 5. Start testing loop
+2024-09-24 11:13:41,524 - gru - INFO - Test Loss (MSE): 0.00309951
+2024-09-24 11:13:41,526 - gru - INFO - Mean Absolute Error (MAE): 0.01776317
+2024-09-24 11:13:41,526 - gru - INFO - R-squared (R2): 0.99687991
+2024-09-24 11:13:41,629 - gru - INFO - Saved categorized signals to file : data/SPX_1m_HL_43_700_GRU_fixlen_500.txt
+2024-09-24 11:13:41,629 - gru - INFO - Execution time of test(): 2.2243 seconds
+2024-09-24 11:13:41,629 - gru - INFO - ================================= Done
+
 ```
 
 * [data/SPX_1m_HL_80_500_GRU_fixlen_500.txt](/data/SPX_1m_HL_80_500_GRU_fixlen_500.txt)
@@ -165,4 +162,37 @@ Target[1.] : Output[0.9789] -> Signal[1.0]
 Target[1.] : Output[0.9650] -> Signal[1.0]
 Target[1.] : Output[0.9837] -> Signal[1.0]
 ... ...
+```
+
+```
+2024-09-24 10:31:19,875 - gru - INFO - 1. Load testing data from data/SPX_1m_TestingData_HL_80_500.txt
+2024-09-24 10:31:21,394 - gru - INFO - Data shape: (1684, 80, 5)
+2024-09-24 10:31:21,394 - gru - INFO - Targets shape: (1684, 1)
+2024-09-24 10:31:21,394 - gru - INFO - 2. Define dataset and dataloader
+2024-09-24 10:31:21,394 - gru - INFO - 3. Instantiate the model, define the loss function and the optimize
+2024-09-24 10:31:21,394 - gru - INFO - Number of layers: 5
+2024-09-24 10:31:21,394 - gru - INFO - 4. Load trained model from models/GRU_model_with_LH_fixlen_data_500.pth
+2024-09-24 10:31:21,394 - gru - INFO - 5. Start testing loop
+2024-09-24 10:31:21,394 - gru - INFO - Randomly selected 10 rows and their corresponding outputs:
+2024-09-24 10:31:21,418 - gru - INFO - Test Output:  1.0135 => Categorized Output:  1.0, 	Target:  1
+2024-09-24 10:31:21,421 - gru - INFO - Test Output: -1.0031 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,435 - gru - INFO - Test Output: -1.0092 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,449 - gru - INFO - Test Output:  1.0013 => Categorized Output:  1.0, 	Target:  1
+2024-09-24 10:31:21,466 - gru - INFO - Test Output: -0.9915 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,477 - gru - INFO - Test Output: -1.0087 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,483 - gru - INFO - Test Output: -1.0060 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,499 - gru - INFO - Test Output: -0.9803 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,501 - gru - INFO - Test Output: -1.0313 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,516 - gru - INFO - Test Output:  1.0100 => Categorized Output:  1.0, 	Target:  1
+2024-09-24 10:31:21,534 - gru - INFO - Test Output: -0.9957 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,538 - gru - INFO - Test Output:  0.9820 => Categorized Output:  1.0, 	Target:  1
+2024-09-24 10:31:21,551 - gru - INFO - Test Output: -1.0023 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,566 - gru - INFO - Test Output:  0.9771 => Categorized Output:  1.0, 	Target:  1
+2024-09-24 10:31:21,583 - gru - INFO - Test Output:  1.0199 => Categorized Output:  1.0, 	Target:  1
+2024-09-24 10:31:21,583 - gru - INFO - Test Output: -1.0413 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,603 - gru - INFO - Test Output:  0.9827 => Categorized Output:  1.0, 	Target:  1
+2024-09-24 10:31:21,617 - gru - INFO - Test Output:  0.9888 => Categorized Output:  1.0, 	Target:  1
+2024-09-24 10:31:21,632 - gru - INFO - Test Output:  1.0297 => Categorized Output:  1.0, 	Target:  1
+2024-09-24 10:31:21,637 - gru - INFO - Test Output: -1.0142 => Categorized Output: -1.0, 	Target: -1
+2024-09-24 10:31:21,637 - gru - INFO - ================================= Done
 ```

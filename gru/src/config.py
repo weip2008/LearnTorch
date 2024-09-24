@@ -43,7 +43,7 @@ def execution_time(func):
         result = func(*args, **kwargs)  # Execute the wrapped function
         end_time = time.time()  # Get the end time
         execution_duration = end_time - start_time
-        log.info(f"Execution time of {func.__name__}: {execution_duration:.4f} seconds")
+        log.info(f"Execution time of {func.__name__}(): {execution_duration:.4f} seconds")
         return result  # Return the result of the function
     return wrapper
 
