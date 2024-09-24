@@ -19,7 +19,7 @@ def categorize_output(output):
 
 class Predictor:
     config = Config('gru\src\config.ini')
-    log = Logger('gru/log/gru.log')
+    log = Logger('gru/log/gru.log',logger_name='predict')
 
     def __init__(self):
         self.load_data()

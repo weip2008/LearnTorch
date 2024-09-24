@@ -66,7 +66,7 @@ def load_data(file_path):
 
 class ModelGenerator:
     config = Config('gru/src/config.ini')
-    log = Logger('gru/log/gru.log')
+    log = Logger('gru/log/gru.log',logger_name='model')
     def __init__(self):
         self.loadData()
         self.buildDataLoader()

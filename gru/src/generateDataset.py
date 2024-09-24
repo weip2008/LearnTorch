@@ -620,7 +620,7 @@ def main():
 
 # ================================================================================#
 if __name__ == "__main__":
-    log = Logger('gru/log/gru.log')
+    log = Logger('gru/log/gru.log', logger_name='data')
     log.info(f'sqlite version: {pd.__version__}')
 
     config = Config('gru/src/config.ini')
