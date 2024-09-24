@@ -56,7 +56,7 @@ class Tester:
 
         # Load the saved model state
         model_save_path = Tester.config.model_save_path
-        Tester.log.info(f"3. Load trained model from {model_save_path}")
+        Tester.log.info(f"4. Load trained model from {model_save_path}")
         checkpoint = torch.load(model_save_path)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.eval()  # Set the model to evaluation mode
@@ -68,9 +68,7 @@ class Tester:
         criterion = nn.MSELoss()
 
         # Training loop
-        Tester.log.info("4. Start testing loop")
-        Tester.log.info(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
+        Tester.log.info("5. Start testing loop")
 
         # Evaluate the model on the testing data
         test_loss = 0
@@ -120,8 +118,6 @@ class Tester:
         # R2 is a measure of how well the model explains the variability of the target data, 
         #    with values closer to 1 indicating a better fit
             
-        Tester.log.info(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
         # Open a text file in write mode
         output_results_path = Tester.config.output_results_path
         with open(output_results_path, 'w') as file:

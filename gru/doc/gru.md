@@ -22,19 +22,23 @@ Data-->Model-->Test
 - [Test the model](#test-the-model)
   - [Input](#input-2)
   - [Output](#output-2)
+- [Predict using the model](#predict-using-the-model)
+  - [input](#input-3)
+  - [output](#output-3)
 
 ## Todo
 1. ~~change trainning data format~~
 2. ~~all global variables should read from a configuration file~~
 3. ~~optimize Debug~~
 4. ~~optimize logging~~
-5. clean code make all definitions at begining
+5. ~~clean code make all definitions at begining~~
 6.  ~~separate plot function from data process code~~
-7. 🛠🎯use class
-8. send Test output to a file for future reference
-9. read output prediction data, find out accuracy
-10. get rid of zigzagplus1.py
-11. read any line of dataset, plot it on screen
+7. ~~🛠🎯use class~~
+8. ~~send Test output to a file for future reference~~
+9. train and test data should be the same other than start/end date
+10. read output prediction data, find out accuracy
+11. get rid of zigzagplus1.py
+12. read any line of dataset, plot it on screen
 
 
 ## Generate Dataset
@@ -56,8 +60,13 @@ graph TB
 
 load["utilities<br>.DataSource.queryDB()"]
 zigzag["gen_zigzag_patterns()"]
+pattern["check_patterns_length()"]
+long["check_long_patterns()"]
+short["check_short_patterns()"]
+train["generateTrain()"]
+test["generateTest()"]
 
-load --> zigzag
+load --> zigzag --> pattern --> long --> short --> train --> test
 ```
 
 * [generate plots](../src/utilities.py)
@@ -129,3 +138,26 @@ Current date and time: 2024-09-23 09:36:59
 ```
 
 * [data/SPX_1m_HL_80_500_GRU_fixlen_500.txt](/data/SPX_1m_HL_80_500_GRU_fixlen_500.txt)
+
+## Predict using the model
+
+* [predict from testing data by using previous generated model that saved in a file](../src/predict.py)
+
+### input
+* [the model file name is defined in config.ini](/models/GRU_model_with_LH_fixlen_data_500.pth)
+* [the test data file name is defined in config.ini](/data/SPX_1m_TestingData_HL_80_500.txt)
+
+### output
+* [the predict result file name is defined in config.ini](/data/SPX_1m_HL_43_700_GRU_fixlen_500.txt)
+
+```txt
+arget[1.] : Output[0.9852] -> Signal[1.0]
+Target[1.] : Output[0.9828] -> Signal[1.0]
+Target[1.] : Output[0.9788] -> Signal[1.0]
+Target[1.] : Output[0.9798] -> Signal[1.0]
+Target[1.] : Output[0.9942] -> Signal[1.0]
+Target[1.] : Output[0.9789] -> Signal[1.0]
+Target[1.] : Output[0.9650] -> Signal[1.0]
+Target[1.] : Output[0.9837] -> Signal[1.0]
+... ...
+```

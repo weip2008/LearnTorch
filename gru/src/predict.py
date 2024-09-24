@@ -67,6 +67,7 @@ class Predictor:
         self.model.load_state_dict(checkpoint['model_state_dict'])
 
     def predict(self):
+        Predictor.log.info("5. Start testing loop")
         sample_size = int(Predictor.config.sample_size)
 
         # Randomly select 10 rows from testing data
@@ -75,7 +76,7 @@ class Predictor:
         random_targets = self.testing_signals[random_indices]
 
         # Print the output for each selected row
-        Predictor.log.info("5. Randomly selected 10 rows and their corresponding outputs:")
+        Predictor.log.info("Randomly selected 10 rows and their corresponding outputs:")
         for i in range(sample_size):
             test_data = random_datas[i]
             test_target = random_targets[i].item()  # Get the actual target value
