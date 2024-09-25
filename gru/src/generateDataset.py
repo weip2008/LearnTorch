@@ -30,8 +30,7 @@ class DataProcessor:
 
         traintest_data_len = int(DataSource.config.traintest_data_len)
         if (DataProcessor.traintest_data_len is None):
-            DataProcessor.traintest_data_len = self.check_patterns_length()
-            
+            DataProcessor.traintest_data_len = self.check_patterns_length_1()
         tddf_long_list= self.check_long_patterns(DataProcessor.traintest_data_len)
         tddf_short_list = self.check_short_patterns(DataProcessor.traintest_data_len)
         if training:
@@ -69,6 +68,170 @@ class DataProcessor:
 
         self.patterns_df = zz.convert_list_to_df(patterns)
         log.debug(f"Patterns dataframe length:{len(self.patterns_df)}\n{self.patterns_df}")  # Print to verify DataFrame structure
+
+
+    def check_patterns_length_1(self):
+        traintest_data_len = int(config.traintest_data_len)
+        longtradecost = float(config.longtradecost)
+        shorttradecost = float(config.shorttradecost)
+        
+        short_list = []
+        long_list = []
+        median_long_hold_time = 0
+        median_short_hold_time = 0
+        
+        # Initialize variables
+        in_long_position = False  # Track whether we are in a buy position
+        #previous_point = None
+        buy_time = None
+        sell_time = None
+        hold_time = None
+        holdtime_list = []
+        # Loop through the DataFrame and process each row for LONG position(做多)
+        # essentially, "buying low and selling high" is the strategy for a long position.    
+        for idx, row in self.patterns_df.iterrows():
+            label = row['Label']
+            price = row['Price']
+            time = idx  # Access the time from the index directly
+            
+            start_pos = self.df.index.get_loc(idx)
+            if start_pos < traintest_data_len:
+                continue
+            
+            if label[1] == 'L':
+                if not in_long_position:
+                    # Buy in at this point
+                    buy_price = price
+                    buy_time = idx
+                    in_long_position = True
+                    log.debug(f"At {time}, LONG buy  price: {buy_price:.2f} at {label} point")
+                else:
+                    log.debug(f"At {time}, already in long position, ignoring signal {label} at price: {buy_price:.2f}")
+                    continue
+            
+            elif label[1] == 'H':
+                if in_long_position:
+                    # Sell out at this point
+                    sell_price = price
+                    sell_time = idx
+                    hold_time = sell_time - buy_time                
+                    profit = sell_price - buy_price - longtradecost
+                    if profit > 0: 
+                        hold_time_in_minutes = int(hold_time.total_seconds() / 60)
+                        holdtime_list.append(hold_time_in_minutes)
+                        #section_df = cut_slice(ohlc_df, buy_time, sell_time)
+                        # section_df = cut_slice(ohlc_df, sell_time)
+                        
+                            
+                        # if (section_df is not None):
+                        #     #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
+                        #     long_list.append(section_df) 
+                            
+                        in_long_position = False
+                        log.debug(f"At {time}, LONG sell price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                    
+                        continue
+                    else:
+                        # if profit not > 0, just drop this L/H pair
+                        in_long_position = False
+                        log.debug(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, ignore this pair.")         
+                else:
+                    log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
+                    continue        
+            else:
+                log.info(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+
+        # Mean hold time
+        mean_hold_time = statistics.mean(holdtime_list)
+
+        # Median hold time
+        median_hold_time = statistics.median(holdtime_list)
+
+        # Standard deviation
+        std_dev_hold_time = statistics.stdev(holdtime_list)
+
+        log.info("Long:")
+        log.info(f"Mean Hold Time: {mean_hold_time}")
+        log.info(f"Median Hold Time: {median_hold_time}")
+        log.info(f"Standard Deviation: {std_dev_hold_time}")
+        
+        long_hold_time = int(np.ceil(mean_hold_time))
+        
+        log.debug("\n\n=======================================================================\n\n")
+            
+        # essentially, "selling high and buying low" is the strategy for a short position.    
+        in_short_position = False
+        previous_point = None
+        buy_time = None
+        sell_time = None      
+        hold_time = None  
+        # Loop through the DataFrame and process each row for SHORT position (做空)
+        for idx, row in self.patterns_df.iterrows():
+            label = row['Label']
+            price = row['Price']
+            time = idx  # Access the time from the index directly
+            
+            start_pos = self.df.index.get_loc(idx)
+            if start_pos < traintest_data_len:
+                continue
+            
+            if label[1] == 'H':
+                if not in_short_position:
+                    # Buy in at this point
+                    buy_price = price
+                    buy_time = time
+                    in_short_position = True
+                    log.debug(f"At {time}, SHORT sell price: {buy_price:.2f} at {label} point")
+                else:
+                    in_short_position = False
+                    log.debug(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}. Ignore this pair.")
+                    continue
+            
+            elif label[1] == 'L':
+                if in_short_position:
+                    # Sell out at this point
+                    sell_price = price
+                    sell_time = idx
+                    hold_time = sell_time - buy_time                   
+                    profit = -1 * (sell_price - buy_price) - shorttradecost
+                    if profit > 0: 
+                        hold_time_in_minutes = int(hold_time.total_seconds() / 60)
+                        holdtime_list.append(hold_time_in_minutes)
+                        in_short_position = False
+                        log.debug(f"At {time}, SHORT buy  price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
+                        
+                        continue
+                    else:
+                        # if profit not > 0 , just drop this L/H pair
+                        in_short_position = False
+                        log.debug(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}")         
+                else:
+                    log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
+                    continue
+            
+            else:
+                log.info(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+
+        # Mean hold time
+        mean_hold_time = statistics.mean(holdtime_list)
+
+        # Median hold time
+        median_hold_time = statistics.median(holdtime_list)
+
+        # Standard deviation
+        std_dev_hold_time = statistics.stdev(holdtime_list)
+
+        log.info("Short:")
+        log.info(f"Mean Hold Time: {mean_hold_time}")
+        log.info(f"Median Hold Time: {median_hold_time}")
+        log.info(f"Standard Deviation: {std_dev_hold_time}")
+        
+        short_hold_time = int(np.ceil(mean_hold_time))
+        
+        avg_hold_time = int((short_hold_time + long_hold_time) / 2 )
+        log.info(f"Avg mean Hold Time: {avg_hold_time}")
+        
+        return avg_hold_time
 
     def check_patterns_length(self):
             traintest_data_len = int(config.traintest_data_len)
