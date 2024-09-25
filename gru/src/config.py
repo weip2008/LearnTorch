@@ -4,7 +4,7 @@ All variable name in config.ini must be lowercase!
 import configparser
 import time
 import functools
-from gru import Logger
+from logger import Logger
 
 class Config:
     def __init__(self, config_file):

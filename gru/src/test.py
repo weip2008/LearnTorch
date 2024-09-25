@@ -6,7 +6,7 @@ import numpy as np
 
 from gruModel import load_data, GRUModel, TimeSeriesDataset
 from config import Config, execution_time
-from gru import Logger
+from logger import Logger
 from predict import categorize_output
 
 class Tester:

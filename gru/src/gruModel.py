@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import time
 from config import Config, execution_time
-from gru import Logger
+from logger import Logger
 
 
 # Custom dataset class for loading signals and data

@@ -6,7 +6,7 @@ import numpy as np
 import random
 from config import Config, execution_time
 from gruModel import load_data, GRUModel, TimeSeriesDataset
-from gru import Logger
+from logger import Logger
 
 # Function to categorize the model output
 def categorize_output(output):

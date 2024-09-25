@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 import zigzagplus1 as zz
-from gru import Logger
+from logger import Logger
 from config import Config
 
 class DataSource:

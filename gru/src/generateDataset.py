@@ -14,7 +14,7 @@ from enum import Enum
 import statistics
 
 import zigzagplus1 as zz
-from gru import Logger
+from logger import Logger
 from config import Config, execution_time
 from utilities import DataSource, convert_to_day_and_time,normalize
 
