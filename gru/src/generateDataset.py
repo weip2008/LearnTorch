@@ -23,20 +23,20 @@ class TradePosition(Enum):
     SHORT = -1
 
 class DataProcessor:
-    traintest_data_len = None
+    slice_length = None
     def __init__(self, training=True):
         self.getDataFrame(training)
         self.gen_zigzag_patterns()
 
-        traintest_data_len = int(DataSource.config.traintest_data_len)
-        if (DataProcessor.traintest_data_len is None):
-            DataProcessor.traintest_data_len = self.check_patterns_length_1()
-        tddf_long_list= self.check_long_patterns(DataProcessor.traintest_data_len)
-        tddf_short_list = self.check_short_patterns(DataProcessor.traintest_data_len)
+        slice_length = int(DataSource.config.slice_length)
+        if (DataProcessor.slice_length is None):
+            DataProcessor.slice_length = self.estimateSliceLength() # 得到切片长度
+        tddf_long_list= self.check_long_patterns(DataProcessor.slice_length) # 得到低买/高卖切片list
+        tddf_short_list = self.check_short_patterns(DataProcessor.slice_length) # 得到高卖/低买切片list
         if training:
-            self.generateTrain(tddf_short_list, tddf_long_list, DataProcessor.traintest_data_len)
+            self.generateTrain(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
         else:
-            self.generateTest(tddf_short_list, tddf_long_list, DataProcessor.traintest_data_len)
+            self.generateTest(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
 
     def getDataFrame(self, training):
         self.ds = DataSource()
@@ -70,8 +70,8 @@ class DataProcessor:
         log.debug(f"Patterns dataframe length:{len(self.patterns_df)}\n{self.patterns_df}")  # Print to verify DataFrame structure
 
 
-    def check_patterns_length_1(self):
-        traintest_data_len = int(config.traintest_data_len)
+    def estimateSliceLength(self):
+        slice_length = int(config.slice_length)
         longtradecost = float(config.longtradecost)
         shorttradecost = float(config.shorttradecost)
         
@@ -95,7 +95,7 @@ class DataProcessor:
             time = idx  # Access the time from the index directly
             
             start_pos = self.df.index.get_loc(idx)
-            if start_pos < traintest_data_len:
+            if start_pos < slice_length:
                 continue
             
             if label[1] == 'L':
@@ -140,7 +140,7 @@ class DataProcessor:
                     continue        
             else:
                 log.info(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
-
+        max_hold_time = max(holdtime_list)
         # Mean hold time
         mean_hold_time = statistics.mean(holdtime_list)
 
@@ -172,7 +172,7 @@ class DataProcessor:
             time = idx  # Access the time from the index directly
             
             start_pos = self.df.index.get_loc(idx)
-            if start_pos < traintest_data_len:
+            if start_pos < slice_length:
                 continue
             
             if label[1] == 'H':
@@ -234,20 +234,20 @@ class DataProcessor:
         return avg_hold_time
 
     def check_patterns_length(self):
-            traintest_data_len = int(config.traintest_data_len)
+            slice_length = int(config.slice_length)
             longtradecost = float(config.longtradecost)
             shorttradecost = float(config.shorttradecost)
             
             holdtime_list = []
             
             # Process long and short positions
-            self.process_positions('LONG', traintest_data_len, longtradecost, holdtime_list)
-            self.process_positions('SHORT', traintest_data_len, shorttradecost, holdtime_list)
+            self.process_positions('LONG', slice_length, longtradecost, holdtime_list)
+            self.process_positions('SHORT', slice_length, shorttradecost, holdtime_list)
 
             # Log overall statistics
             return self.log_statistics(holdtime_list)
 
-    def process_positions(self, position_type, traintest_data_len, tradecost, holdtime_list):
+    def process_positions(self, position_type, slice_length, tradecost, holdtime_list):
         in_position = False
         buy_time = None
         
@@ -258,7 +258,7 @@ class DataProcessor:
             time = idx  # Access the time from the index directly
             
             start_pos = self.df.index.get_loc(idx)
-            if start_pos < traintest_data_len:
+            if start_pos < slice_length:
                 continue
             
             if (position_type == 'LONG' and label[1] == 'L') or (position_type == 'SHORT' and label[1] == 'H'):
@@ -312,8 +312,8 @@ class DataProcessor:
 
         return int(np.ceil(mean_hold_time))    
     
-    def check_long_patterns(self, long_traintest_data_len):
-        traintest_data_len = int(config.traintest_data_len)
+    def check_long_patterns(self, long_slice_length):
+        slice_length = int(config.slice_length)
         longtradecost = float(config.longtradecost)
 
         long_list = []
@@ -332,7 +332,7 @@ class DataProcessor:
             time = idx  # Access the time from the index directly
             
             start_pos = self.df.index.get_loc(idx)
-            if start_pos < traintest_data_len:
+            if start_pos < slice_length:
                 continue
             
             if label[1] == 'L':
@@ -355,8 +355,8 @@ class DataProcessor:
                     profit = sell_price - buy_price - longtradecost
                     if profit > 0: 
                         #section_df = cut_slice(ohlc_df, buy_time, sell_time)
-                        section_df = cut_slice(self.df, sell_time, long_traintest_data_len)                    
-                            
+                        section_df = cut_slice(self.df, sell_time, long_slice_length)                    
+
                         if (section_df is not None):
                             log.debug(f"Sliced DataFrame:{len(section_df)}\n {section_df}")
                             long_list.append(section_df) 
@@ -377,8 +377,8 @@ class DataProcessor:
         
         return long_list
 
-    def check_short_patterns(self, short_traintest_data_len):
-        traintest_data_len = int(config.traintest_data_len)
+    def check_short_patterns(self, short_slice_length):
+        slice_length = int(config.slice_length)
         shorttradecost = float(config.shorttradecost)
         short_list = []
             
@@ -395,7 +395,7 @@ class DataProcessor:
             time = idx  # Access the time from the index directly
             
             start_pos = self.df.index.get_loc(idx)
-            if start_pos < traintest_data_len:
+            if start_pos < slice_length:
                 continue
             
             if label[1] == 'H':
@@ -418,7 +418,7 @@ class DataProcessor:
                     hold_time = sell_time - buy_time                   
                     profit = -1 * (sell_price - buy_price) - shorttradecost
                     if profit > 0: 
-                        section_df = cut_slice(self.df, sell_time, short_traintest_data_len)
+                        section_df = cut_slice(self.df, sell_time, short_slice_length)
                         #section_df = cut_slice(ohlc_df, buy_time, sell_time)
                             
                         if (section_df is not None):
@@ -442,12 +442,12 @@ class DataProcessor:
 
         return short_list
 
-    def generateTrain(self, tddf_short_list,tddf_long_list,traintest_data_len):
+    def generateTrain(self, tddf_short_list,tddf_long_list,slice_length):
         SN = DataSource.config.sn
         data_dir = DataSource.config.data_dir
         table_name = DataSource.config.table_name
         td_file = os.path.join(data_dir, \
-        f"{table_name}_TrainingData_HL_{traintest_data_len}_{SN}.txt")
+        f"{table_name}_TrainingData_HL_{slice_length}_{SN}.txt")
     
         log.info(td_file)
 
@@ -455,12 +455,12 @@ class DataProcessor:
             generate_training_data(tddf_short_list, TradePosition.LONG, datafile)
             generate_training_data(tddf_long_list, TradePosition.SHORT, datafile)
 
-    def generateTest(self, tddf_short_list,tddf_long_list,traintest_data_len):
+    def generateTest(self, tddf_short_list,tddf_long_list,slice_length):
         SN = DataSource.config.sn
         data_dir = DataSource.config.data_dir
         table_name = DataSource.config.table_name
         td_file = os.path.join(data_dir, \
-            f"{table_name}_TestingData_HL_{traintest_data_len}_{SN}.txt")
+            f"{table_name}_TestingData_HL_{slice_length}_{SN}.txt")
         
         log.info(td_file)
 
@@ -469,7 +469,7 @@ class DataProcessor:
             generate_testing_data(tddf_long_list, TradePosition.SHORT, datafile)
 
 
-def cut_slice(ohlc_df, end_index, traintest_data_len):
+def cut_slice(ohlc_df, end_index, slice_length):
     # Ensure the start_index and end_index are in the DataFrame index
     if end_index not in ohlc_df.index:
     #if start_index not in ohlc_df.index or end_index not in ohlc_df.index:
@@ -479,8 +479,8 @@ def cut_slice(ohlc_df, end_index, traintest_data_len):
     # Get the positional indices of the timestamps
     end_pos = ohlc_df.index.get_loc(end_index)  
     #start_pos = ohlc_df.index.get_loc(start_index)
-    start_pos = end_pos - traintest_data_len 
-    end_pos = end_pos + 2    # ADD one more step after reach H/L point!!! add one more for Python nature
+    start_pos = end_pos - slice_length -2
+    # end_pos = end_pos + 2    # ADD one more step after reach H/L point!!! add one more for Python nature
     
     # Ensure start_pos is less than or equal to end_pos
     if start_pos < 0 or start_pos > end_pos:
@@ -495,7 +495,7 @@ def cut_slice(ohlc_df, end_index, traintest_data_len):
     #    print(e)    
     
     # for last section, maybe not enough data for a slice
-    if (len(section_df) < (traintest_data_len+2)):   
+    if (len(section_df) < (slice_length+2)):   
         return None
    
     section_df.drop(['Open', 'High', 'Low', 'Volume'], axis=1, inplace=True)

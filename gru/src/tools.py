@@ -39,5 +39,5 @@ def parse(data_line, col=2):
 if __name__ == "__main__":
     config = Config('gru/src/config.ini')
     filepath = config.training_file_path
-    filepath = "data\SPX_1m_TrainingData_HL_76_500.txt"
-    plot(filepath, 0)
+    # filepath = "data\SPX_1m_TrainingData_HL_76_500.txt"
+    plot(filepath, 3735)

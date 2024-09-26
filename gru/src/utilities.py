@@ -54,6 +54,11 @@ class DataSource:
         # Plot ZigZag
         zz.plot_zigzag(self.df, self.zigzag)
 
+    def plotDataFrameIndex(self):
+        self.df.reset_index(drop=True, inplace=True)
+        # Plot ZigZag
+        zz.plot_zigzag(self.df, self.zigzag)
+
     def plotPaterns(self):
         filtered_zigzag_df = self.df.loc[self.zigzag.index]
         DataSource.log.debug(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n{filtered_zigzag_df}")
@@ -130,8 +135,8 @@ if __name__ == "__main__":
     train_ds = DataSource()
     query_start, query_end= DataSource.config.training_start_date, DataSource.config.training_end_date
     train_ds.queryDB(query_start, query_end)
-    train_ds.plotPaterns()
     train_ds.plotDataFrame()
+    train_ds.plotPaterns()
     train_ds.plot_prices()
 
     # plot testing zigzag
