@@ -1,8 +1,9 @@
 # This version read source data from SQLite database tables
 #
-# [1,0] stand for sell
-# [0,1] stand for buy
-# [0,1,1,0] test data means 4 set of [sell, buy, buy, sell]
+# [1,0,0] stand for sell
+# [0,1,0] stand for hold
+# [0,0,1] stand for buy
+# [0,1,1,0,2,2] test data means 4 set of [sell, hold, hold, sell, buy, buy]
 
 from datetime import datetime
 from datetime import timedelta
@@ -59,7 +60,7 @@ class DataProcessor:
         slice_length = int(DataSource.config.slice_length)
         if (calculate_slice_length):
             DataProcessor.slice_length = self.estimateSliceLength() # 得到切片长度
-            
+
         tddf_long_list, tddf_short_list = self.create_data_list(DataProcessor.slice_length)
 
         if training:
