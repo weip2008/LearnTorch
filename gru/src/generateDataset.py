@@ -5,14 +5,11 @@
 # [0,0,1] stand for buy
 # [0,1,1,0,2,2] test data means 4 set of [sell, hold, hold, sell, buy, buy]
 
-from datetime import datetime
-from datetime import timedelta
-import logging
+import os
 import pandas as pd
 import numpy as np
-import os
-from enum import Enum
 import statistics
+from enum import Enum
 
 import zigzagplus1 as zz
 from logger import Logger
@@ -33,7 +30,7 @@ class Trade:
     def hold_minutes(self, close_price, close_time, label):
         hold_time = 0
         profit = self.profit(close_price, label)
-        if (profit >0):
+        if (profit > 0):
             hold_time = (close_time - self.open_time).total_seconds() / 60
             log.debug(f"At {close_time}, LONG sell price: {close_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
 
@@ -57,7 +54,6 @@ class DataProcessor:
         self.getDataFrame(training)
         self.gen_zigzag_patterns()
 
-        slice_length = int(DataSource.config.slice_length)
         if (calculate_slice_length):
             DataProcessor.slice_length = self.estimateSliceLength() # 得到切片长度
 
