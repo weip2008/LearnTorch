@@ -30,21 +30,22 @@ class Trade:
 
 
     def hold_minutes(self, close_price, close_time, label):
-        profit = close_price - self.open_price - self.trade_cost # 低买/高卖
-        if label[1] == 'L':
-            profit = self.open_price - close_price - self.trade_cost # 高卖/低买 （做空）
         hold_time = 0
-        if (profit>0):
+        profit = self.profit(close_price, label)
+        if (profit >0):
             hold_time = (close_time - self.open_time).total_seconds() / 60
             log.debug(f"At {close_time}, LONG sell price: {close_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
 
         return hold_time
 
-    def cut_slice(self, df, close_price, close_time, label, slice_length):
-        profit = close_price - self.open_price - self.trade_cost # 低买/高卖
+    def profit(self, close, label):
+        profit = close - self.open_price - self.trade_cost # 低买/高卖
         if label[1] == 'L':
-            profit = self.open_price - close_price - self.trade_cost # 高卖/低买 （做空）
-        if (profit>0):
+            profit = self.open_price - close - self.trade_cost # 高卖/低买 （做空）
+        return profit
+    
+    def cut_slice(self, df, close_price, close_time, label, slice_length):
+        if (self.profit(close_price, label)>0):
             section_df = cut_slice(df, close_time, slice_length)  
             return section_df
         return None
@@ -58,6 +59,7 @@ class DataProcessor:
         slice_length = int(DataSource.config.slice_length)
         if (calculate_slice_length):
             DataProcessor.slice_length = self.estimateSliceLength() # 得到切片长度
+            
         tddf_long_list, tddf_short_list = self.create_data_list(DataProcessor.slice_length)
 
         if training:
