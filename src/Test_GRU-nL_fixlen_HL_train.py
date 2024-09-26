@@ -8,7 +8,6 @@ import time
 from datetime import datetime
 
 
-
 training_file_path = 'data/SPX_1m_TrainingData_HL_54_800.txt'
 testing_file_path  = 'data/SPX_1m_TestingData_HL_54_800.txt'
 save_path = 'GRU_model_with_LH_fixlen_data_800.pth'
@@ -47,37 +46,7 @@ def load_traintest_data(training_file_path):
     
     return data_np, signals_np
 
-''' 
-def load_testing_data(training_file_path):
-    data = []
-    signals = []
 
-    with open(training_file_path, 'r') as file:
-        for line in file:
-            # Split the line into data and target parts
-            signals_part, data_part = line.strip().split(',[')
-            
-            signal = int(signals_part.strip())
-            signals.append(signal)
-            
-            # Add the beginning bracket to the data part and opening bracket to the target part
-            data_part = '[' + data_part
-            
-            # Convert the string representations to actual lists
-            data_row = eval(data_part)
-            
-            # Append to the respective lists
-            data.append(data_row)
-            #targets.append(target_row[0])  # Ensure target_row is a 1D array
-    
-    # Convert lists to numpy arrays
-    data_np = np.array(data)
-    signals_np = np.array(signals).reshape(-1, 1)  # Reshape to (6883, 1)
-    #signals_np = np.array(signals)
-    
-    return data_np, signals_np
-
- '''
 # Example usage
 print(f"Current date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print(f"1.1 Load training data from {training_file_path}")

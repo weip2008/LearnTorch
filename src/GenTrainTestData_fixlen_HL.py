@@ -1,8 +1,6 @@
 # This version read source data from SQLite database tables
 #
-# [1,0] stand for sell
-# [0,1] stand for buy
-# [0,1,1,0] test data means 4 set of [sell, buy, buy, sell]
+
 
 import sqlite3
 from datetime import datetime
