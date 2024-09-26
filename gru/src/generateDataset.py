@@ -22,17 +22,44 @@ class TradePosition(Enum):
     LONG = 1
     SHORT = -1
 
+class Trade:
+    def __init__(self, open_price, open_time, trade_cost, label):
+        self.open_price, self.open_time = open_price, open_time
+        self.trade_cost = trade_cost
+        log.debug(f"At {open_time}, LONG buy  price: {open_price:.2f} at {label} point")
+
+
+    def hold_minutes(self, close_price, close_time, label):
+        profit = close_price - self.open_price - self.trade_cost # 低买/高卖
+        if label[1] == 'L':
+            profit = self.open_price - close_price - self.trade_cost # 高卖/低买 （做空）
+        hold_time = 0
+        if (profit>0):
+            hold_time = (close_time - self.open_time).total_seconds() / 60
+            log.debug(f"At {close_time}, LONG sell price: {close_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
+
+        return hold_time
+
+    def cut_slice(self, df, close_price, close_time, label, slice_length):
+        profit = close_price - self.open_price - self.trade_cost # 低买/高卖
+        if label[1] == 'L':
+            profit = self.open_price - close_price - self.trade_cost # 高卖/低买 （做空）
+        if (profit>0):
+            section_df = cut_slice(df, close_time, slice_length)  
+            return section_df
+        return None
+    
 class DataProcessor:
-    slice_length = None
-    def __init__(self, training=True):
+    slice_length = 76
+    def __init__(self, training=True, calculate_slice_length=False):
         self.getDataFrame(training)
         self.gen_zigzag_patterns()
 
         slice_length = int(DataSource.config.slice_length)
-        if (DataProcessor.slice_length is None):
+        if (calculate_slice_length):
             DataProcessor.slice_length = self.estimateSliceLength() # 得到切片长度
-        tddf_long_list= self.check_long_patterns(DataProcessor.slice_length) # 得到低买/高卖切片list
-        tddf_short_list = self.check_short_patterns(DataProcessor.slice_length) # 得到高卖/低买切片list
+        tddf_long_list, tddf_short_list = self.create_data_list(DataProcessor.slice_length)
+
         if training:
             self.generateTrain(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
         else:
@@ -69,78 +96,7 @@ class DataProcessor:
         self.patterns_df = zz.convert_list_to_df(patterns)
         log.debug(f"Patterns dataframe length:{len(self.patterns_df)}\n{self.patterns_df}")  # Print to verify DataFrame structure
 
-
-    def estimateSliceLength(self):
-        slice_length = int(config.slice_length)
-        longtradecost = float(config.longtradecost)
-        shorttradecost = float(config.shorttradecost)
-        
-        short_list = []
-        long_list = []
-        median_long_hold_time = 0
-        median_short_hold_time = 0
-        
-        # Initialize variables
-        in_long_position = False  # Track whether we are in a buy position
-        #previous_point = None
-        buy_time = None
-        sell_time = None
-        hold_time = None
-        holdtime_list = []
-        # Loop through the DataFrame and process each row for LONG position(做多)
-        # essentially, "buying low and selling high" is the strategy for a long position.    
-        for idx, row in self.patterns_df.iterrows():
-            label = row['Label']
-            price = row['Price']
-            time = idx  # Access the time from the index directly
-            
-            start_pos = self.df.index.get_loc(idx)
-            if start_pos < slice_length:
-                continue
-            
-            if label[1] == 'L':
-                if not in_long_position:
-                    # Buy in at this point
-                    buy_price = price
-                    buy_time = idx
-                    in_long_position = True
-                    log.debug(f"At {time}, LONG buy  price: {buy_price:.2f} at {label} point")
-                else:
-                    log.debug(f"At {time}, already in long position, ignoring signal {label} at price: {buy_price:.2f}")
-                    continue
-            
-            elif label[1] == 'H':
-                if in_long_position:
-                    # Sell out at this point
-                    sell_price = price
-                    sell_time = idx
-                    hold_time = sell_time - buy_time                
-                    profit = sell_price - buy_price - longtradecost
-                    if profit > 0: 
-                        hold_time_in_minutes = int(hold_time.total_seconds() / 60)
-                        holdtime_list.append(hold_time_in_minutes)
-                        #section_df = cut_slice(ohlc_df, buy_time, sell_time)
-                        # section_df = cut_slice(ohlc_df, sell_time)
-                        
-                            
-                        # if (section_df is not None):
-                        #     #print(f"Sliced DataFrame:{len(section_df)}\n", section_df)
-                        #     long_list.append(section_df) 
-                            
-                        in_long_position = False
-                        log.debug(f"At {time}, LONG sell price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
-                    
-                        continue
-                    else:
-                        # if profit not > 0, just drop this L/H pair
-                        in_long_position = False
-                        log.debug(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, ignore this pair.")         
-                else:
-                    log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
-                    continue        
-            else:
-                log.info(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
-        max_hold_time = max(holdtime_list)
+    def statistics(self, holdtime_list, type):
         # Mean hold time
         mean_hold_time = statistics.mean(holdtime_list)
 
@@ -150,297 +106,117 @@ class DataProcessor:
         # Standard deviation
         std_dev_hold_time = statistics.stdev(holdtime_list)
 
-        log.info("Long:")
+        log.info(type)
         log.info(f"Mean Hold Time: {mean_hold_time}")
         log.info(f"Median Hold Time: {median_hold_time}")
         log.info(f"Standard Deviation: {std_dev_hold_time}")
         
         long_hold_time = int(np.ceil(mean_hold_time))
+        return long_hold_time
+    
+    def estimateSliceLength(self):
+        slice_length = int(config.slice_length)
+        longtradecost = float(config.longtradecost)
+        shorttradecost = float(config.shorttradecost)
         
-        log.debug("\n\n=======================================================================\n\n")
-            
-        # essentially, "selling high and buying low" is the strategy for a short position.    
-        in_short_position = False
-        previous_point = None
-        buy_time = None
-        sell_time = None      
-        hold_time = None  
-        # Loop through the DataFrame and process each row for SHORT position (做空)
-        for idx, row in self.patterns_df.iterrows():
+        # Initialize variables
+        at_long_position = False  # Track whether we are in a long (buy) position
+        in_short_position = False  # Track whether we are in a short (sell) position
+        long_holdtime_list = []
+        short_holdtime_list = []
+        
+        # Loop through the DataFrame and process each row for both LONG and SHORT positions
+        for time, row in self.patterns_df.iterrows():
             label = row['Label']
             price = row['Price']
-            time = idx  # Access the time from the index directly
             
-            start_pos = self.df.index.get_loc(idx)
+            start_pos = self.df.index.get_loc(time)
             if start_pos < slice_length:
                 continue
-            
+
+            if label[1] == 'L':
+                if not at_long_position:
+                    # Open a long position
+                    long_trade = Trade(price, time, longtradecost, label)
+                    at_long_position = True
+                if in_short_position:
+                    # Close the short position
+                    short_hold_time = short_trade.hold_minutes(price, time, label)
+                    if short_hold_time > 0: 
+                        short_holdtime_list.append(short_hold_time)
+                    in_short_position = False
+
             if label[1] == 'H':
                 if not in_short_position:
-                    # Buy in at this point
-                    buy_price = price
-                    buy_time = time
+                    # Open a short position
+                    short_trade = Trade(price, time, shorttradecost, label)
                     in_short_position = True
-                    log.debug(f"At {time}, SHORT sell price: {buy_price:.2f} at {label} point")
-                else:
-                    in_short_position = False
-                    log.debug(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}. Ignore this pair.")
-                    continue
-            
-            elif label[1] == 'L':
-                if in_short_position:
-                    # Sell out at this point
-                    sell_price = price
-                    sell_time = idx
-                    hold_time = sell_time - buy_time                   
-                    profit = -1 * (sell_price - buy_price) - shorttradecost
-                    if profit > 0: 
-                        hold_time_in_minutes = int(hold_time.total_seconds() / 60)
-                        holdtime_list.append(hold_time_in_minutes)
-                        in_short_position = False
-                        log.debug(f"At {time}, SHORT buy  price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
-                        
-                        continue
-                    else:
-                        # if profit not > 0 , just drop this L/H pair
-                        in_short_position = False
-                        log.debug(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}")         
-                else:
-                    log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
-                    continue
-            
-            else:
-                log.info(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+                if at_long_position:
+                    # Close the long position
+                    long_hold_time = long_trade.hold_minutes(price, time, label)
+                    if long_hold_time > 0: 
+                        long_holdtime_list.append(long_hold_time)
+                    at_long_position = False
 
-        # Mean hold time
-        mean_hold_time = statistics.mean(holdtime_list)
+        # Calculate hold times for both long and short positions
+        long_hold_time = self.statistics(long_holdtime_list, "Long")
+        short_hold_time = self.statistics(short_holdtime_list, "Short")
 
-        # Median hold time
-        median_hold_time = statistics.median(holdtime_list)
-
-        # Standard deviation
-        std_dev_hold_time = statistics.stdev(holdtime_list)
-
-        log.info("Short:")
-        log.info(f"Mean Hold Time: {mean_hold_time}")
-        log.info(f"Median Hold Time: {median_hold_time}")
-        log.info(f"Standard Deviation: {std_dev_hold_time}")
-        
-        short_hold_time = int(np.ceil(mean_hold_time))
-        
-        avg_hold_time = int((short_hold_time + long_hold_time) / 2 )
+        # Calculate the average hold time
+        avg_hold_time = int((long_hold_time + short_hold_time) / 2)
         log.info(f"Avg mean Hold Time: {avg_hold_time}")
         
         return avg_hold_time
-
-    def check_patterns_length(self):
-            slice_length = int(config.slice_length)
-            longtradecost = float(config.longtradecost)
-            shorttradecost = float(config.shorttradecost)
-            
-            holdtime_list = []
-            
-            # Process long and short positions
-            self.process_positions('LONG', slice_length, longtradecost, holdtime_list)
-            self.process_positions('SHORT', slice_length, shorttradecost, holdtime_list)
-
-            # Log overall statistics
-            return self.log_statistics(holdtime_list)
-
-    def process_positions(self, position_type, slice_length, tradecost, holdtime_list):
-        in_position = False
-        buy_time = None
-        
-        # Loop through the DataFrame and process each row
-        for idx, row in self.patterns_df.iterrows():
-            label = row['Label']
-            price = row['Price']
-            time = idx  # Access the time from the index directly
-            
-            start_pos = self.df.index.get_loc(idx)
-            if start_pos < slice_length:
-                continue
-            
-            if (position_type == 'LONG' and label[1] == 'L') or (position_type == 'SHORT' and label[1] == 'H'):
-                if not in_position:
-                    buy_time, buy_price = self.buy(position_type, price, time)
-                    in_position = True
-                else:
-                    log.debug(f"At {time}, already in {position_type} position, ignoring signal {label} at price: {buy_price:.2f}")
-                    continue
-
-            elif (position_type == 'LONG' and label[1] == 'H') or (position_type == 'SHORT' and label[1] == 'L'):
-                if in_position:
-                    hold_time, profit = self.sell(position_type, price, buy_time, buy_price, tradecost, time)
-                    if profit > 0:
-                        holdtime_list.append(int(hold_time.total_seconds() / 60))
-                        in_position = False
-                    else:
-                        in_position = False
-                        log.debug(f"At {time}, NO sell at price: {price:.2f} at {label} point, Profit: {profit:.2f}")
-                else:
-                    log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
-
-            else:
-                log.info(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
-
-    def buy(self, position_type, price, time):
-        log.debug(f"At {time}, {position_type} buy price: {price:.2f} at {time} point")
-        return time, price
-
-    def sell(self, position_type, price, buy_time, buy_price, tradecost, time):
-        hold_time = time - buy_time
-        profit = self.calculate_profit(position_type, price, buy_price, tradecost)  # Pass buy_price here
-        log.debug(f"At {time}, {position_type} sell price: {price:.2f}, Hold Time: {hold_time}")
-        return hold_time, profit
-    
-    def calculate_profit(self, position_type, price, buy_time, tradecost):
-        if position_type == 'LONG':
-            return price - buy_time - tradecost
-        else:  # SHORT
-            return -1 * (price - buy_time) - tradecost
-
-    def log_statistics(self, holdtime_list):
-        mean_hold_time = statistics.mean(holdtime_list)
-        median_hold_time = statistics.median(holdtime_list)
-        std_dev_hold_time = statistics.stdev(holdtime_list)
-
-        log.info("Statistics:")
-        log.info(f"Mean Hold Time: {mean_hold_time}")
-        log.info(f"Median Hold Time: {median_hold_time}")
-        log.info(f"Standard Deviation: {std_dev_hold_time}")
-
-        return int(np.ceil(mean_hold_time))    
-    
-    def check_long_patterns(self, long_slice_length):
-        slice_length = int(config.slice_length)
+   
+    def create_data_list(self, slice_length):
         longtradecost = float(config.longtradecost)
+        shorttradecost = float(config.shorttradecost)
 
         long_list = []
-        
+        short_list = []
+
         # Initialize variables
-        in_long_position = False  # Track whether we are in a buy position
-        #previous_point = None
-        buy_time = None
-        sell_time = None
-        hold_time = None  
-        # Loop through the DataFrame and process each row for LONG position(做多)
-        # essentially, "buying low and selling high" is the strategy for a long position.    
-        for idx, row in self.patterns_df.iterrows():
+        in_long_position = False  # Track whether we are in a buy position for long trades
+        in_short_position = False  # Track whether we are in a sell position for short trades
+
+        # Loop through the DataFrame and process each row for both LONG and SHORT positions
+        for time, row in self.patterns_df.iterrows():
             label = row['Label']
             price = row['Price']
-            time = idx  # Access the time from the index directly
-            
-            start_pos = self.df.index.get_loc(idx)
+
+            start_pos = self.df.index.get_loc(time)
             if start_pos < slice_length:
                 continue
-            
+
+            # Check for LONG positions (buy low, sell high)
             if label[1] == 'L':
                 if not in_long_position:
-                    # Buy in at this point
-                    buy_price = price
-                    buy_time = idx
+                    # Enter long position
+                    long_trade = Trade(price, time, longtradecost, label)
                     in_long_position = True
-                    log.debug(f"At {time}, LONG buy  price: {buy_price:.2f} at {label} point")
-                else:
-                    log.debug(f"At {time}, already in long position, ignoring signal {label} at price: {buy_price:.2f}")
-                    continue
-            
-            elif label[1] == 'H':
-                if in_long_position:
-                    # Sell out at this point
-                    sell_price = price
-                    sell_time = idx
-                    hold_time = sell_time - buy_time                
-                    profit = sell_price - buy_price - longtradecost
-                    if profit > 0: 
-                        #section_df = cut_slice(ohlc_df, buy_time, sell_time)
-                        section_df = cut_slice(self.df, sell_time, long_slice_length)                    
+                # Exit short position if in one
+                if in_short_position:
+                    section_df = short_trade.cut_slice(self.df, price, time, label, slice_length)
+                    if section_df is not None:
+                        log.debug(f"Sliced DataFrame for SHORT: {len(section_df)}\n {section_df}")
+                        short_list.append(section_df)
+                    in_short_position = False
 
-                        if (section_df is not None):
-                            log.debug(f"Sliced DataFrame:{len(section_df)}\n {section_df}")
-                            long_list.append(section_df) 
-                            
-                        in_long_position = False
-                        log.debug(f"At {time}, LONG sell price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
-                    
-                        continue
-                    else:
-                        # if profit not > 0, just drop this L/H pair
-                        in_long_position = False
-                        log.debug(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, ignore this pair.")         
-                else:
-                    log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
-                    continue        
-            else:
-                log.error(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
-        
-        return long_list
-
-    def check_short_patterns(self, short_slice_length):
-        slice_length = int(config.slice_length)
-        shorttradecost = float(config.shorttradecost)
-        short_list = []
-            
-        # essentially, "selling high and buying low" is the strategy for a short position.    
-        in_short_position = False
-        previous_point = None
-        buy_time = None
-        sell_time = None      
-        hold_time = None  
-        # Loop through the DataFrame and process each row for SHORT position (做空)
-        for idx, row in self.patterns_df.iterrows():
-            label = row['Label']
-            price = row['Price']
-            time = idx  # Access the time from the index directly
-            
-            start_pos = self.df.index.get_loc(idx)
-            if start_pos < slice_length:
-                continue
-            
+            # Check for SHORT positions (sell high, buy low)
             if label[1] == 'H':
                 if not in_short_position:
-                    # Buy in at this point
-                    buy_price = price
-                    buy_time = time
+                    # Enter short position
+                    short_trade = Trade(price, time, shorttradecost, label)
                     in_short_position = True
-                    log.debug(f"At {time}, SHORT sell price: {buy_price:.2f} at {label} point")
-                else:
-                    in_short_position = False
-                    log.debug(f"At {time}, already in SHORT position, ignoring signal {label} at price: {buy_price:.2f}. Ignore this pair.")
-                    continue
-            
-            elif label[1] == 'L':
-                if in_short_position:
-                    # Sell out at this point
-                    sell_price = price
-                    sell_time = idx
-                    hold_time = sell_time - buy_time                   
-                    profit = -1 * (sell_price - buy_price) - shorttradecost
-                    if profit > 0: 
-                        section_df = cut_slice(self.df, sell_time, short_slice_length)
-                        #section_df = cut_slice(ohlc_df, buy_time, sell_time)
-                            
-                        if (section_df is not None):
-                            log.debug(f"Sliced DataFrame:{len(section_df)}\n {section_df}")
-                            short_list.append(section_df) 
-                        
-                        in_short_position = False
-                        log.debug(f"At {time}, SHORT buy  price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}, Hold Time: {hold_time}")
-                        
-                        continue
-                    else:
-                        # if profit not > 0 , just drop this L/H pair
-                        in_short_position = False
-                        log.debug(f"At {time}, NO sell at price: {sell_price:.2f} at {label} point, Profit: {profit:.2f}")         
-                else:
-                    log.debug(f"At {time}, Not in position, ignore sell signal at {label} point")
-                    continue
-            
-            else:
-                log.error(f"Error: Not sure how to process this point at {time}, Label: {label}\n")
+                # Exit long position if in one
+                if in_long_position:
+                    section_df = long_trade.cut_slice(self.df, price, time, label, slice_length)
+                    if section_df is not None:
+                        log.debug(f"Sliced DataFrame for LONG: {len(section_df)}\n {section_df}")
+                        long_list.append(section_df)
+                    in_long_position = False
 
-        return short_list
+        return long_list, short_list
 
     def generateTrain(self, tddf_short_list,tddf_long_list,slice_length):
         SN = DataSource.config.sn
@@ -696,7 +472,7 @@ def generate_testing_data(tddf_highlow_list, position,datafile):
 
 @execution_time
 def main():
-    DataProcessor(training=True)
+    DataProcessor(training=True, calculate_slice_length=False)
     DataProcessor(training=False)
     DataSource.conn.close()
     log.info("================================ Done")
