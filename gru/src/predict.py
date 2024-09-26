@@ -1,12 +1,10 @@
-import torch
-from torch.utils.data import Dataset, DataLoader
-import numpy as np
-from datetime import datetime
-import numpy as np
 import random
+import torch
+from torch.utils.data import DataLoader
+
+from logger import Logger
 from config import Config, execution_time
 from gruModel import load_data, GRUModel, TimeSeriesDataset
-from logger import Logger
 
 # Function to categorize the model output
 def categorize_output(output):
@@ -19,8 +17,9 @@ def categorize_output(output):
 
 class Predictor:
     config = Config('gru\src\config.ini')
-    log = Logger('gru/log/gru.log',logger_name='predict')
+    log = Logger('gru/log/gru.log', logger_name='predict')
 
+    @execution_time
     def __init__(self):
         self.load_data()
         self.buildLoader()
