@@ -2,7 +2,7 @@
 Gather small tools to verify our data and ensure it meets our expectations.
 """
 
-import csv
+from logger import Logger
 from config import Config
 import matplotlib.pyplot as plt
 
@@ -31,13 +31,15 @@ def getPrice(filepath, line=0):
 def parse(data_line, col=2):
     data_part = '[' + data_line.split('[', 1)[1]
     data_tuples = eval(data_part)
-    print(f"Number of points in the slice: {len(data_tuples)}")
+    log.info(f"Number of points in the slice: {len(data_tuples)}")
     element_list = [tup[col] for tup in data_tuples]
 
     return element_list
 
 if __name__ == "__main__":
+    log = Logger('gru/log/gru.log', logger_name='tools')
     config = Config('gru/src/config.ini')
+
     filepath = config.training_file_path
     filepath = "data\SPX_1m_TrainingData_HL_76_500.txt"
     plot(filepath, 3735)
