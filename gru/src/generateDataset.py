@@ -12,11 +12,12 @@ import statistics
 from enum import Enum
 import pandas_ta as ta
 import matplotlib.pyplot as plt
+import scipy
 
 import zigzagplus1 as zz
 from logger import Logger
 from config import Config, execution_time
-from utilities import DataSource, convert_to_day_and_time,normalize
+from utilities import DataSource, convert_to_day_and_time,normalize,smooth_sma
 
 class TradePosition(Enum):
     LONG = 1
@@ -245,19 +246,6 @@ class DataProcessor:
             generate_testing_data(tddf_short_list, TradePosition.LONG, datafile)
             generate_testing_data(tddf_long_list, TradePosition.SHORT, datafile)
 
-def macd(df):
-    strategy = ta.Strategy(
-    name="ModifiedStrategy",
-    ta=[
-        {"kind": "stochrsi", "length": 70, "rsi_length": 70, "k": 35, "d": 35},  # Default 14 * 5
-        {"kind": "macd", "fast": 12, "slow": 26, "signal": 9}#,  # Default (12, 26, 9)
-        # {"kind": "macd", "fast": 60, "slow": 130, "signal": 45}  # Default (12, 26, 9) * 5
-        ]
-    )
-
-    df.ta.strategy(strategy)
-    df.drop(columns=['Open','High','Low','Volume'], inplace=True)
-    print(df.info())
 
 def cut_slice(ohlc_df, end_index, slice_length):
     # Ensure the start_index and end_index are in the DataFrame index
@@ -483,6 +471,20 @@ def generate_testing_data(tddf_highlow_list, position,datafile):
         #print(i)
     outputfile.close()    
 
+def macd(df):
+    strategy = ta.Strategy(
+    name="ModifiedStrategy",
+    ta=[
+        {"kind": "stochrsi", "length": 70, "rsi_length": 70, "k": 35, "d": 35},  # Default 14 * 5
+        {"kind": "macd", "fast": 12, "slow": 26, "signal": 9}#,  # Default (12, 26, 9)
+        # {"kind": "macd", "fast": 60, "slow": 130, "signal": 45}  # Default (12, 26, 9) * 5
+        ]
+    )
+
+    df.ta.strategy(strategy)
+    df.drop(columns=['Open','High','Low','Volume'], inplace=True)
+    print(df.info())
+
 def plot(df, yLabel="Close"):
     """
     plot column of the row in data format of '1, 0, -1,[(1,2,3,4,5),(6,7,8,9,10), ...]'
@@ -494,6 +496,52 @@ def plot(df, yLabel="Close"):
     plt.ylabel(yLabel)
     plt.title(f'Plot for DataFrame')
     return plt
+
+def plotMACD_RSI():
+    ds = DataSource()
+    query_start, query_end= config.training_start_date, config.training_end_date
+    ds.queryDB(query_start, query_end)
+    df = ds.getDataFrameFromDB()
+    macd(df)
+    # plot(df,"STOCHRSIk_70_70_35_35")
+    # plot(df,"STOCHRSId_70_70_35_35")
+    plot(df,"MACD_12_26_9")
+    plt = plot(df,"MACDs_12_26_9")
+    plot(df,"MACDh_12_26_9")
+    plt.show()
+
+
+def plot_with_zigzag(df, zigzag_points):
+    """Plot the original Close price with ZigZag points marked."""
+    plt.plot(df["Close"], label="Close Price", color="gray")
+    
+    # Plot ZigZag points on the original Close price
+    plt.plot(zigzag_points, df["Close"].iloc[zigzag_points], 'ro-', label="ZigZag Points")
+    
+    plt.xlabel("Index")
+    plt.ylabel("Close Price")
+    plt.legend()
+    plt.show()
+
+def plotIndex():
+    ds = DataSource()
+    query_start, query_end = config.training_start_date, config.training_end_date
+    ds.queryDB(query_start, query_end, False)
+    df = ds.getDataFrameFromDB()
+    
+    # Plot original "Close" prices
+    plt.plot(df["Close"], label="Original Close Price")
+    
+    # Calculate 9-point smooth (Simple Moving Average)
+    df = smooth_sma(df, 9, True)
+    
+    # Plot smoothed "Close" prices
+    plt.plot(df["Close_SMA_9"], label="9-Point Smooth (SMA)", color="orange")
+    
+    plt.xlabel("Index")
+    plt.ylabel("Close Price")
+    plt.legend()
+    plt.show()
 
 @execution_time
 def main():
@@ -510,14 +558,19 @@ if __name__ == "__main__":
     config = Config('gru/src/config.ini')
 
     # main()
-    ds = DataSource()
-    query_start, query_end= config.training_start_date, config.training_end_date
-    ds.queryDB(query_start, query_end)
-    df = ds.getDataFrameFromDB()
-    macd(df)
-    # plot(df,"STOCHRSIk_70_70_35_35")
-    # plot(df,"STOCHRSId_70_70_35_35")
-    # plot(df,"MACD_12_26_9")
-    plot(df,"MACDh_12_26_9")
-    # plt = plot(df,"MACDs_12_26_9")
-    plt.show()
+    # plotMACD_RSI()
+    # plotIndex()
+    
+# Example usage
+    query_start, query_end= DataSource.config.training_start_date, DataSource.config.training_end_date
+    df = DataSource().queryDB(query_start,query_end).getDataFrameFromDB()  
+
+    # Smooth the data using 9-point moving average
+    df, column = smooth_sma(df, points=9)
+
+
+    # Find ZigZag points with a 2% threshold
+    zigzag_points = zigzag(df, column, threshold=0.02)
+
+    # Plot the data with ZigZag points
+    plot_with_zigzag(df, zigzag_points)

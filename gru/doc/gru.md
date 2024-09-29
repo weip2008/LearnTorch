@@ -127,6 +127,8 @@ pip install pandas_ta
 
 ![](images/macd.png)
 
+🔔⚡️Hold position: 大的zigzag峰谷作为买卖点，峰与谷之间的小峰小谷作为hold点。
+
 ## Create GRU Model
 * [Generate GRU Action Forecast model](../src/gruModel.py)
 

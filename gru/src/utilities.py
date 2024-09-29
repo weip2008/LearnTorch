@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
+from zigzag import peak_valley_pivots
 
 import zigzagplus1 as zz
 from logger import Logger
@@ -22,7 +23,7 @@ class DataSource:
         # Connect to the SQLite database
         DataSource.conn = sqlite3.connect(db_file)
 
-    def queryDB(self, query_start, query_end):
+    def queryDB(self, query_start, query_end, timeIndex = True):
         table_name = DataSource.config.table_name
         # Query the data between May 6th, 2024, and May 12th, 2024
         query_range = f'''
@@ -35,31 +36,63 @@ class DataSource:
     
         self.df = query_result_df
         self.df['Datetime'] = pd.to_datetime(self.df['Datetime'])
-        self.df.set_index('Datetime', inplace=True)
+        if timeIndex:
+            self.df.set_index('Datetime', inplace=True)
+        self.df, self.smooth_column = smooth_sma(self.df,9, True)
 
         DataSource.log.debug(f"Results dataframe length: {len(self.df)}")  
         DataSource.log.debug(f"Data read from table: {table_name}")
         DataSource.log.debug(self.df.head(10))
         DataSource.log.debug(self.df.tail(10))   
         self.zigzag = None
-
+        return self
+    
     def getZigzag(self):
         if self.zigzag is None:
-            self.zigzag = zz.calculate_zigzag(self.df, float(DataSource.config.deviation))
+            self.zigzag = self.calculate_zigzag(float(DataSource.config.deviation))
         return self.zigzag
     
+    def calculate_zigzag(self, deviation):
+        """
+        Calculate the ZigZag indicator.
+
+        :param df: DataFrame with 'Close' prices.
+        :param deviation: Percentage deviation for ZigZag calculation.
+        :return: Series with ZigZag points.
+        """
+        # Drop NaN values from the smoothed column
+        self.df = self.df.dropna(subset=[self.smooth_column])
+        pivots = peak_valley_pivots(self.df[self.smooth_column].values, deviation, -deviation)
+        zigzag = self.df[self.smooth_column][pivots != 0]
+        # Create zigzag DataFrame with 'Datetime' and 'Close'
+        # zigzag = df[pivots != 0].copy()
+        
+        # Convert to DataFrame and rename the column to 'Close'
+        zigzag_df = zigzag.to_frame(name='Close')
+        
+        return zigzag_df
+
     def getDataFrameFromDB(self):
         return self.df
 
-    def plotDataFrame(self):
-        
-        # Plot ZigZag
-        zz.plot_zigzag(self.df, self.zigzag)
+    def plot_zigzag(self):
+        """
+        Plot the ZigZag indicator on the close price.
+
+        :param df: DataFrame with 'Close' prices.
+        :param zigzag: Series with ZigZag points.
+        """
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.df[self.smooth_column], label='Close Price')
+        plt.plot(self.zigzag.index, self.zigzag, 'ro-',label='ZigZag')
+        plt.title("ZigZag Indicator on Close Prices")
+        plt.legend()
+        plt.show()
 
     def plotDataFrameIndex(self):
         self.df.reset_index(drop=True, inplace=True)
         # Plot ZigZag
-        zz.plot_zigzag(self.df, self.zigzag)
+        self.plot_zigzag(self.df, self.zigzag)
 
     def plotPaterns(self):
         filtered_zigzag_df = self.df.loc[self.zigzag.index]
@@ -108,7 +141,14 @@ class DataSource:
         fig.tight_layout()
         plt.title('Close Price and Normalized Price')
         plt.show() 
-    
+
+def smooth_sma(df, points, center=False):
+    # Calculate 9-point smooth (Simple Moving Average)
+    column = "Close_SMA_" + str(points)
+    df[column] = df["Close"].rolling(window=points, center=center).mean()
+    return df, column
+
+
  # Normalization function
 def normalize(series):
     return (series - series.min()) / (series.max() - series.min())
@@ -138,16 +178,16 @@ if __name__ == "__main__":
     query_start, query_end= DataSource.config.training_start_date, DataSource.config.training_end_date
     train_ds.queryDB(query_start, query_end)
     train_ds.getZigzag()
-    train_ds.plotDataFrame()
-    train_ds.plotPaterns()
-    train_ds.plot_prices()
+    train_ds.plot_zigzag()
+    # train_ds.plotPaterns()
+    # train_ds.plot_prices()
 
     # plot testing zigzag
     test_ds = DataSource()
     query_start, query_end= DataSource.config.testing_start_date,DataSource.config.testing_end_date
     test_ds.queryDB(query_start, query_end)
-    test_ds.getZigzag()
-    test_ds.plotDataFrame()
-    test_ds.plotPaterns()
+    # test_ds.getZigzag()
+    # test_ds.plot_zigzag()
+    # test_ds.plotPaterns()
  
     DataSource.conn.close()
