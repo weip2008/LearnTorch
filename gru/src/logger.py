@@ -1,13 +1,11 @@
 import logging
 
-import logging
-
 class Logger:
     """
     Available levels:
         logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
     """
-    def __init__(self, log_file='app.log', log_level=logging.INFO, logger_name=__name__):
+    def __init__(self, log_file='log/app.log', log_level=logging.INFO, logger_name=__name__):
         # Create a custom logger
         self.logger = logging.getLogger(logger_name)
         

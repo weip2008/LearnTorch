@@ -10,6 +10,8 @@ import pandas as pd
 import numpy as np
 import statistics
 from enum import Enum
+import pandas_ta as ta
+import matplotlib.pyplot as plt
 
 import zigzagplus1 as zz
 from logger import Logger
@@ -37,9 +39,9 @@ class Trade:
         return hold_time
 
     def profit(self, close, label):
-        profit = close - self.open_price - self.trade_cost # 低买/高卖
+        profit = close - self.open_price - self.trade_cost # 低买/高卖 (做多Long)
         if label[1] == 'L':
-            profit = self.open_price - close - self.trade_cost # 高卖/低买 （做空）
+            profit = self.open_price - close - self.trade_cost # 高卖/低买 （做空Short）
         return profit
     
     def cut_slice(self, df, close_price, close_time, label, slice_length):
@@ -243,6 +245,19 @@ class DataProcessor:
             generate_testing_data(tddf_short_list, TradePosition.LONG, datafile)
             generate_testing_data(tddf_long_list, TradePosition.SHORT, datafile)
 
+def macd(df):
+    strategy = ta.Strategy(
+    name="ModifiedStrategy",
+    ta=[
+        {"kind": "stochrsi", "length": 70, "rsi_length": 70, "k": 35, "d": 35},  # Default 14 * 5
+        {"kind": "macd", "fast": 12, "slow": 26, "signal": 9}#,  # Default (12, 26, 9)
+        # {"kind": "macd", "fast": 60, "slow": 130, "signal": 45}  # Default (12, 26, 9) * 5
+        ]
+    )
+
+    df.ta.strategy(strategy)
+    df.drop(columns=['Open','High','Low','Volume'], inplace=True)
+    print(df.info())
 
 def cut_slice(ohlc_df, end_index, slice_length):
     # Ensure the start_index and end_index are in the DataFrame index
@@ -254,8 +269,8 @@ def cut_slice(ohlc_df, end_index, slice_length):
     # Get the positional indices of the timestamps
     end_pos = ohlc_df.index.get_loc(end_index)  
     #start_pos = ohlc_df.index.get_loc(start_index)
-    start_pos = end_pos - slice_length -2
-    # end_pos = end_pos + 2    # ADD one more step after reach H/L point!!! add one more for Python nature
+    start_pos = end_pos - slice_length 
+    end_pos = end_pos + 2    # ADD one more step after reach H/L point!!! add one more for Python nature
     
     # Ensure start_pos is less than or equal to end_pos
     if start_pos < 0 or start_pos > end_pos:
@@ -468,10 +483,21 @@ def generate_testing_data(tddf_highlow_list, position,datafile):
         #print(i)
     outputfile.close()    
 
+def plot(df, yLabel="Close"):
+    """
+    plot column of the row in data format of '1, 0, -1,[(1,2,3,4,5),(6,7,8,9,10), ...]'
+    """
+    # Plot the price list
+    plt.plot(df[yLabel])
+    plt.axhline(y=0, color='r', linestyle='--')
+    plt.xlabel('Time Index')
+    plt.ylabel(yLabel)
+    plt.title(f'Plot for DataFrame')
+    return plt
 
 @execution_time
 def main():
-    DataProcessor(training=True, calculate_slice_length=False)
+    DataProcessor(training=True, calculate_slice_length=True)
     DataProcessor(training=False)
     DataSource.conn.close()
     log.info("================================ Done")
@@ -483,4 +509,15 @@ if __name__ == "__main__":
 
     config = Config('gru/src/config.ini')
 
-    main()
+    # main()
+    ds = DataSource()
+    query_start, query_end= config.training_start_date, config.training_end_date
+    ds.queryDB(query_start, query_end)
+    df = ds.getDataFrameFromDB()
+    macd(df)
+    # plot(df,"STOCHRSIk_70_70_35_35")
+    # plot(df,"STOCHRSId_70_70_35_35")
+    # plot(df,"MACD_12_26_9")
+    plot(df,"MACDh_12_26_9")
+    # plt = plot(df,"MACDs_12_26_9")
+    plt.show()

@@ -41,9 +41,11 @@ class DataSource:
         DataSource.log.debug(f"Data read from table: {table_name}")
         DataSource.log.debug(self.df.head(10))
         DataSource.log.debug(self.df.tail(10))   
-        self.zigzag = zz.calculate_zigzag(self.df, float(DataSource.config.deviation))
+        self.zigzag = None
 
     def getZigzag(self):
+        if self.zigzag is None:
+            self.zigzag = zz.calculate_zigzag(self.df, float(DataSource.config.deviation))
         return self.zigzag
     
     def getDataFrameFromDB(self):
@@ -135,6 +137,7 @@ if __name__ == "__main__":
     train_ds = DataSource()
     query_start, query_end= DataSource.config.training_start_date, DataSource.config.training_end_date
     train_ds.queryDB(query_start, query_end)
+    train_ds.getZigzag()
     train_ds.plotDataFrame()
     train_ds.plotPaterns()
     train_ds.plot_prices()
@@ -143,6 +146,7 @@ if __name__ == "__main__":
     test_ds = DataSource()
     query_start, query_end= DataSource.config.testing_start_date,DataSource.config.testing_end_date
     test_ds.queryDB(query_start, query_end)
+    test_ds.getZigzag()
     test_ds.plotDataFrame()
     test_ds.plotPaterns()
  

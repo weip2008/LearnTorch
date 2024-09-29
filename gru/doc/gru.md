@@ -1,7 +1,7 @@
 <h1> GRU Action Forecast</h1>
 
 ```mermaid
-graph LR
+graph TB
 
 Data[SQLiteDB<br>generateDataset.py<br><br>SPX_1m_TrainingData_HL_80_500.txt<br>SPX_1m_TestingData_HL_80_500.txt]
 Model[SPX_1m_TrainingData_HL_80_500.txt<br>SPX_1m_TestingData_HL_80_500.txt<br>gruModel.py<br><br>GRU_model_with_LH_fixlen_data_501.pth]
@@ -46,7 +46,7 @@ Model -->Pred
 
 
 ## Generate Dataset
-* [Define Logger class for whole project](../src/gru.py)
+* [Define Logger class for whole project](../src/logger.py)
 * [Define global variables in cofig.ini](../src/config.ini)
 * [load global variables from cofig.ini](../src/config.py)
 
@@ -65,13 +65,19 @@ graph TB
 
 load["utilities<br>.DataSource.queryDB()"]
 zigzag["gen_zigzag_patterns()"]
-pattern["check_patterns_length()"]
-long["check_long_patterns()"]
-short["check_short_patterns()"]
+slice["estimateSliceLength()"]
+list["create_data_list()"]
 train["generateTrain()"]
 test["generateTest()"]
 
-load --> zigzag --> pattern --> long --> short --> train --> test
+load --> zigzag --> slice--> list
+zigzag --> list--> train --> test
+
+classDef process fill:#F46624,stroke:#F46624,stroke-width:4px,color:white;
+classDef js fill:#88c2f4,stroke:black,stroke-width:2px;
+
+class load,zigzag,list,train,test process
+class slice js
 ```
 
 * [generate plots](../src/utilities.py)
@@ -87,7 +93,7 @@ SQLite database file: [data/stock_bigdata_2019-2023.db]
 1. [traning dataset](../data/SPX_1m_TrainingData_HL_80_500.txt)
 2. [testing dataset](../data/SPX_1m_TestingData_HL_80_500.txt)
 
-* 5 column data group
+* 5 column data feature group
 1. day of weeek
 2. time of day
 3. close price
@@ -101,6 +107,22 @@ SQLite database file: [data/stock_bigdata_2019-2023.db]
 total 60 points end by long/short point for each row which will be total of 5X60=300 numbers
 
 ![](images/trainning_testing_data.png)
+
+[add macd data to data feature group](macd2example.ipynb)
+
+```dos
+pip install sqlalchemy
+pip install pandas_ta
+```
+💡👉 pay attention:
+1. Before sending data to train the model, ensure that all columns are appropriately weighted.（工具）
+2. randomly plot any slice, ensure the datas are in correct position（工具）
+3. randomly plot any slice, ensure the datas show some walking patterns（工具）
+4. When making slice decisions, refer to the MACD histogram data.（老邢经验）
+5. 观察当MACD histogram data 变化最大时，close price的变化
+6. 是否应该将weekday，time，vilocity，accelerate，MACD的数据和RSI的数据统统作切片内的归一化，然后对MACD，Price进行加权
+
+![](images/macd.png)
 
 ## Create GRU Model
 * [Generate GRU Action Forecast model](../src/gruModel.py)
