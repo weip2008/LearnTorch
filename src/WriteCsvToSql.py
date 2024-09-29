@@ -54,7 +54,8 @@ def read_CSV_file(csv_file_path):
 #csv_file_path = os.path.join("stockdata\\MES=F_max_2024-08-25_2024-08-30_1m.csv")
 #csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-01_2024-09-06_1m.csv")
 #csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-08_2024-09-13_1m.csv")
-csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-15_2024-09-22_1m.csv")
+#csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-15_2024-09-22_1m.csv")
+csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-22_2024-09-27_1m.csv")
 
 # Define the table name as a string variable
 #table_name = "AAPL_1D"
