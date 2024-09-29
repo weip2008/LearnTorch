@@ -116,11 +116,14 @@ pip install pandas_ta
 ```
 💡👉 pay attention:
 1. Before sending data to train the model, ensure that all columns are appropriately weighted.（工具）
-2. randomly plot any slice, ensure the datas are in correct position（工具）
-3. randomly plot any slice, ensure the datas show some walking patterns（工具）
-4. When making slice decisions, refer to the MACD histogram data.（老邢经验）
-5. 观察当MACD histogram data 变化最大时，close price的变化
-6. 是否应该将weekday，time，vilocity，accelerate，MACD的数据和RSI的数据统统作切片内的归一化，然后对MACD，Price进行加权
+2. plot close price, macd, macdh, macds in same chart, draw square window of a slice. (工具)
+3. randomly plot any slice, ensure the datas are in correct position（工具）
+4. randomly plot any slice, ensure the datas show some walking patterns（工具）
+5. When making slice decisions, refer to the MACD histogram data？（老邢经验）
+6. 观察当MACD histogram data 变化最大时，close price的变化(工具)
+7. 是否应该将weekday，time，vilocity，accelerate，MACD的数据和RSI的数据统统作切片内的归一化，然后对MACD，Price进行加权
+8. 对price，MACD histogram进行指数加权
+9. 不能在切片内作平滑和计算速度加速度，应该取所有数据至少作9点平滑以后，再计算峰谷、速度、加速度。不平滑的数据很难准确确定峰谷位置。
 
 ![](images/macd.png)
 
