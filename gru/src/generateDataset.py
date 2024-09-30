@@ -517,11 +517,11 @@ def plot(yLabel="Close", zero_line=False):
     return plt
 
 def plotMACD_RSI():
-    # plot("STOCHRSIk_70_70_35_35")
-    # plot("STOCHRSId_70_70_35_35")
-    plot("MACD_12_26_9")
-    plot("MACDs_12_26_9")
-    plt = plot("MACDh_12_26_9", True)
+    plot("STOCHRSIk_70_70_35_35")
+    plot("STOCHRSId_70_70_35_35")
+    # plot("MACD_12_26_9")
+    # plot("MACDs_12_26_9")
+    # plt = plot("MACDh_12_26_9", True)
     plt.show()
 
 def plotIndex():
@@ -578,7 +578,7 @@ if __name__ == "__main__":
 
     funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot}
 
-    funcs[4]()
+    funcs[2]()
 
     # long,short,hold = funcs[5]()
     # print(f'long list length: {len(long)}; \nshort list length: {len(short)}\nhold list length: {len(hold)}')
