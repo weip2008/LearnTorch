@@ -53,14 +53,12 @@ class DataSource:
 
     def slice(self):
         slice_len = int(DataSource.config.slice_length)
-        
+        start_index = self.df.index[0]
         # Initialize lists for long and short positions
         long_list, short_list = [], []
-
-        # Iterate over zigzag points
         for index, row in self.zigzag.iterrows():
             if index in self.df.index:
-                if index < slice_len: continue
+                if index < slice_len+start_index: continue
                 slice_df = self.get_slice(index, slice_len)
                 self.add_to_list(slice_df, row, long_list, short_list, index)
         
@@ -68,7 +66,8 @@ class DataSource:
 
     # Helper function to slice df for slice_len rows before the given index
     def get_slice(self, index, slice_len):
-        return self.df.loc[index - slice_len:index]
+        # Use iloc to get slice_len rows from current_position backward
+        return self.df.loc[index - slice_len : index]
 
     # Helper function to add slices to the correct list based on peak/valley type
     def add_to_list(self, slice_df, row, long_list, short_list, index):

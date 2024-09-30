@@ -131,7 +131,10 @@ pip install pandas_ta
 
 ### ToDo
 1. ~~calculate macd and add it to df.~~
-2. calculate rsi and add it to df.
+2. ~~calculate rsi and add it to df.~~
+3. ~~create long_list and short_list for peak and valley list.~~
+4. create hold_list between peak and valley.
+5. generate training data based on long_list, hold_list and short_list
 
 ## Create GRU Model
 * [Generate GRU Action Forecast model](../src/gruModel.py)
