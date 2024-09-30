@@ -24,7 +24,7 @@ class DataSource:
         # Connect to the SQLite database
         DataSource.conn = sqlite3.connect(db_file)
 
-    def queryDB(self, query_start, query_end, timeIndex = True):
+    def queryDB(self, query_start, query_end, timeIndex = False):
         table_name = DataSource.config.table_name
         # Query the data between May 6th, 2024, and May 12th, 2024
         query_range = f'''
@@ -45,9 +45,8 @@ class DataSource:
 
         DataSource.log.debug(f"Results dataframe length: {len(self.df)}")  
         DataSource.log.debug(f"Data read from table: {table_name}")
-        DataSource.log.debug(self.df.head(10))
-        DataSource.log.debug(self.df.tail(10))   
         self.zigzag = None
+        self.hold_zigzag = None
         self.macd()
         return self
 
@@ -55,19 +54,38 @@ class DataSource:
         slice_len = int(DataSource.config.slice_length)
         start_index = self.df.index[0]
         # Initialize lists for long and short positions
-        long_list, short_list = [], []
+        long_list, short_list, hold_list = [], [], []
         for index, row in self.zigzag.iterrows():
             if index in self.df.index:
                 if index < slice_len+start_index: continue
                 slice_df = self.get_slice(index, slice_len)
                 self.add_to_list(slice_df, row, long_list, short_list, index)
-        
-        return long_list, short_list
 
-    # Helper function to slice df for slice_len rows before the given index
+        for index, row in self.hold_zigzag.iterrows():        
+            slice_df = self.get_slice(index, slice_len)
+            hold_list.append(slice_df)
+            
+        return long_list, short_list, hold_list
+    
+   # Helper function to slice df for slice_len rows before the given index
     def get_slice(self, index, slice_len):
         # Use iloc to get slice_len rows from current_position backward
         return self.df.loc[index - slice_len : index]
+
+    # New helper function to find smaller peaks and valleys
+    def find_smaller_peaks_valleys(self, index, zigzag_type):
+        smaller_peaks_valleys = []
+        
+        # Get the relevant part of the zigzag DataFrame before the current index
+        relevant_zigzag = self.zigzag[self.zigzag.index < index]
+        
+        # Check for smaller peaks or valleys
+        for small_index, small_row in relevant_zigzag.iterrows():
+            if small_row['zigzag_type'] == zigzag_type:
+                # Add to the hold_list if it's a smaller peak or valley
+                smaller_peaks_valleys.append({'index': small_index, 'data': small_row})
+        
+        return smaller_peaks_valleys
 
     # Helper function to add slices to the correct list based on peak/valley type
     def add_to_list(self, slice_df, row, long_list, short_list, index):
@@ -75,6 +93,23 @@ class DataSource:
             short_list.append(slice_df)
         elif row['zigzag_type'] == 'valley':
             long_list.append(slice_df)
+
+    def getHoldZigzag(self):
+        if self.hold_zigzag is None:
+            self.hold_zigzag = self.calculate_zigzag(float(DataSource.config.deviation_hold))
+        # Initialize a new column 'zigzag_type'
+        self.hold_zigzag['zigzag_type'] = None
+    
+        # Iterate over the zigzag DataFrame to classify peaks and valleys
+        for i in range(len(self.hold_zigzag) - 1):
+            if self.hold_zigzag.index[i] not in self.zigzag.index:
+                # Check if it's a peak (higher than both neighbors)
+                self.hold_zigzag.loc[self.hold_zigzag.index[i], 'zigzag_type'] = 'hold'
+
+        # Filter out rows that do not have 'hold' in zigzag_type
+        self.hold_zigzag = self.hold_zigzag[self.hold_zigzag['zigzag_type'] == 'hold']
+
+        return self.hold_zigzag
 
     def getZigzag(self):
         if self.zigzag is None:
@@ -150,10 +185,15 @@ class DataSource:
         :param df: DataFrame with 'Close' prices.
         :param zigzag: Series with ZigZag points.
         """
+        deviation = DataSource.config.deviation
+        hlod_deviation = DataSource.config.deviation_hold
+        zigzag_len = len(self.zigzag["Close"])
+        hold_zigzag_len = len(self.hold_zigzag["Close"])
         plt.figure(figsize=(10, 5))
         plt.plot(self.df[self.smooth_column], label='Close Price')
-        plt.plot(self.zigzag.index, self.zigzag, 'ro-',label='ZigZag')
-        plt.title("ZigZag Indicator on Close Prices")
+        plt.plot(self.zigzag.index, self.zigzag["Close"], 'ro-',label=f'Peak/Valley deviation={deviation}')
+        plt.plot(self.hold_zigzag.index, self.hold_zigzag["Close"], 'go-',label=f'Hold deviation={hlod_deviation}')
+        plt.title(f"ZigZag Indicator on Close Prices: {zigzag_len} peak/valleys; {hold_zigzag_len} holds")
         plt.legend()
         plt.show()
 

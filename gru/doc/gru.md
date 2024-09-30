@@ -18,6 +18,7 @@ Model -->Pred
 - [Generate Dataset](#generate-dataset)
   - [Input](#input)
   - [Output files](#output-files)
+  - [ToDo](#todo-1)
 - [Create GRU Model](#create-gru-model)
   - [Input](#input-1)
   - [Output](#output)
@@ -50,7 +51,14 @@ Model -->Pred
 * [Define global variables in cofig.ini](../src/config.ini)
 * [load global variables from cofig.ini](../src/config.py)
 
+![config.ini will not be checked into GitHub, config.ini.sample will be checked into GitHub](images/config.png)
+
 * [Generate dataset Source Code](../src/generateDataset.py)
+
+![](images/DataSource.png)
+![](images/DataPreprocessSequence.png)
+![](images/hold_zigzag.png)
+
 
 ```py
 def gen_zigzag_patterns(query_start, query_end):
@@ -123,7 +131,7 @@ pip install pandas_ta
 6. 观察当MACD histogram data 变化最大时，close price的变化(工具)
 7. 是否应该将weekday，time，vilocity，accelerate，MACD的数据和RSI的数据统统作切片内的归一化，然后对MACD，Price进行加权
 8. 对price，MACD histogram进行指数加权
-9. 不能在切片内作平滑和计算速度加速度，应该取所有数据至少作9点平滑以后，再计算峰谷、速度、加速度。不平滑的数据很难准确确定峰谷位置。
+9. 🔑🔥不能在切片内作平滑和计算速度加速度，应该取所有数据至少作9点平滑以后，再计算峰谷、速度、加速度。不平滑的数据很难准确确定峰谷位置。
 
 ![](images/macd.png)
 
@@ -133,8 +141,9 @@ pip install pandas_ta
 1. ~~calculate macd and add it to df.~~
 2. ~~calculate rsi and add it to df.~~
 3. ~~create long_list and short_list for peak and valley list.~~
-4. create hold_list between peak and valley.
+4. ~~create hold_list between peak and valley.~~
 5. generate training data based on long_list, hold_list and short_list
+6. generate testing data based on long_list, hold_list and short_list
 
 ## Create GRU Model
 * [Generate GRU Action Forecast model](../src/gruModel.py)

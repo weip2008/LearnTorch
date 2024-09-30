@@ -54,7 +54,40 @@ class Trade:
 class DataProcessor:
     slice_length = 76
     def __init__(self, training=True, calculate_slice_length=False):
-        self.getDataFrame(training)
+        self.df = self.getDataFrame(training)
+        self.ds.getZigzag()
+        self.ds.getHoldZigzag()
+        long_list, short_list, hold_list = self.ds.slice()
+        self.prefix_map = {'short':[0,0,1], 'hold':[0,1,0], 'long':[0,0,1]}
+        self.write(long_list,short_list,hold_list,training)
+        log.info("DataSource ========================================= Done.")
+
+    def write(self, long_list, short_list, hold_list, training=True):
+        filepath = config.training_file_path
+        if not training:
+            filepath = config.testing_file_path
+
+        # Open the file for writing
+        with open(filepath, 'w') as f:
+            self.writeList2File(f, long_list, 'long', training)
+            self.writeList2File(f, short_list, 'short', training)
+            self.writeList2File(f, hold_list, 'hold', training)
+        log.info(f"Dataset has been saved to {filepath}.")
+
+    def writeList2File(self, f, list, type, training):
+        if not training:
+            self.prefix_map = {'short':[2], 'hold':[1], 'long':[0]}
+        for df in list:
+            # Flatten the DataFrame values and create a new list starting with '1,0,0'
+            flattened_data = self.prefix_map[type] + df.values.flatten().tolist()
+            
+            # Convert the list to a comma-separated string
+            line = ','.join(map(str, flattened_data))
+            
+            # Write the string to the file followed by a newline
+            f.write(line + '\n')
+        
+    def zhouhao(self, training, calculate_slice_length):
         self.gen_zigzag_patterns()
 
         if (calculate_slice_length):
@@ -67,6 +100,7 @@ class DataProcessor:
         else:
             self.generateTest(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
 
+
     def getDataFrame(self, training):
         self.ds = DataSource()
         self.query_start, self.query_end= DataSource.config.training_start_date, DataSource.config.training_end_date
@@ -74,7 +108,7 @@ class DataProcessor:
             self.query_start, self.query_end= DataSource.config.testing_start_date,DataSource.config.testing_end_date
 
         self.ds.queryDB(self.query_start, self.query_end)
-        self.df = self.ds.getDataFrameFromDB()
+        self.ds.getDataFrameFromDB()
 
     def gen_zigzag_patterns(self):
         zigzag = self.ds.getZigzag()
@@ -513,15 +547,16 @@ def plotZigzag():
     ds = DataSource()
     ds.queryDB(query_start,query_end, False).getDataFrameFromDB()  
     ds.getZigzag()
+    ds.getHoldZigzag()
 
     ds.plot_zigzag()
 
 @execution_time
 def main():
-    DataProcessor(training=True, calculate_slice_length=True)
+    DataProcessor(calculate_slice_length=True)
     DataProcessor(training=False)
     DataSource.conn.close()
-    log.info("================================ Done")
+    log.info("main() ================================ Done")
 
 @execution_time
 def slice():
@@ -531,9 +566,9 @@ def slice():
     ds.getZigzag()
     
     # Initialize lists for long and short positions
-    long_list, short_list = ds.slice()
+    long_list, short_list, hold_list = ds.slice()
     
-    return long_list, short_list
+    return long_list, short_list, hold_list
 
 if __name__ == "__main__":
     log = Logger('gru/log/gru.log', logger_name='data')
@@ -542,9 +577,11 @@ if __name__ == "__main__":
     config = Config('gru/src/config.ini')
 
     funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot}
-    
-    long,short = funcs[5]()
-    print(f'long list length: {len(long)}; \nshort list length: {len(short)}')
+
+    funcs[4]()
+
+    # long,short,hold = funcs[5]()
+    # print(f'long list length: {len(long)}; \nshort list length: {len(short)}\nhold list length: {len(hold)}')
 
     # plt = funcs[6](yLabel = "Close")
     # plt.show()
