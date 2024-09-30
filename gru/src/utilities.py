@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 from zigzag import peak_valley_pivots
+import pandas_ta as ta
 
 import zigzagplus1 as zz
 from logger import Logger
@@ -39,17 +40,66 @@ class DataSource:
         if timeIndex:
             self.df.set_index('Datetime', inplace=True)
         self.df, self.smooth_column = smooth_sma(self.df,9, True)
+        # Drop NaN values from the smoothed column
+        self.df = self.df.dropna(subset=[self.smooth_column])
 
         DataSource.log.debug(f"Results dataframe length: {len(self.df)}")  
         DataSource.log.debug(f"Data read from table: {table_name}")
         DataSource.log.debug(self.df.head(10))
         DataSource.log.debug(self.df.tail(10))   
         self.zigzag = None
+        self.macd()
         return self
-    
+
+    def slice(self):
+        slice_len = int(DataSource.config.slice_length)
+        
+        # Initialize lists for long and short positions
+        long_list, short_list = [], []
+
+        # Iterate over zigzag points
+        for index, row in self.zigzag.iterrows():
+            if index in self.df.index:
+                if index < slice_len: continue
+                slice_df = self.get_slice(index, slice_len)
+                self.add_to_list(slice_df, row, long_list, short_list, index)
+        
+        return long_list, short_list
+
+    # Helper function to slice df for slice_len rows before the given index
+    def get_slice(self, index, slice_len):
+        return self.df.loc[index - slice_len:index]
+
+    # Helper function to add slices to the correct list based on peak/valley type
+    def add_to_list(self, slice_df, row, long_list, short_list, index):
+        if row['zigzag_type'] == 'peak':
+            short_list.append(slice_df)
+        elif row['zigzag_type'] == 'valley':
+            long_list.append(slice_df)
+
     def getZigzag(self):
         if self.zigzag is None:
             self.zigzag = self.calculate_zigzag(float(DataSource.config.deviation))
+
+        # Initialize a new column 'zigzag_type'
+        self.zigzag['zigzag_type'] = None
+    
+        # Iterate over the zigzag DataFrame to classify peaks and valleys
+        for i in range(len(self.zigzag) - 1):
+            current_price = self.zigzag['Close'].iloc[i]
+            previous_price = self.zigzag['Close'].iloc[i - 1]
+            next_price = self.zigzag['Close'].iloc[i + 1]
+            if i==0:
+                previous_price = next_price
+            
+            # Check if it's a peak (higher than both neighbors)
+            if current_price > previous_price and current_price > next_price:
+                self.zigzag.loc[self.zigzag.index[i], 'zigzag_type'] = 'peak'
+            
+            # Check if it's a valley (lower than both neighbors)
+            elif current_price < previous_price and current_price < next_price:
+                self.zigzag.loc[self.zigzag.index[i], 'zigzag_type'] = 'valley'
+
         return self.zigzag
     
     def calculate_zigzag(self, deviation):
@@ -60,8 +110,6 @@ class DataSource:
         :param deviation: Percentage deviation for ZigZag calculation.
         :return: Series with ZigZag points.
         """
-        # Drop NaN values from the smoothed column
-        self.df = self.df.dropna(subset=[self.smooth_column])
         pivots = peak_valley_pivots(self.df[self.smooth_column].values, deviation, -deviation)
         zigzag = self.df[self.smooth_column][pivots != 0]
         # Create zigzag DataFrame with 'Datetime' and 'Close'
@@ -72,8 +120,29 @@ class DataSource:
         
         return zigzag_df
 
+    def macd(self):
+        strategy = ta.Strategy(
+        name="ModifiedStrategy",
+        ta=[
+            {"kind": "stochrsi", "length": 70, "rsi_length": 70, "k": 35, "d": 35},  # Default 14 * 5
+            {"kind": "macd", "fast": 12, "slow": 26, "signal": 9}#,  # Default (12, 26, 9)
+            # {"kind": "macd", "fast": 60, "slow": 130, "signal": 45}  # Default (12, 26, 9) * 5
+            ]
+        )
+
+        # Make a copy of the DataFrame to avoid the SettingWithCopyWarning
+        df_copy = self.df.copy()
+        df_copy.ta.strategy(strategy)
+        self.df = df_copy  # Update the original DataFrame if needed
+        self.df.drop(columns=['Open','High','Low','Volume'], inplace=True)
+        self.df = self.df.dropna(subset=["STOCHRSIk_70_70_35_35"])
+        self.df = self.df.dropna(subset=["STOCHRSId_70_70_35_35"])
+        self.df = self.df.dropna(subset=["MACD_12_26_9"])
+        self.df = self.df.dropna(subset=["MACDh_12_26_9"])
+        self.df = self.df.dropna(subset=["MACDs_12_26_9"])
+    
     def getDataFrameFromDB(self):
-        return self.df
+            return self.df
 
     def plot_zigzag(self):
         """

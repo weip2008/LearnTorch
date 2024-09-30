@@ -1,0 +1,61 @@
+[dataset]
+# Trainning Data Length
+slice_length = 120
+
+# Series Number for output training/testing data set pairs
+sn = 500
+
+# ZigZag parameters
+#deviation = 0.001
+deviation = 0.003
+
+# Stock Symble
+symbol = SPX
+
+# Define the table name as a string variable
+table_name = SPX_1m
+
+# Define the SQLite database file directory
+data_dir = data
+
+# SQLite Database
+sqlite_db = stock_bigdata_2019-2023.db
+
+# tradecost for each trade
+longtradecost = 1.0
+shorttradecost = 1.0
+
+training_start_date = 2023-01-01
+training_end_date = 2023-12-31
+testing_start_date = 2023-10-01
+testing_end_date = 2023-12-31
+
+time_format = %%Y-%%m-%%d %%H:%%M:%%S
+
+[model]
+training_file_path = data/SPX_1m_TrainingData_HL_80_500.txt
+testing_file_path  = data/SPX_1m_TestingData_HL_80_500.txt
+model_save_path = models/GRU_model_with_LH_fixlen_data_500.pth
+output_results_path = data/SPX_1m_HL_43_700_GRU_fixlen_500.txt
+
+batch_size = 32 
+# Number of features in each tuple
+input_size = 5
+# Number of features in the hidden state
+hidden_size = 64
+# Number of output features (signal)
+output_size = 1
+# Number of GRU layers
+num_layers = 5
+# Learning rate
+learning_rate = 0.0001
+num_epochs = 20
+
+sample_size = 20
+    
+[test]
+# for running config.py
+host = localhost 
+port = 5432
+username = user
+password = pass

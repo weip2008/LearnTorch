@@ -5,7 +5,7 @@ __pycache__/
 log/
 # C extensions
 *.so
-*.ini
+config.ini
 
 # Distribution / packaging
 data/
