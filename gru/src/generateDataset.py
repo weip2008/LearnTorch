@@ -89,11 +89,12 @@ class StockDataset(Dataset):
 class DataProcessor:
     slice_length = 76
     def __init__(self, training=True):
+        self.target_map = {'short':[[0,0,1]], 'hold':[[0,1,0]], 'long':[[0,0,1]]}
+
         self.df = self.getDataFrame(training)
         self.ds.getZigzag()
         self.ds.getHoldZigzag()
         long_list, short_list, hold_list = self.ds.slice()
-        self.target_map = {'short':[[0,0,1]], 'hold':[[0,1,0]], 'long':[[0,0,1]]}
         self.normalize(long_list,short_list,hold_list)
         self.write(long_list,short_list,hold_list,training)
         log.info("DataSource ========================================= Done.")
@@ -122,31 +123,53 @@ class DataProcessor:
         df_list = self.buildDataFrameList(long_list, short_list, hold_list, training)
         # Create dataset
         dataset = StockDataset(dataframes_list=df_list, target_column='label')
-        torch.save(dataset, 'dataset.pth')
-        # Open the file for writing
-        # with open(filepath, 'w') as f:
-        #     self.writeList2File(f, long_list, 'long', training)
-        #     self.writeList2File(f, short_list, 'short', training)
-        #     self.writeList2File(f, hold_list, 'hold', training)
-        # log.info(f"Dataset has been saved to {filepath}.")
+        torch.save(dataset, filepath)
 
-    def buildDataFrameList(self, long_list, short_list, hold_list, training):
-        list = []
-        slice_len = int(config.slice_length)+1
-        for df in long_list:
-            df = self.date2minutes(df)
-            # Flatten the DataFrame values and create a new list starting with '1,0,0'
-            flattened_data = df.values.flatten().tolist()
-            
-            dataset_df = pd.DataFrame()
-            # Convert the list to a comma-separated string
-            line = ','.join(map(str, flattened_data))
-            feature = [x for x in line.split(',')][8:]
-            label= [[0,0,1]]*480
-            dataset_df['feature'] = feature
-            dataset_df['label'] = label
-            list.append(dataset_df)
-        return list
+    def write2file(self, long_list, short_list, hold_list, training=True):
+        filepath = config.training_file_path
+        if not training:
+            filepath = config.testing_file_path
+
+        # Open the file for writing
+        with open(filepath, 'w') as f:
+            self.writeList2File(f, long_list, 'long', training)
+            self.writeList2File(f, short_list, 'short', training)
+            self.writeList2File(f, hold_list, 'hold', training)
+        log.info(f"Dataset has been saved to {filepath}.")
+
+    def buildDataFrameList(self, long_list, short_list, hold_list, training=True):
+        combined_list = []
+        slice_len = int(config.slice_length) + 1
+
+        # Helper function to process each list with corresponding label
+        def process_list(data_list, label):
+            list_df = []
+            for df in data_list:
+                df = self.date2minutes(df)
+
+                # Flatten the DataFrame values and create a feature list
+                flattened_data = df.values.flatten().tolist()
+                
+                dataset_df = pd.DataFrame()
+                
+                # Convert the flattened data to features
+                feature = [x for x in flattened_data][8:]  # Skip first 8 elements if necessary
+                label_repeated = [label] * 480  # Repeat label for the entire dataset
+                
+                # Add the features and label to the DataFrame
+                dataset_df['feature'] = feature
+                dataset_df['label'] = label_repeated
+
+                # Append to the list
+                list_df.append(dataset_df)
+            return list_df
+
+        # Process each list with corresponding label
+        combined_list.extend(process_list(long_list, self.target_map['long']))  # For long_list
+        combined_list.extend(process_list(short_list, self.target_map['short']))  # For short_list
+        combined_list.extend(process_list(hold_list, self.target_map['hold']))  # For hold_list
+
+        return combined_list
 
     def date2minutes(self, df):
         tmp = pd.DataFrame(df)
