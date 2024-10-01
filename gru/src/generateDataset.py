@@ -6,13 +6,14 @@
 # [0,1,1,0,2,2] test data means 4 set of [sell, hold, hold, sell, buy, buy]
 
 import os
+import torch
 import pandas as pd
 import numpy as np
 import statistics
 from enum import Enum
 import pandas_ta as ta
 import matplotlib.pyplot as plt
-import scipy
+from torch.utils.data import Dataset, DataLoader
 
 import zigzagplus1 as zz
 from logger import Logger
@@ -50,7 +51,41 @@ class Trade:
             section_df = cut_slice(df, close_time, slice_length)  
             return section_df
         return None
-    
+
+class StockDataset(Dataset):
+    def __init__(self, dataframes_list, target_column, group_size=60, num_cols=8, transform=None):
+        self.dataframes_list = dataframes_list  # list of dataframes
+        self.target_column = target_column      # the target column name
+        self.group_size = group_size            # size of the group (e.g., 60)
+        self.transform = transform
+        self.num_cols = num_cols
+
+    def __len__(self):
+        return len(self.dataframes_list)  # number of DataFrames (instances)
+
+    def __getitem__(self, idx):
+        # Get the DataFrame for the current instance
+        df = self.dataframes_list[idx]
+
+        # Extract the features for the 60 groups of data
+        features = df.drop(self.target_column, axis=1).values.astype(float)  # shape: (480, num_features)
+        
+        # Reshape features to have 60 groups of 8 columns
+        features = features.reshape(self.group_size, self.num_cols)  # shape: (60, 8)
+
+        # Extract the target label
+        target = df[self.target_column].iloc[0]  # assuming the label is consistent across the entire DataFrame
+
+        # Convert to tensor
+        features = torch.tensor(features, dtype=torch.float32)  # features tensor (60, 8)
+        target = torch.tensor(target, dtype=torch.float32)  # target tensor (scalar or multi-label)
+
+        # Apply transforms if any
+        if self.transform:
+            features = self.transform(features)
+
+        return features, target
+
 class DataProcessor:
     slice_length = 76
     def __init__(self, training=True):
@@ -58,7 +93,7 @@ class DataProcessor:
         self.ds.getZigzag()
         self.ds.getHoldZigzag()
         long_list, short_list, hold_list = self.ds.slice()
-        self.prefix_map = {'short':[0,0,1], 'hold':[0,1,0], 'long':[0,0,1]}
+        self.target_map = {'short':[[0,0,1]], 'hold':[[0,1,0]], 'long':[[0,0,1]]}
         self.normalize(long_list,short_list,hold_list)
         self.write(long_list,short_list,hold_list,training)
         log.info("DataSource ========================================= Done.")
@@ -84,12 +119,49 @@ class DataProcessor:
         if not training:
             filepath = config.testing_file_path
 
+        df_list = self.buildDataFrameList(long_list, short_list, hold_list, training)
+        # Create dataset
+        dataset = StockDataset(dataframes_list=df_list, target_column='label')
+        torch.save(dataset, 'dataset.pth')
         # Open the file for writing
-        with open(filepath, 'w') as f:
-            self.writeList2File(f, long_list, 'long', training)
-            self.writeList2File(f, short_list, 'short', training)
-            self.writeList2File(f, hold_list, 'hold', training)
-        log.info(f"Dataset has been saved to {filepath}.")
+        # with open(filepath, 'w') as f:
+        #     self.writeList2File(f, long_list, 'long', training)
+        #     self.writeList2File(f, short_list, 'short', training)
+        #     self.writeList2File(f, hold_list, 'hold', training)
+        # log.info(f"Dataset has been saved to {filepath}.")
+
+    def buildDataFrameList(self, long_list, short_list, hold_list, training):
+        list = []
+        slice_len = int(config.slice_length)+1
+        for df in long_list:
+            df = self.date2minutes(df)
+            # Flatten the DataFrame values and create a new list starting with '1,0,0'
+            flattened_data = df.values.flatten().tolist()
+            
+            dataset_df = pd.DataFrame()
+            # Convert the list to a comma-separated string
+            line = ','.join(map(str, flattened_data))
+            feature = [x for x in line.split(',')][8:]
+            label= [[0,0,1]]*480
+            dataset_df['feature'] = feature
+            dataset_df['label'] = label
+            list.append(dataset_df)
+        return list
+
+    def date2minutes(self, df):
+        tmp = pd.DataFrame(df)
+        tmp['Datetime'] = pd.to_datetime(tmp['Datetime'])
+
+        # Extract weekday (as an integer where Monday=0, Sunday=6)
+        tmp['Weekday'] = tmp['Datetime'].dt.weekday  # Or use df['Datetime'].dt.day_name() for names
+
+        # Convert time to total minutes (hours * 60 + minutes)
+        tmp['Time_in_minutes'] = tmp['Datetime'].dt.hour * 60 + tmp['Datetime'].dt.minute
+
+        # Drop the original 'Datetime' column
+        tmp.drop(columns=['Datetime'], inplace=True)
+        tmp.drop(columns=['Close'], inplace=True)
+        return tmp
 
     def writeList2File(self, f, list, type, training):
         if not training:
@@ -572,7 +644,7 @@ def plotZigzag():
 @execution_time
 def main():
     DataProcessor()
-    DataProcessor(training=False)
+    # DataProcessor(training=False)
     DataSource.conn.close()
     log.info("main() ================================ Done")
 
