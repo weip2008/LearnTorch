@@ -89,14 +89,15 @@ class StockDataset(Dataset):
 class DataProcessor:
     slice_length = 76
     def __init__(self, training=True):
-        self.target_map = {'short':[[0,0,1]], 'hold':[[0,1,0]], 'long':[[0,0,1]]}
+        self.target_map = {'short':[[1,0,0]], 'hold':[[0,1,0]], 'long':[[0,0,1]]}
 
         self.df = self.getDataFrame(training)
         self.ds.getZigzag()
         self.ds.getHoldZigzag()
         long_list, short_list, hold_list = self.ds.slice()
-        self.normalize(long_list,short_list,hold_list)
+        # self.normalize(long_list,short_list,hold_list)
         self.write(long_list,short_list,hold_list,training)
+        # self.write2file(long_list,short_list,hold_list,training)
         log.info("DataSource ========================================= Done.")
 
     def normalize(self, long_list, short_list, hold_list):
@@ -124,6 +125,7 @@ class DataProcessor:
         # Create dataset
         dataset = StockDataset(dataframes_list=df_list, target_column='label')
         torch.save(dataset, filepath)
+        # torch.save(dataset, "dataset.pth")
 
     def write2file(self, long_list, short_list, hold_list, training=True):
         filepath = config.training_file_path
@@ -155,7 +157,7 @@ class DataProcessor:
                 # Convert the flattened data to features
                 feature = [x for x in flattened_data][8:]  # Skip first 8 elements if necessary
                 label_repeated = [label] * 480  # Repeat label for the entire dataset
-                
+
                 # Add the features and label to the DataFrame
                 dataset_df['feature'] = feature
                 dataset_df['label'] = label_repeated
@@ -164,6 +166,8 @@ class DataProcessor:
                 list_df.append(dataset_df)
             return list_df
 
+        if not training:
+            self.target_map = {'short':[0], 'hold':[1], 'long':[2]}
         # Process each list with corresponding label
         combined_list.extend(process_list(long_list, self.target_map['long']))  # For long_list
         combined_list.extend(process_list(short_list, self.target_map['short']))  # For short_list
@@ -188,10 +192,10 @@ class DataProcessor:
 
     def writeList2File(self, f, list, type, training):
         if not training:
-            self.prefix_map = {'short':[2], 'hold':[1], 'long':[0]}
+            self.target_map = {'short':[2], 'hold':[1], 'long':[0]}
         for df in list:
             # Flatten the DataFrame values and create a new list starting with '1,0,0'
-            flattened_data = self.prefix_map[type] + df.values.flatten().tolist()
+            flattened_data = self.target_map[type] + df.values.flatten().tolist()
             
             # Convert the list to a comma-separated string
             line = ','.join(map(str, flattened_data))
@@ -667,7 +671,7 @@ def plotZigzag():
 @execution_time
 def main():
     DataProcessor()
-    # DataProcessor(training=False)
+    DataProcessor(training=False)
     DataSource.conn.close()
     log.info("main() ================================ Done")
 
