@@ -146,8 +146,6 @@ class DataSource:
         """
         pivots = peak_valley_pivots(self.df[self.smooth_column].values, deviation, -deviation)
         zigzag = self.df[self.smooth_column][pivots != 0]
-        # Create zigzag DataFrame with 'Datetime' and 'Close'
-        # zigzag = df[pivots != 0].copy()
         
         # Convert to DataFrame and rename the column to 'Close'
         zigzag_df = zigzag.to_frame(name='Close')
