@@ -59,8 +59,25 @@ class DataProcessor:
         self.ds.getHoldZigzag()
         long_list, short_list, hold_list = self.ds.slice()
         self.prefix_map = {'short':[0,0,1], 'hold':[0,1,0], 'long':[0,0,1]}
+        self.normalize(long_list,short_list,hold_list)
         self.write(long_list,short_list,hold_list,training)
         log.info("DataSource ========================================= Done.")
+
+    def normalize(self, long_list, short_list, hold_list):
+        def normalize_column(df):
+            df.loc[:, "Close"] = (df["Close"] - df["Close"].min()) / (df["Close"].max() - df["Close"].min())
+            return df
+        
+        # Apply normalization for each row in the lists
+        for df in long_list:
+            normalize_column(df)
+                
+        for df in short_list:
+            normalize_column(df)
+            
+        for df in hold_list:
+            normalize_column(df)
+        return
 
     def write(self, long_list, short_list, hold_list, training=True):
         filepath = config.training_file_path
@@ -554,7 +571,7 @@ def plotZigzag():
 
 @execution_time
 def main():
-    DataProcessor(calculate_slice_length=True)
+    DataProcessor()
     DataProcessor(training=False)
     DataSource.conn.close()
     log.info("main() ================================ Done")
@@ -583,7 +600,7 @@ if __name__ == "__main__":
 
     funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength}
 
-    funcs[7]()
+    funcs[1]()
 
     # long,short,hold = funcs[5]()
     # print(f'long list length: {len(long)}; \nshort list length: {len(short)}\nhold list length: {len(hold)}')
