@@ -53,7 +53,7 @@ class Trade:
     
 class DataProcessor:
     slice_length = 76
-    def __init__(self, training=True, calculate_slice_length=False):
+    def __init__(self, training=True):
         self.df = self.getDataFrame(training)
         self.ds.getZigzag()
         self.ds.getHoldZigzag()
@@ -87,18 +87,17 @@ class DataProcessor:
             # Write the string to the file followed by a newline
             f.write(line + '\n')
         
-    def zhouhao(self, training, calculate_slice_length):
+    def zhouhao(self, training=True):
+
         self.gen_zigzag_patterns()
+        DataProcessor.slice_length = self.estimateSliceLength() # 得到切片长度
 
-        if (calculate_slice_length):
-            DataProcessor.slice_length = self.estimateSliceLength() # 得到切片长度
+        # tddf_long_list, tddf_short_list = self.create_data_list(DataProcessor.slice_length)
 
-        tddf_long_list, tddf_short_list = self.create_data_list(DataProcessor.slice_length)
-
-        if training:
-            self.generateTrain(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
-        else:
-            self.generateTest(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
+        # if training:
+        #     self.generateTrain(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
+        # else:
+        #     self.generateTest(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
 
 
     def getDataFrame(self, training):
@@ -108,10 +107,12 @@ class DataProcessor:
             self.query_start, self.query_end= DataSource.config.testing_start_date,DataSource.config.testing_end_date
 
         self.ds.queryDB(self.query_start, self.query_end)
-        self.ds.getDataFrameFromDB()
+        return self.ds.getDataFrameFromDB()
 
     def gen_zigzag_patterns(self):
-        zigzag = self.ds.getZigzag()
+        deviation = float(config.deviation)
+        self.df.set_index("Datetime", inplace=True)
+        zigzag = zz.calculate_zigzag(self.df, deviation)
         log.debug(f"Zigzag list length:{len(zigzag)}\n{zigzag}")
 
         # Filter the original DataFrame using the indices
@@ -570,15 +571,19 @@ def slice():
     
     return long_list, short_list, hold_list
 
+def estimateSliceLength():
+    dp = DataProcessor()
+    dp.zhouhao()
+
 if __name__ == "__main__":
     log = Logger('gru/log/gru.log', logger_name='data')
     log.info(f'sqlite version: {pd.__version__}')
 
     config = Config('gru/src/config.ini')
 
-    funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot}
+    funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength}
 
-    funcs[2]()
+    funcs[7]()
 
     # long,short,hold = funcs[5]()
     # print(f'long list length: {len(long)}; \nshort list length: {len(short)}\nhold list length: {len(hold)}')
