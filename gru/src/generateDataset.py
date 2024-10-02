@@ -1,8 +1,8 @@
 # This version read source data from SQLite database tables
 #
-# [1,0,0] stand for sell
+# [1,0,0] stand for short(sell)
 # [0,1,0] stand for hold
-# [0,0,1] stand for buy
+# [0,0,1] stand for long(buy)
 # [0,1,1,0,2,2] test data means 4 set of [sell, hold, hold, sell, buy, buy]
 
 import os
@@ -76,20 +76,24 @@ class StockDataset(Dataset):
         # Extract the target label
         target = df[self.target_column].iloc[0]  # assuming the label is consistent across the entire DataFrame
 
-        # Convert to tensor
         features = torch.tensor(features, dtype=torch.float32)  # features tensor (60, 8)
-        target = torch.tensor(target, dtype=torch.float32)  # target tensor (scalar or multi-label)
+        target = torch.tensor(target, dtype=torch.float32) # target tensor (scalar or multi-label)
 
-        # Apply transforms if any
         if self.transform:
             features = self.transform(features)
 
         return features, target
-
+    
+    def get_shapes(self):
+        features, target = self.__getitem__(0)
+        return features.shape, target.shape
+        
 class DataProcessor:
     slice_length = 76
     def __init__(self, training=True):
         self.target_map = {'short':[[1,0,0]], 'hold':[[0,1,0]], 'long':[[0,0,1]]}
+        if not training:
+            self.target_map = {'short':[0], 'hold':[1], 'long':[2]}
 
         self.df = self.getDataFrame(training)
         self.ds.getZigzag()
@@ -97,8 +101,8 @@ class DataProcessor:
         long_list, short_list, hold_list = self.ds.slice()
         # self.normalize(long_list,short_list,hold_list)
         self.write(long_list,short_list,hold_list,training)
-        # self.write2file(long_list,short_list,hold_list,training)
-        log.info("DataSource ========================================= Done.")
+        # self.write2file(long_list,short_list,hold_list, training)
+        log.info(f"DataSource for {'Training' if training else 'Testing'} ========================================= Done.")
 
     def normalize(self, long_list, short_list, hold_list):
         def normalize_column(df):
@@ -121,7 +125,7 @@ class DataProcessor:
         if not training:
             filepath = config.testing_file_path
 
-        df_list = self.buildDataFrameList(long_list, short_list, hold_list, training)
+        df_list = self.buildDataFrameList(long_list, short_list, hold_list)
         # Create dataset
         dataset = StockDataset(dataframes_list=df_list, target_column='label')
         torch.save(dataset, filepath)
@@ -134,12 +138,12 @@ class DataProcessor:
 
         # Open the file for writing
         with open(filepath, 'w') as f:
-            self.writeList2File(f, long_list, 'long', training)
-            self.writeList2File(f, short_list, 'short', training)
-            self.writeList2File(f, hold_list, 'hold', training)
+            self.writeList2File(f, long_list, 'long')
+            self.writeList2File(f, short_list, 'short')
+            self.writeList2File(f, hold_list, 'hold')
         log.info(f"Dataset has been saved to {filepath}.")
 
-    def buildDataFrameList(self, long_list, short_list, hold_list, training=True):
+    def buildDataFrameList(self, long_list, short_list, hold_list):
         combined_list = []
         slice_len = int(config.slice_length) + 1
 
@@ -155,7 +159,7 @@ class DataProcessor:
                 dataset_df = pd.DataFrame()
                 
                 # Convert the flattened data to features
-                feature = [x for x in flattened_data][8:]  # Skip first 8 elements if necessary
+                feature = [x for x in flattened_data]  
                 label_repeated = [label] * 480  # Repeat label for the entire dataset
 
                 # Add the features and label to the DataFrame
@@ -166,11 +170,9 @@ class DataProcessor:
                 list_df.append(dataset_df)
             return list_df
 
-        if not training:
-            self.target_map = {'short':[0], 'hold':[1], 'long':[2]}
         # Process each list with corresponding label
-        combined_list.extend(process_list(long_list, self.target_map['long']))  # For long_list
         combined_list.extend(process_list(short_list, self.target_map['short']))  # For short_list
+        combined_list.extend(process_list(long_list, self.target_map['long']))  # For long_list
         combined_list.extend(process_list(hold_list, self.target_map['hold']))  # For hold_list
 
         return combined_list
@@ -190,9 +192,7 @@ class DataProcessor:
         tmp.drop(columns=['Close'], inplace=True)
         return tmp
 
-    def writeList2File(self, f, list, type, training):
-        if not training:
-            self.target_map = {'short':[2], 'hold':[1], 'long':[0]}
+    def writeList2File(self, f, list, type):
         for df in list:
             # Flatten the DataFrame values and create a new list starting with '1,0,0'
             flattened_data = self.target_map[type] + df.values.flatten().tolist()

@@ -201,7 +201,7 @@ if __name__ == "__main__":
     # loss_fn = WeightedCrossEntropyLoss(weights)
     optimizer = torch.optim.SGD(model.parameters(), lr=1.5e-6) # lr: learning rate
 
-    epochs = 20
+    epochs = 100
     for t in range(epochs):
         print(f"Epoch {t+1}********************")
         train(train_dataloader, model, loss_fn, optimizer)

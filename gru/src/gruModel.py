@@ -5,6 +5,7 @@ import numpy as np
 import time
 from config import Config, execution_time
 from logger import Logger
+from generateDataset import StockDataset
 
 
 # Custom dataset class for loading signals and data
@@ -20,6 +21,23 @@ class TimeSeriesDataset(Dataset):
         x = self.data[idx]
         y = self.signals[idx]
         return torch.tensor(x, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
+
+class NeuralNetwork(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(8*60, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU(),
+            nn.Linear(128, 3)
+        )
+
+    def forward(self, x):
+        x = self.flatten(x)
+        logits = self.linear_relu_stack(x)
+        return logits
 
 class GRUModel(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, num_layers):
@@ -69,22 +87,30 @@ class ModelGenerator:
     log = Logger('gru/log/gru.log',logger_name='model')
     def __init__(self):
         self.loadData()
-        self.buildDataLoader()
+        # self.buildDataLoader()
         self.defineModel()
-        self.train()
+        self.train_test()
         self.save()
         ModelGenerator.log.info("================================ Done")
 
     def loadData(self):
         training_file_path = ModelGenerator.config.training_file_path
         testing_file_path = ModelGenerator.config.testing_file_path
+        batch_size = int(ModelGenerator.config.batch_size)
 
         ModelGenerator.log.info(f"1.1 Load training data from {training_file_path}")
-        self.training_data, self.training_signals = load_data(training_file_path)
-        ModelGenerator.log.info(f"Data shape: {self.training_data.shape}")
-        ModelGenerator.log.info(f"Targets shape: {self.training_signals.shape}")
-        ModelGenerator.log.info(f"1.2 Load testing data from {testing_file_path}")
-        self.testing_data, self.testing_signals = load_data(testing_file_path)
+        training_dataset = torch.load(training_file_path)
+        self.train_dataloader = DataLoader(training_dataset, batch_size=batch_size, shuffle=False)
+        testing_dataset =  torch.load(testing_file_path)
+        self.test_dataloader = DataLoader(testing_dataset, batch_size=batch_size, shuffle=False)
+        ModelGenerator.log.info(f'Training data size: {len(training_dataset)}, {training_dataset.get_shapes()}')
+        ModelGenerator.log.info(f'Testing data size: {len(testing_dataset)}, {testing_dataset.get_shapes()}')
+        
+        # self.training_data, self.training_signals = load_data(training_file_path)
+        # ModelGenerator.log.info(f"Data shape: {self.training_data.shape}")
+        # ModelGenerator.log.info(f"Targets shape: {self.training_signals.shape}")
+        # ModelGenerator.log.info(f"1.2 Load testing data from {testing_file_path}")
+        # self.testing_data, self.testing_signals = load_data(testing_file_path)
 
     def buildDataLoader(self):
         # Instantiate the dataset
@@ -94,87 +120,80 @@ class ModelGenerator:
         # Create DataLoader for batching
         batch_size = int(ModelGenerator.config.batch_size)
         # Training dataloader with shuffling
-        self.train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        self.train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
         # Validation dataloader with shuffling
-        self.val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
+        self.val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     def defineModel(self):
         # Instantiate the model, define the loss function and the optimizer
-        ModelGenerator.log.info("3. Instantiate the model, define the loss function and the optimize")
+        ModelGenerator.log.info("2. Instantiate the model")
 
         # Define hyperparameters
-        input_size = int(ModelGenerator.config.input_size)
-        hidden_size = int(ModelGenerator.config.hidden_size)
-        output_size = int(ModelGenerator.config.output_size)
-        num_layers = int(ModelGenerator.config.num_layers)
+        # input_size = int(ModelGenerator.config.input_size)
+        # hidden_size = int(ModelGenerator.config.hidden_size)
+        # output_size = int(ModelGenerator.config.output_size)
+        # num_layers = int(ModelGenerator.config.num_layers)
 
-        # Instantiate the model
-        ModelGenerator.log.info(f"Number of layers: {num_layers}")
-        self.model = GRUModel(input_size, hidden_size, output_size, num_layers)
+        # # Instantiate the model
+        # ModelGenerator.log.info(f"Number of layers: {num_layers}")
+        # self.model = GRUModel(input_size, hidden_size, output_size, num_layers)
+        self.model = NeuralNetwork().to('cpu')
 
     @execution_time
-    def train(self):
+    def train(self, criterion):
+        self.model.train()
+        size = len(self.train_dataloader.dataset)
+        for batch, (inputs, targets) in enumerate(self.train_dataloader):
+            outputs = self.model(inputs)
+            targets = targets.squeeze(1)
+            loss = criterion(outputs, targets)
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+                    
+            if batch % 32 == 0:
+                loss, current = loss.item(), (batch + 1) * len(inputs)
+                ModelGenerator.log.info(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+
+    def test(self, loss_fn):
+        device = "cpu"
+        size = len(self.test_dataloader.dataset)
+        num_batches = len(self.test_dataloader)
+        self.model.eval()
+        test_loss, correct = 0, 0
+        with torch.no_grad():
+            for X, y in self.test_dataloader:
+                X, y = X.to(device), y.to(device)
+                pred = self.model(X)
+                y = y.squeeze().to(torch.int64)
+                test_loss += loss_fn(pred, y).item()
+                correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+        test_loss /= num_batches
+        correct /= size
+        self.accuracy = str(round(100 * correct, 1))+'%'
+        ModelGenerator.log.info(f"Test Error: \n Accuracy: {self.accuracy}, Avg loss: {test_loss:>8f} \n")
+
+    def train_test(self):
         learning_rate = float(ModelGenerator.config.learning_rate)
-        # Loss function: Binary Cross Entropy Loss
-        #criterion = nn.BCEWithLogitsLoss()  # Use with sigmoid for binary classification
-        criterion = nn.MSELoss()
+        loss_fn = nn.CrossEntropyLoss()
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate) # Stochastic Gradient Descent
 
-        # Optimizer: Adam
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
+        epochs = 20
+        for t in range(epochs):
+            ModelGenerator.log.info(f"Epoch {t+1}\n-------------------------------")
+            self.train(loss_fn)
+            self.test(loss_fn)
 
-        # Add a learning rate scheduler
-        scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.1)  # Reduce LR by 10x every 10 epochs
-
-        # Training loop
-        ModelGenerator.log.info("4. Start training loop")
-
-        # Hyperparameters
-        num_epochs = int(ModelGenerator.config.num_epochs)
-
-        # List to store losses
-        self.train_losses = []
-        self.val_losses = []
-
-        for epoch in range(num_epochs):
-            epoch_start_time = time.time()
-            self.model.train()
-            epoch_loss = 0
-            for inputs, targets in self.train_dataloader:
-                outputs = self.model(inputs)
-                loss = criterion(outputs, targets)
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
-                epoch_loss += loss.item()
-            
-            avg_epoch_loss = epoch_loss / len(self.train_dataloader)
-            self.train_losses.append(avg_epoch_loss)
-            #print(f'Epoch [{epoch+1}/{num_epochs}], Training Loss: {avg_epoch_loss:.4f}')
-            epoch_end_time = time.time()
-            epoch_duration = epoch_end_time - epoch_start_time  # Duration in seconds
-            ModelGenerator.log.info(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_epoch_loss:.6f}, Duration: {epoch_duration:.2f} seconds')
-            
-            
-            # Validation loss
-            self.model.eval()
-            val_loss = 0
-            with torch.no_grad():
-                for val_inputs, val_targets in self.val_dataloader:
-                    val_outputs = self.model(val_inputs)
-                    val_loss += criterion(val_outputs, val_targets).item()
-            avg_val_loss = val_loss / len(self.val_dataloader)
-            self.val_losses.append(avg_val_loss)
-            ModelGenerator.log.info(f' Validation Loss: {avg_val_loss:.6f}')
-      
+        
     def save(self):
-        save_path = ModelGenerator.config.model_save_path
+        save_path = ModelGenerator.config.model_save_path + self.accuracy + ".pth"
         # Save the model, optimizer state, and losses
         ModelGenerator.log.info(f"5. Save the model, optimizer state, and losses to {save_path}")
         torch.save({
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
-            'train_losses': self.train_losses,
-            'test_losses': self.val_losses
+            # 'train_losses': self.train_losses,
+            # 'test_losses': self.val_losses
         }, save_path)
 
 

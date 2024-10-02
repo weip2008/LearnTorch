@@ -70,7 +70,7 @@ class DataSource:
    # Helper function to slice df for slice_len rows before the given index
     def get_slice(self, index, slice_len):
         # Use iloc to get slice_len rows from current_position backward
-        return self.df.loc[index - slice_len : index]
+        return self.df.loc[index - slice_len + 1 : index]
 
     # New helper function to find smaller peaks and valleys
     def find_smaller_peaks_valleys(self, index, zigzag_type):
