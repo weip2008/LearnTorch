@@ -133,6 +133,7 @@ class DataProcessor:
         # Create dataset
         dataset = StockDataset(data_list=dict_list)
         torch.save(dataset, filepath)
+        log.info(f"Dataset has been saved to {filepath}.")
 
     def write2file(self, long_list, short_list, hold_list, training=True):
         filepath = config.training_file_path
@@ -145,7 +146,6 @@ class DataProcessor:
             self.writeList2File(f, short_list, 'short')
             self.writeList2File(f, hold_list, 'hold')
         log.info(f"Dataset has been saved to {filepath}.")
-
 
     def date2minutes(self, df):
         tmp = pd.DataFrame(df)
