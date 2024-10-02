@@ -53,31 +53,31 @@ class Trade:
         return None
 
 class StockDataset(Dataset):
-    def __init__(self, dataframes_list, target_column, group_size=60, num_cols=8, transform=None):
-        self.dataframes_list = dataframes_list  # list of dataframes
-        self.target_column = target_column      # the target column name
-        self.group_size = group_size            # size of the group (e.g., 60)
+    def __init__(self, data_list, num_cols=8, transform=None):
+        self.data_list = data_list  # list of dictionaries with "feature" and "target" keys
+        self.num_cols = num_cols  # number of values per group (e.g., 8)
         self.transform = transform
-        self.num_cols = num_cols
 
     def __len__(self):
-        return len(self.dataframes_list)  # number of DataFrames (instances)
+        return len(self.data_list)  # number of dictionaries (instances)
 
     def __getitem__(self, idx):
-        # Get the DataFrame for the current instance
-        df = self.dataframes_list[idx]
+        # Get the dictionary for the current instance
+        data_dict = self.data_list[idx]
 
-        # Extract the features for the 60 groups of data
-        features = df.drop(self.target_column, axis=1).values.astype(float)  # shape: (480, num_features)
+        # Extract the features from the dictionary (list of groups, each with 8 values)
+        features = data_dict["feature"]  # assuming a 2D list (groups, 8 values each)
+        features = np.array(features).astype(float)  # convert to numpy array
         
-        # Reshape features to have 60 groups of 8 columns
-        features = features.reshape(self.group_size, self.num_cols)  # shape: (60, 8)
+        # Ensure each group has 8 values (num_cols)
+        assert features.shape[1] == self.num_cols, f"Each group should have {self.num_cols} values"
 
-        # Extract the target label
-        target = df[self.target_column].iloc[0]  # assuming the label is consistent across the entire DataFrame
+        # Extract the target from the dictionary
+        target = data_dict["target"]  # target can be scalar or array
 
-        features = torch.tensor(features, dtype=torch.float32)  # features tensor (60, 8)
-        target = torch.tensor(target, dtype=torch.float32) # target tensor (scalar or multi-label)
+        # Convert to torch tensors
+        features = torch.tensor(features, dtype=torch.float32)  # features tensor (n_groups, num_cols)
+        target = torch.tensor(target, dtype=torch.float32)  # target tensor (scalar or multi-label)
 
         if self.transform:
             features = self.transform(features)
@@ -87,11 +87,15 @@ class StockDataset(Dataset):
     def get_shapes(self):
         features, target = self.__getitem__(0)
         return features.shape, target.shape
+    
+    def get_shapes(self):
+        features, target = self.__getitem__(0)
+        return features.shape, target.shape
         
 class DataProcessor:
     slice_length = 76
     def __init__(self, training=True):
-        self.target_map = {'short':[[1,0,0]], 'hold':[[0,1,0]], 'long':[[0,0,1]]}
+        self.target_map = {'short':[[1.0,0.,0.]], 'hold':[[0.,1.,0.]], 'long':[[0.,0.,1.]]}
         if not training:
             self.target_map = {'short':[0], 'hold':[1], 'long':[2]}
 
@@ -125,11 +129,10 @@ class DataProcessor:
         if not training:
             filepath = config.testing_file_path
 
-        df_list = self.buildDataFrameList(long_list, short_list, hold_list)
+        dict_list = self.buildDictionaryList(long_list, short_list, hold_list)
         # Create dataset
-        dataset = StockDataset(dataframes_list=df_list, target_column='label')
+        dataset = StockDataset(data_list=dict_list)
         torch.save(dataset, filepath)
-        # torch.save(dataset, "dataset.pth")
 
     def write2file(self, long_list, short_list, hold_list, training=True):
         filepath = config.training_file_path
@@ -143,39 +146,6 @@ class DataProcessor:
             self.writeList2File(f, hold_list, 'hold')
         log.info(f"Dataset has been saved to {filepath}.")
 
-    def buildDataFrameList(self, long_list, short_list, hold_list):
-        combined_list = []
-        slice_len = int(config.slice_length) + 1
-
-        # Helper function to process each list with corresponding label
-        def process_list(data_list, label):
-            list_df = []
-            for df in data_list:
-                df = self.date2minutes(df)
-
-                # Flatten the DataFrame values and create a feature list
-                flattened_data = df.values.flatten().tolist()
-                
-                dataset_df = pd.DataFrame()
-                
-                # Convert the flattened data to features
-                feature = [x for x in flattened_data]  
-                label_repeated = [label] * 480  # Repeat label for the entire dataset
-
-                # Add the features and label to the DataFrame
-                dataset_df['feature'] = feature
-                dataset_df['label'] = label_repeated
-
-                # Append to the list
-                list_df.append(dataset_df)
-            return list_df
-
-        # Process each list with corresponding label
-        combined_list.extend(process_list(short_list, self.target_map['short']))  # For short_list
-        combined_list.extend(process_list(long_list, self.target_map['long']))  # For long_list
-        combined_list.extend(process_list(hold_list, self.target_map['hold']))  # For hold_list
-
-        return combined_list
 
     def date2minutes(self, df):
         tmp = pd.DataFrame(df)
@@ -215,6 +185,38 @@ class DataProcessor:
         # else:
         #     self.generateTest(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
 
+    def buildDictionaryList(self, long_list, short_list, hold_list):
+        combined_list = []
+        slice_len = int(config.slice_length) + 1
+
+        # Helper function to process each list with corresponding label
+        def process_list(data_list, label):
+            list_dict = []
+            for df in data_list:
+                df = self.date2minutes(df)
+
+                # Flatten the DataFrame values and create a feature list
+                flattened_data = df.values.flatten().tolist()
+
+                # Split flattened data into groups of 8 for the feature
+                feature = [flattened_data[i:i+8] for i in range(0, len(flattened_data), 8)]
+
+                # Create a dictionary with "feature" and "target"
+                data_dict = {
+                    "feature": feature,  # 2D list of (groups, 8 values each)
+                    "target": label  # target label
+                }
+
+                # Append the dictionary to the list
+                list_dict.append(data_dict)
+            return list_dict
+
+        # Process each list with corresponding label
+        combined_list.extend(process_list(short_list, self.target_map['short']))  # For short_list
+        combined_list.extend(process_list(long_list, self.target_map['long']))  # For long_list
+        combined_list.extend(process_list(hold_list, self.target_map['hold']))  # For hold_list
+
+        return combined_list
 
     def getDataFrame(self, training):
         self.ds = DataSource()

@@ -91,7 +91,7 @@ class ModelGenerator:
         self.defineModel()
         self.train_test()
         self.save()
-        ModelGenerator.log.info("================================ Done")
+        ModelGenerator.log.info("ModelGenerator ================================ Done")
 
     def loadData(self):
         training_file_path = ModelGenerator.config.training_file_path
@@ -105,7 +105,7 @@ class ModelGenerator:
         self.test_dataloader = DataLoader(testing_dataset, batch_size=batch_size, shuffle=False)
         ModelGenerator.log.info(f'Training data size: {len(training_dataset)}, {training_dataset.get_shapes()}')
         ModelGenerator.log.info(f'Testing data size: {len(testing_dataset)}, {testing_dataset.get_shapes()}')
-        
+
         # self.training_data, self.training_signals = load_data(training_file_path)
         # ModelGenerator.log.info(f"Data shape: {self.training_data.shape}")
         # ModelGenerator.log.info(f"Targets shape: {self.training_signals.shape}")
@@ -145,7 +145,7 @@ class ModelGenerator:
         size = len(self.train_dataloader.dataset)
         for batch, (inputs, targets) in enumerate(self.train_dataloader):
             outputs = self.model(inputs)
-            targets = targets.squeeze(1)
+            targets = targets.squeeze()
             loss = criterion(outputs, targets)
             self.optimizer.zero_grad()
             loss.backward()
@@ -183,7 +183,6 @@ class ModelGenerator:
             ModelGenerator.log.info(f"Epoch {t+1}\n-------------------------------")
             self.train(loss_fn)
             self.test(loss_fn)
-
         
     def save(self):
         save_path = ModelGenerator.config.model_save_path + self.accuracy + ".pth"
