@@ -52,6 +52,8 @@ class DataSource:
 
     def slice(self):
         slice_len = int(DataSource.config.slice_length)
+        DataSource.log.info(f"Slice length: {slice_len}")
+        
         start_index = self.df.index[0]
         # Initialize lists for long and short positions
         long_list, short_list, hold_list = [], [], []

@@ -59,6 +59,9 @@ Model -->Pred
 ![](images/DataPreprocessSequence.png)
 ![](images/hold_zigzag.png)
 
+> 🔔⚡️注意！改变切片长度
+> 1. 修改在config.ini中定义的slice_length数值
+> 2. 修改各个模型class
 
 ```py
 def gen_zigzag_patterns(query_start, query_end):
