@@ -145,7 +145,6 @@ class ModelGenerator:
         size = len(self.train_dataloader.dataset)
         for batch, (inputs, targets) in enumerate(self.train_dataloader):
             outputs = self.model(inputs)
-            targets = targets.squeeze()
             loss = criterion(outputs, targets)
             self.optimizer.zero_grad()
             loss.backward()

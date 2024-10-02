@@ -108,9 +108,14 @@ SQLite database file: [data/stock_bigdata_2019-2023.db]
 4. velocity
 5. accelerat
 
-* first column
-1=long
--1=short
+* target map
+
+```py in defined in DataProcessor class
+    self.target_map = {'short':[1.,0.,0.], 'hold':[0.,1.,0.], 'long':[0.,0.,1.]}
+    if not training:
+        self.target_map = {'short':[0], 'hold':[1], 'long':[2]}
+
+```
 
 total 60 points end by long/short point for each row which will be total of 5X60=300 numbers
 

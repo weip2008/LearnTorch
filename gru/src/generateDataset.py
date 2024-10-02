@@ -94,7 +94,7 @@ class StockDataset(Dataset):
 class DataProcessor:
     slice_length = 76
     def __init__(self, training=True):
-        self.target_map = {'short':[[1.0,0.,0.]], 'hold':[[0.,1.,0.]], 'long':[[0.,0.,1.]]}
+        self.target_map = {'short':[1.,0.,0.], 'hold':[0.,1.,0.], 'long':[0.,0.,1.]}
         if not training:
             self.target_map = {'short':[0], 'hold':[1], 'long':[2]}
 
@@ -700,7 +700,7 @@ if __name__ == "__main__":
 
     funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength}
 
-    funcs[7]()
+    funcs[1]()
 
     # long,short,hold = funcs[5]()
     # print(f'long list length: {len(long)}; \nshort list length: {len(short)}\nhold list length: {len(hold)}')
