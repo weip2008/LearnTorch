@@ -11,9 +11,8 @@ import pandas as pd
 import numpy as np
 import statistics
 from enum import Enum
-import pandas_ta as ta
 import matplotlib.pyplot as plt
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 import zigzagplus1 as zz
 from logger import Logger
@@ -398,7 +397,6 @@ class DataProcessor:
         with open(td_file, "w") as datafile:
             generate_testing_data(tddf_short_list, TradePosition.LONG, datafile)
             generate_testing_data(tddf_long_list, TradePosition.SHORT, datafile)
-
 
 def cut_slice(ohlc_df, end_index, slice_length):
     # Ensure the start_index and end_index are in the DataFrame index

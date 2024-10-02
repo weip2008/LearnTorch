@@ -142,17 +142,25 @@ pip install pandas_ta
 2. ~~calculate rsi and add it to df.~~
 3. ~~create long_list and short_list for peak and valley list.~~
 4. ~~create hold_list between peak and valley.~~
-5. generate training data based on long_list, hold_list and short_list
-6. generate testing data based on long_list, hold_list and short_list
+5. ~~create StockDataset class~~
+6. ~~generate training dataset based on long_list, hold_list and short_list~~
+7. ~~generate testing data based on long_list, hold_list and short_list~~
+8. load StockDataset from a file, plot any slick by given index
+9. put training dataset and testing dataset in one file
 
 ## Create GRU Model
 * [Generate GRU Action Forecast model](../src/gruModel.py)
 
+![](images/ModelGenerator.png)
+
 ### Input
+* [StockDataset for training](/data/SPX_1m_TrainingData.txt)
+* [StockDataset for training](/data/SPX_1m_TestingData.txt)
 * [Trainning Dataset](/data/SPX_1m_TrainingData_HL_80_500.txt)
 * [Testing Dataset](/data/SPX_1m_TestingData_HL_80_500.txt)
 
 ### Output
+* [all predict output get hold classify](/models/Linear_model_71.7%25.pth)
 * [/GRU_model_with_LH_fixlen_data_501.pth](/GRU_model_with_LH_fixlen_data_501.pth)
 
 ## Test the model
