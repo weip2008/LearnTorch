@@ -3,8 +3,8 @@
 ```mermaid
 graph TB
 
-Data[SQLiteDB<br>generateDataset.py<br><br>SPX_1m_TrainingData_HL_80_500.txt<br>SPX_1m_TestingData_HL_80_500.txt]
-Model[SPX_1m_TrainingData_HL_80_500.txt<br>SPX_1m_TestingData_HL_80_500.txt<br>gruModel.py<br><br>GRU_model_with_LH_fixlen_data_501.pth]
+Data[SQLiteDB<br>generateDataset.py<br><br>SPX_1m_TrainingDat.pth<br>SPX_1m_TestingData.pth]
+Model[SPX_1m_TrainingDat.txt<br>SPX_1m_TestingData.txt<br>gruModel.py<br><br>Linear_model_71.8%.pth]
 Test[GRU_model_with_LH_fixlen_data_501.pth<br>test.py]
 Pred[GRU_model_with_LH_fixlen_data_501.pth<br>predict.py<br>SPX_1m_HL_43_700_GRU_fixlen_500.txt]
 
@@ -44,6 +44,7 @@ Model -->Pred
 12. read any line of dataset, plot it on screen
 13. write unit test for all functions and classes
 14. write tool to check generated dataset
+
 
 
 ## Generate Dataset
@@ -101,16 +102,49 @@ class slice js
 SQLite database file: [data/stock_bigdata_2019-2023.db]
 
 ### Output files
-1. [traning dataset](../data/SPX_1m_TrainingData_HL_80_500.txt)
-2. [testing dataset](../data/SPX_1m_TestingData_HL_80_500.txt)
+1. [traning dataset](../../data/SPX_1m_TrainingData.txt)
+2. [testing dataset](../../data/SPX_1m_TestingData.txt)
 
-* 5 column data feature group
-1. day of weeek
-2. time of day
-3. close price
-4. velocity
-5. accelerat
+After load data from SQLite Database, drop Open, High, Low, Volumn
+```py in DataSource.macd()
+    self.df.drop(columns=['Open','High','Low','Volume'], inplace=True)
+```
+and add Close_SMA_9, STOCHRISk_70_70_35_35, STOCHRISd_70_70_35_35, MACD_12_26_9, MACDh_12_26_9, MACDs_12_26_9 
 
+![](images/df.png)
+
+drop Close, and split Datetime to be weekday, and time minutes
+
+```py at DataProcessor.date2minutes() function
+def date2minutes(self, df):
+    tmp = pd.DataFrame(df)
+    tmp['Datetime'] = pd.to_datetime(tmp['Datetime'])
+
+    # Extract weekday (as an integer where Monday=0, Sunday=6)
+    tmp['Weekday'] = tmp['Datetime'].dt.weekday  # Or use df['Datetime'].dt.day_name() for names
+
+    # Convert time to total minutes (hours * 60 + minutes)
+    tmp['Time_in_minutes'] = tmp['Datetime'].dt.hour * 60 + tmp['Datetime'].dt.minute
+
+    # Drop the original 'Datetime' column
+    tmp.drop(columns=['Datetime'], inplace=True)
+    tmp.drop(columns=['Close'], inplace=True)
+    return tmp
+
+```
+
+![](images/df_final.png)
+
+* 8 column data feature group
+  1. close 9 sma smooth
+  2. rsik
+  3. rsid
+  4. macd
+  5. macdh
+  6. macds
+  7. weekday
+  8. time in minutes   
+  
 * target map
 
 ```py in defined in DataProcessor class
@@ -153,8 +187,9 @@ pip install pandas_ta
 5. ~~create StockDataset class~~
 6. ~~generate training dataset based on long_list, hold_list and short_list~~
 7. ~~generate testing data based on long_list, hold_list and short_list~~
-8. load StockDataset from a file, plot any slick by given index
+8. load StockDataset from a file, plot any slice by given index
 9. put training dataset and testing dataset in one file
+10. normalize each column in df, make sure they have proper weight
 
 ## Create GRU Model
 * [Generate GRU Action Forecast model](../src/gruModel.py)
