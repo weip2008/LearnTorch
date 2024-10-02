@@ -17,6 +17,7 @@ Model -->Pred
 - [Todo](#todo)
 - [Generate Dataset](#generate-dataset)
   - [Input](#input)
+  - [normalization](#normalization)
   - [Output files](#output-files)
   - [ToDo](#todo-1)
 - [Create GRU Model](#create-gru-model)
@@ -101,10 +102,6 @@ class slice js
 ### Input
 SQLite database file: [data/stock_bigdata_2019-2023.db]
 
-### Output files
-1. [traning dataset](../../data/SPX_1m_TrainingData.txt)
-2. [testing dataset](../../data/SPX_1m_TestingData.txt)
-
 After load data from SQLite Database, drop Open, High, Low, Volumn
 ```py in DataSource.macd()
     self.df.drop(columns=['Open','High','Low','Volume'], inplace=True)
@@ -154,6 +151,28 @@ def date2minutes(self, df):
 
 ```
 
+### normalization
+
+```py DataProcess.normalize()
+  def normalize(self, long_list, short_list, hold_list):
+      from concurrent.futures import ThreadPoolExecutor
+
+      def normalize_column(df, exclude_cols):
+          # Separate columns to exclude from normalization
+          exclude_columns = df[exclude_cols]
+          
+          # Select numeric columns excluding those in `exclude_cols`
+          numeric_cols = df.drop(columns=exclude_cols).select_dtypes(include='number')
+
+```
+
+![](images/df_normalized.png)
+
+### Output files
+1. [traning dataset](../../data/SPX_1m_TrainingData.txt)
+2. [testing dataset](../../data/SPX_1m_TestingData.txt)
+
+
 total 60 points end by long/short point for each row which will be total of 5X60=300 numbers
 
 ![](images/trainning_testing_data.png)
@@ -177,7 +196,7 @@ pip install pandas_ta
 
 ![](images/macd.png)
 
-🔔⚡️Hold position: 大的zigzag峰谷作为买卖点，峰与谷之间的小峰小谷作为hold点。
+🔔⚡️Hold position: 大的zigzag峰谷作为买卖点，峰与谷之间的小峰小谷作为hold点。👎😢❌ 不工作， all predicts are hold type.
 
 ### ToDo
 1. ~~calculate macd and add it to df.~~
@@ -187,9 +206,9 @@ pip install pandas_ta
 5. ~~create StockDataset class~~
 6. ~~generate training dataset based on long_list, hold_list and short_list~~
 7. ~~generate testing data based on long_list, hold_list and short_list~~
-8. load StockDataset from a file, plot any slice by given index
+8. ~~load StockDataset from a file, plot any slice by given index~~
 9. put training dataset and testing dataset in one file
-10. normalize each column in df, make sure they have proper weight
+10. ✔️🛠 normalize each column in df, make sure they have proper weight
 
 ## Create GRU Model
 * [Generate GRU Action Forecast model](../src/gruModel.py)

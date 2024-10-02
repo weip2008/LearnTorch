@@ -102,26 +102,38 @@ class DataProcessor:
         self.ds.getZigzag()
         self.ds.getHoldZigzag()
         long_list, short_list, hold_list = self.ds.slice()
-        # self.normalize(long_list,short_list,hold_list)
+        self.normalize(long_list,short_list,hold_list)
         self.write(long_list,short_list,hold_list,training)
         # self.write2file(long_list,short_list,hold_list, training)
         log.info(f"DataSource for {'Training' if training else 'Testing'} ========================================= Done.")
 
     def normalize(self, long_list, short_list, hold_list):
-        def normalize_column(df):
-            df.loc[:, "Close"] = (df["Close"] - df["Close"].min()) / (df["Close"].max() - df["Close"].min())
-            return df
-        
-        # Apply normalization for each row in the lists
-        for df in long_list:
-            normalize_column(df)
-                
-        for df in short_list:
-            normalize_column(df)
+        from concurrent.futures import ThreadPoolExecutor
+
+        def normalize_column(df, exclude_cols):
+            # Separate columns to exclude from normalization
+            exclude_columns = df[exclude_cols]
             
-        for df in hold_list:
-            normalize_column(df)
-        return
+            # Select numeric columns excluding those in `exclude_cols`
+            numeric_cols = df.drop(columns=exclude_cols).select_dtypes(include='number')
+            
+            # Normalize only the remaining numeric columns
+            normalized_numeric_cols = (numeric_cols - numeric_cols.min()) / (numeric_cols.max() - numeric_cols.min())
+            
+            # Concatenate excluded columns with normalized numeric columns
+            return pd.concat([exclude_columns, normalized_numeric_cols], axis=1)
+
+        def normalize_data_list(data_list, exclude_cols):
+            for i in range(len(data_list)):
+                df = data_list[i].copy()
+                df = normalize_column(df, exclude_cols)  # Normalize while excluding specific columns
+                data_list[i] = df  # Update the original DataFrame in the list
+
+        def normalize_parallel(exclude_cols, *lists):
+            with ThreadPoolExecutor() as executor:
+                executor.map(lambda data_list: normalize_data_list(data_list, exclude_cols), lists)
+
+        normalize_parallel(["Datetime","MACDh_12_26_9"], long_list, short_list, hold_list)
 
     def write(self, long_list, short_list, hold_list, training=True):
         filepath = config.training_file_path
@@ -668,6 +680,21 @@ def plotZigzag():
 
     ds.plot_zigzag()
 
+def plotSlice(index, column):
+    filepath = config.training_file_path
+    training_dataset = torch.load(filepath)
+    print(f"Total of {len(training_dataset)} rows.")
+    features, targets = training_dataset[index]
+    data = features[:, column-1]
+
+    # Plotting the second column
+    plt.plot(data.numpy())
+    plt.title(f'{column} Column of row {index}')
+    plt.xlabel('Index')
+    plt.ylabel('Value')
+    plt.grid(True)
+    plt.show()
+
 @execution_time
 def main():
     DataProcessor()
@@ -698,9 +725,9 @@ if __name__ == "__main__":
 
     config = Config('gru/src/config.ini')
 
-    funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength}
+    funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength, 8:plotSlice}
 
-    funcs[1]()
+    funcs[8](912,2)
 
     # long,short,hold = funcs[5]()
     # print(f'long list length: {len(long)}; \nshort list length: {len(short)}\nhold list length: {len(hold)}')
