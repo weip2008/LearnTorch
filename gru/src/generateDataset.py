@@ -683,6 +683,7 @@ def slice():
     ds = DataSource()
     ds.queryDB(query_start, query_end, False).getDataFrameFromDB()
     ds.getZigzag()
+    ds.getHoldZigzag()
     
     # Initialize lists for long and short positions
     long_list, short_list, hold_list = ds.slice()
@@ -701,7 +702,7 @@ if __name__ == "__main__":
 
     funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength}
 
-    funcs[1]()
+    funcs[7]()
 
     # long,short,hold = funcs[5]()
     # print(f'long list length: {len(long)}; \nshort list length: {len(short)}\nhold list length: {len(hold)}')
