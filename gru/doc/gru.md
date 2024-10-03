@@ -133,11 +133,11 @@ def date2minutes(self, df):
 ![](images/df_final.png)
 
 * 8 column data feature group
-  1. close 9 sma smooth
-  2. rsik
-  3. rsid
-  4. macd
-  5. macdh
+  1. macdh
+  2. close 9 sma smooth
+  3. rsik
+  4. rsid
+  5. macd
   6. macds
   7. weekday
   8. time in minutes   

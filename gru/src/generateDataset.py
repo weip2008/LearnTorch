@@ -105,7 +105,7 @@ class DataProcessor:
         self.normalize(long_list,short_list,hold_list)
         self.write(long_list,short_list,hold_list,training)
         # self.write2file(long_list,short_list,hold_list, training)
-        log.info(f"DataSource for {'Training' if training else 'Testing'} ========================================= Done.")
+        log.info(f"DataProcessor for {'Training' if training else 'Testing'} ========================================= Done.\n")
 
     def normalize(self, long_list, short_list, hold_list):
         from concurrent.futures import ThreadPoolExecutor
@@ -140,7 +140,7 @@ class DataProcessor:
         if not training:
             filepath = config.testing_file_path
 
-        dict_list = self.buildDictionaryList(long_list, short_list, hold_list)
+        dict_list = self.buildDictionaryList(long_list, short_list, hold_list, training)
         # Create dataset
         dataset = StockDataset(data_list=dict_list)
         torch.save(dataset, filepath)
@@ -196,7 +196,9 @@ class DataProcessor:
         # else:
         #     self.generateTest(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
 
-    def buildDictionaryList(self, long_list, short_list, hold_list):
+    def buildDictionaryList(self, long_list, short_list, hold_list, training=True):
+        log.info(f"{'Training' if training else 'Testing'} data:")
+        log.info(f"long points: {len(long_list)}\nshort points: {len(short_list)}\nhold points: {len(hold_list)}")
         combined_list = []
         slice_len = int(config.slice_length) + 1
 
@@ -686,12 +688,20 @@ def plotSlice(index, column):
     print(f"Total of {len(training_dataset)} rows.")
     features, targets = training_dataset[index]
     data = features[:, column-1]
+    macdh = features[:,0]
+    macd = features[:,4]
+    macds = features[:,5]
 
     # Plotting the second column
-    plt.plot(data.numpy())
+    plt.plot(data.numpy(), label='Close SMA 9')
+    plt.plot(macdh.numpy()*0.1,label="Histogram")
+    plt.plot(macd.numpy(),label="MACD")
+    plt.plot(macds.numpy(),label="Singnal")
+    plt.axhline(y=0, color='r', linestyle='--', linewidth=2)
     plt.title(f'{column} Column of row {index}')
     plt.xlabel('Index')
     plt.ylabel('Value')
+    plt.legend()
     plt.grid(True)
     plt.show()
 
