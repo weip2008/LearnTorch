@@ -182,7 +182,7 @@ class ModelGenerator:
         loss_fn = nn.CrossEntropyLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate) # Stochastic Gradient Descent
 
-        epochs = 5
+        epochs = int(ModelGenerator.config.num_epochs)
         for t in range(epochs):
             ModelGenerator.log.info(f"Epoch {t+1}\n-------------------------------")
             self.train(loss_fn)
