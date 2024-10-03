@@ -12,7 +12,7 @@ from config import Config
 
 class DataSource:
     config = Config("gru/src/config.ini")
-    log = Logger("gru/log/gru.log")
+    log = Logger("gru/log/gru.log", logger_name='data')
     conn = None
 
     def __init__(self):

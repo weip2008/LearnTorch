@@ -85,20 +85,44 @@ def load_data(file_path):
 class ModelGenerator:
     config = Config('gru/src/config.ini')
     log = Logger('gru/log/gru.log',logger_name='model')
+
     def __init__(self):
         self.loadData()
-        # self.buildDataLoader()
-        self.defineModel()
+        self.defineModel("linear")
         self.train_test()
         self.save()
         ModelGenerator.log.info("ModelGenerator ================================ Done")
 
+    def defineModel(self, model_type="gru"):
+        ModelGenerator.log.info(f"2. Instantiate the {model_type} model")
+        
+        model_dict = {
+            "gru": self.buildGRU,
+            "linear": lambda: NeuralNetwork().to('cpu')
+        }
+
+        # Select and instantiate the model
+        self.model = model_dict.get(model_type, self.buildDefaultModel)()
+
+    def buildGRU(self):
+        input_size = int(ModelGenerator.config.input_size)
+        hidden_size = int(ModelGenerator.config.hidden_size)
+        output_size = int(ModelGenerator.config.output_size)
+        num_layers = int(ModelGenerator.config.num_layers)
+
+        ModelGenerator.log.info(f"Number of layers: {num_layers}")
+        return GRUModel(input_size, hidden_size, output_size, num_layers)
+
+    def buildDefaultModel(self):
+        ModelGenerator.log.warning("Unknown model type, falling back to default (NeuralNetwork).")
+        return NeuralNetwork().to('cpu')
+    
     def loadData(self):
         training_file_path = ModelGenerator.config.training_file_path
         testing_file_path = ModelGenerator.config.testing_file_path
         batch_size = int(ModelGenerator.config.batch_size)
+        ModelGenerator.log.info(f"1. Load dataset from {training_file_path}")
 
-        ModelGenerator.log.info(f"1.1 Load training data from {training_file_path}")
         training_dataset = torch.load(training_file_path)
         self.train_dataloader = DataLoader(training_dataset, batch_size=batch_size, shuffle=False)
         testing_dataset =  torch.load(testing_file_path)
@@ -106,11 +130,6 @@ class ModelGenerator:
         ModelGenerator.log.info(f'Training data size: {len(training_dataset)}, {training_dataset.get_shapes()}')
         ModelGenerator.log.info(f'Testing data size: {len(testing_dataset)}, {testing_dataset.get_shapes()}')
 
-        # self.training_data, self.training_signals = load_data(training_file_path)
-        # ModelGenerator.log.info(f"Data shape: {self.training_data.shape}")
-        # ModelGenerator.log.info(f"Targets shape: {self.training_signals.shape}")
-        # ModelGenerator.log.info(f"1.2 Load testing data from {testing_file_path}")
-        # self.testing_data, self.testing_signals = load_data(testing_file_path)
 
     def buildDataLoader(self):
         # Instantiate the dataset
@@ -124,20 +143,6 @@ class ModelGenerator:
         # Validation dataloader with shuffling
         self.val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-    def defineModel(self):
-        # Instantiate the model, define the loss function and the optimizer
-        ModelGenerator.log.info("2. Instantiate the model")
-
-        # Define hyperparameters
-        # input_size = int(ModelGenerator.config.input_size)
-        # hidden_size = int(ModelGenerator.config.hidden_size)
-        # output_size = int(ModelGenerator.config.output_size)
-        # num_layers = int(ModelGenerator.config.num_layers)
-
-        # # Instantiate the model
-        # ModelGenerator.log.info(f"Number of layers: {num_layers}")
-        # self.model = GRUModel(input_size, hidden_size, output_size, num_layers)
-        self.model = NeuralNetwork().to('cpu')
 
     @execution_time
     def train(self, criterion):
@@ -177,7 +182,7 @@ class ModelGenerator:
         loss_fn = nn.CrossEntropyLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate) # Stochastic Gradient Descent
 
-        epochs = 20
+        epochs = 5
         for t in range(epochs):
             ModelGenerator.log.info(f"Epoch {t+1}\n-------------------------------")
             self.train(loss_fn)

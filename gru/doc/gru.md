@@ -4,7 +4,7 @@
 graph TB
 
 Data[SQLiteDB<br>generateDataset.py<br><br>SPX_1m_TrainingDat.pth<br>SPX_1m_TestingData.pth]
-Model[SPX_1m_TrainingDat.txt<br>SPX_1m_TestingData.txt<br>gruModel.py<br><br>Linear_model_71.8%.pth]
+Model[SPX_1m_TrainingDat.pth<br>SPX_1m_TestingData.pth<br>gruModel.py<br><br>Linear_model_71.8%.pth]
 Test[GRU_model_with_LH_fixlen_data_501.pth<br>test.py]
 Pred[GRU_model_with_LH_fixlen_data_501.pth<br>predict.py<br>SPX_1m_HL_43_700_GRU_fixlen_500.txt]
 
