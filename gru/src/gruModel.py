@@ -175,7 +175,7 @@ class ModelGenerator:
         test_loss /= num_batches
         correct /= size
         self.accuracy = str(round(100 * correct, 1))+'%'
-        ModelGenerator.log.info(f"Test Error: \n Accuracy: {self.accuracy}, Avg loss: {test_loss:>8f} \n")
+        ModelGenerator.log.info(f"Test result: Accuracy: {self.accuracy}, Avg loss: {test_loss:>8f} \n")
 
     def train_test(self):
         learning_rate = float(ModelGenerator.config.learning_rate)

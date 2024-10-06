@@ -21,7 +21,6 @@ class DataSource:
 
         # Connect to the SQLite database
         db_file = os.path.join(data_dir, sqliteDB)
-        # Connect to the SQLite database
         DataSource.conn = sqlite3.connect(db_file)
 
     def queryDB(self, query_start, query_end, timeIndex = False):
