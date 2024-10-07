@@ -51,9 +51,10 @@ Model -->Pred
 ## Generate Dataset
 * [Define Logger class for whole project](../src/logger.py)
 * [Define global variables in cofig.ini](../src/config.ini)
+The `config.ini` file will not be saved to GitHub. Instead, a copy named `config copy.ini` will be uploaded for team members' reference.
 * [load global variables from cofig.ini](../src/config.py)
 
-![config.ini will not be checked into GitHub, config.ini.sample will be checked into GitHub](images/config.png)
+![config.ini will not be checked into GitHub to avoid overriden between team members.](images/config.png)
 
 * [Generate dataset Source Code](../src/generateDataset.py)
 
