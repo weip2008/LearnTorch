@@ -55,7 +55,8 @@ def read_CSV_file(csv_file_path):
 #csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-01_2024-09-06_1m.csv")
 #csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-08_2024-09-13_1m.csv")
 #csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-15_2024-09-22_1m.csv")
-csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-22_2024-09-27_1m.csv")
+#csv_file_path = os.path.join("stockdata\\MES=F_max_2024-09-22_2024-09-27_1m.csv")
+csv_file_path = os.path.join("stockdata\MES=F_max_2024-09-29_2024-10-04_1m.csv")
 
 # Define the table name as a string variable
 #table_name = "AAPL_1D"
@@ -94,6 +95,19 @@ CREATE TABLE IF NOT EXISTS {table_name} (
 '''
 cursor.execute(create_table_query)
 
+print("\n=============================2===Query/Count=======================\n")
+
+
+count_query = f'''
+SELECT COUNT(*) FROM {table_name}
+'''
+cursor.execute(count_query)
+count_result = cursor.fetchone()[0]
+#print("\nNumber of records in AAPL_1m table:", count_result)
+print(f"\nNumber of records in {table_name} table:", count_result)
+
+
+print("\n=============================3===Insert=======================\n")
 # Insert data into the table
 # for index, row in ohlcv.iterrows():
 #     cursor.execute('''
@@ -115,7 +129,7 @@ conn.commit()
 # Delete the ohlcv variable to save memory
 del ohlcv
 
-print("\n=============================2===Query/Count=======================\n")
+print("\n=============================4===Count=======================\n")
 
 
 count_query = f'''
