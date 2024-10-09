@@ -1,4 +1,4 @@
-### what is technical analysis for stock market?
+## What is technical analysis for stock market?
 
 Technical analysis is a method used to evaluate and forecast the price movements of financial assets, such as stocks, based on historical market data, primarily price and volume. Unlike fundamental analysis, which looks at a company’s financials and economic conditions, technical analysis relies on chart patterns, indicators, and statistical trends derived from market activity to make predictions.
 
@@ -44,7 +44,7 @@ Key aspects of technical analysis include:
 While technical analysis doesn't account for the intrinsic value of a stock, it offers insights into market psychology and can be used in conjunction with fundamental analysis for a more comprehensive approach.
 
 
-### is technical analysis  just like geometry auxiliary lines helping people solve the problem, or it really reveal the real market?
+## Is technical analysis  just like geometry auxiliary lines helping people solve the problem, or it really reveals the real market?
 
 That's a very insightful question! The analogy of **technical analysis being like geometry's auxiliary lines** is quite fitting in many ways. Let's explore this idea in depth:
 
@@ -80,7 +80,7 @@ Technical analysis, like geometry’s auxiliary lines, helps traders organize an
 
 So, technical analysis helps traders **navigate** the market, but it's not necessarily a direct reflection of "reality" in the deeper, fundamental sense.
 
-### technical analysis is a "classic" mathematics, statistics way to analysis market. With new technology like AI / deep learning, is it possible I can write a robot to "crawl" through millions historical raw data to learn directly from data?
+## Technical analysis is a "classical" mathematics, statistics way to analysis market. With new technology like AI / deep learning, is it possible I can write a robot to "crawl" through millions historical raw data to learn directly from data?
 
 Yes, absolutely! With advancements in **AI** and **deep learning**, it’s becoming increasingly common to build systems that can analyze vast amounts of historical market data and learn patterns directly from the data without relying solely on traditional technical analysis methods. In fact, AI has opened up new possibilities for more sophisticated analysis and prediction in the stock market.
 
@@ -171,7 +171,7 @@ While AI offers great potential, it comes with challenges:
 Yes, you can write an AI "robot" to crawl through millions of historical data points and learn patterns directly from the data. This approach goes beyond traditional technical analysis and allows for more sophisticated, adaptable, and automated trading strategies. AI and deep learning have the potential to capture intricate market relationships that may not be apparent through classical analysis, opening up new opportunities for traders and investors.
 
 
-### you mentioned "b) Deep Learning Models" RNN/LSTM, I heard GRU model has better performance than LSTM for  time-series forecasting, is this true?
+## You mentioned "b) Deep Learning Models" RNN/LSTM, I heard GRU model has better performance than LSTM for  time-series forecasting, is this true?
 
 Yes, in some cases, **GRU (Gated Recurrent Unit)** models can outperform **LSTM (Long Short-Term Memory)** models for time-series forecasting, but this depends on the specific dataset and task. Both GRU and LSTM are types of **Recurrent Neural Networks (RNNs)** designed to handle sequential data and overcome the **vanishing gradient problem** that plagued earlier RNN architectures. However, there are some key differences between GRU and LSTM that can lead to GRU performing better in certain situations.
 
@@ -222,7 +222,7 @@ The best approach is often to **experiment with both models** and see which one 
 GRU can indeed perform better than LSTM in many cases, particularly when the time-series forecasting task doesn’t require handling very long-term dependencies, or when computational efficiency is a priority. However, LSTM can outperform GRU when the time-series problem is more complex and involves significant long-term relationships. As a best practice, it's worth trying both models and tuning their hyperparameters to see which one works best for your specific application.
 
 
-### to be exact, I have millions of raw historical stock data, I saved them into database, and then load them into memory as Dataframe object. so now, 1) for Deep Learning Models like GRU, How should I prepare data, cut them into slices? how big should I set batches? 2) if I use Unsupervised Learning Models, how should I prepare data then?
+## To be exact, I have millions of raw historical stock data, I saved them into a database, and then load them into memory as Dataframe object. so now, 1) for Deep Learning Models like GRU, How should I prepare data, cut them into slices? how big should I set batches? 2) if I use Unsupervised Learning Models, how should I prepare data then?
 
 For both **Deep Learning Models (GRU)** and **Unsupervised Learning Models**, data preparation is a crucial step. Let’s break down the best practices for each:
 
