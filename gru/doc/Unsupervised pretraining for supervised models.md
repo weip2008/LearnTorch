@@ -684,6 +684,75 @@ If interpretability is critical, there are other options:
 
 In practice, autoencoder features are often treated as black-box representations, but their effectiveness comes from their ability to summarize complex patterns and relationships in the data.
 
+---
+
+## I have question: for my understanding, we use features help to analysis price. so, when you encoder features, you may reduce 8 features into 2 features, but it should not include price in coding. why in your code, price itself also been included in the features?
+
+That’s a great question! Let’s clarify the distinction between **features** and **targets** in the context of using **autoencoders** and why we included price in the encoding.
+
+### General Concept of Features and Targets
+- **Features**: These are the variables you use to make predictions or gain insights into the target variable. In the context of stock market analysis, features might include **Moving Averages**, **RSI**, **Volume**, and other technical indicators.
+- **Target**: This is the variable you're interested in predicting or analyzing, which is usually the **price** (or a transformation of the price, such as returns).
+
+### Autoencoder Role:
+Autoencoders are **unsupervised models** designed to learn efficient representations (or "compressed features") of the input data. The goal of the autoencoder is to compress the **entire input data** (all features) into a lower-dimensional latent space and then reconstruct it back to the original data.
+
+### Why Did We Include Price in the Features?
+In the example code, we included **price** (`Close`) as part of the features for encoding because the **goal of the autoencoder is to learn a compressed representation of all inputs**, not necessarily to make predictions (like in supervised learning where we predict price from other features). The autoencoder doesn’t make distinctions between what is a "feature" and what is a "target"—it treats all input variables as part of the same multi-dimensional input space.
+
+### Key Reasons Why the Price is Included in Encoding:
+1. **Unsupervised Learning**: 
+   - Autoencoders are not explicitly designed for **prediction tasks**. They are used to learn a more compact or meaningful representation of the **input data**. Including price in this process allows the model to learn relationships between the price and other features (e.g., moving averages and RSI) and find a more efficient latent representation.
+   
+2. **Reconstruction Objective**:
+   - The autoencoder tries to **reconstruct all of the input data**, which includes the `Close` price as well as the other technical indicators (like moving averages and RSI). The assumption is that compressing both the price and the technical indicators together will allow the model to extract meaningful patterns from the data as a whole.
+
+3. **Latent Representation of All Inputs**:
+   - When you train an autoencoder with price and technical indicators as inputs, the model learns a representation that captures how **all these variables interact**. This can help you understand relationships between price and features like moving averages, volatility, or momentum.
+
+### The Difference in Supervised Learning:
+In **supervised learning**, we usually separate features and the target:
+- Features: Technical indicators like moving averages, RSI, etc.
+- Target: The **price** (or returns).
+
+If the goal is to predict **future prices** (or any other specific target variable), we would typically train a supervised learning model, and the price would not be included in the features.
+
+### If You Don't Want Price to Be Included:
+If you want to focus only on the **technical indicators** and exclude the price from the encoding, you can modify the data preparation step. Here’s how:
+
+#### Adjust the Code to Exclude Price from Encoding:
+```python
+# Drop Close column if you don't want to include it in the encoded features
+ohlc_df_features = ohlc_df.drop(columns=['Close'])
+
+# Normalize only the features (excluding the price)
+ohlc_scaled_features = scaler.fit_transform(ohlc_df_features)
+
+# Convert it back to a DataFrame
+ohlc_scaled_features_df = pd.DataFrame(ohlc_scaled_features, columns=ohlc_df_features.columns, index=ohlc_df.index)
+
+# Convert scaled features to PyTorch tensor
+ohlc_tensor_features = torch.tensor(ohlc_scaled_features_df.values, dtype=torch.float32)
+
+# Train autoencoder using the technical indicators only (excluding price)
+```
+
+### Now:
+- **Price (`Close`) is excluded** from the inputs to the autoencoder.
+- The model will learn to compress only the technical indicators (like moving averages, RSI), without considering the price.
+
+### How It Affects Your Analysis:
+- By excluding the price, you are telling the autoencoder to learn relationships and patterns **only between the technical indicators**. The latent features generated will describe the structure of the technical indicators without incorporating the price.
+- This makes sense if your goal is to use these encoded features as inputs to a **supervised model** (like GRU, LSTM) that will predict the price separately, without having the price influencing the feature extraction process.
+
+### Conclusion:
+- When using autoencoders, you include all input data (including price) to learn efficient representations of the entire dataset.
+- If you specifically want to use autoencoders to generate features **without including the price** (to use for downstream price prediction), you can exclude the price from the input data.
+  
+The decision on whether to include or exclude price depends on your overall objective:
+- **Include price** if you want to understand how it interacts with other features.
+- **Exclude price** if you plan to use the encoded features for price prediction in a supervised model.
+
 
 
 
