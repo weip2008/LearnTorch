@@ -686,7 +686,7 @@ In practice, autoencoder features are often treated as black-box representations
 
 ---
 
-## I have question: for my understanding, we use features help to analysis price. so, when you encoder features, you may reduce 8 features into 2 features, but it should not include price in coding. why in your code, price itself also been included in the features?
+## I have a question: for my understanding, we use features help to analysis price. so, when you encoder features, you may reduce 8 features into 2 features, but it should not include price in coding. why in your code, price itself also been included in the features?
 
 That’s a great question! Let’s clarify the distinction between **features** and **targets** in the context of using **autoencoders** and why we included price in the encoding.
 
@@ -755,7 +755,7 @@ The decision on whether to include or exclude price depends on your overall obje
 
 ---
 
-Can I or should I give different weight for different features before encoding?
+## Can I or should I give different weight for different features before encoding?
 
 
 Yes, you **can** assign different weights to features before encoding, but whether you **should** depends on your specific goals and the characteristics of your data. Let's break this down.
