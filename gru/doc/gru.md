@@ -317,6 +317,8 @@ Target[1.] : Output[0.9837] -> Signal[1.0]
 ## Unsupervised-learning
 
 * [unsupervised-learning](https://easyai.tech/ai-definition/unsupervised-learning/)
+* [](https://www.infoq.cn/article/trudging-into-unsupervised-deep-learning)
+* [](https://www.analyticsvidhya.com/blog/2018/05/essentials-of-deep-learning-trudging-into-unsupervised-deep-learning/)
 
 ### 聚类(Clustering)
 
