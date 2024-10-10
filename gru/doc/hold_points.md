@@ -1,3 +1,5 @@
+![](images/holdpoints.png)
+
 ## when we do the stock price analysis, determining buy/sell points by zigzag is not hard, the problem is how to determine hold points, in other word, how to tell deep learning model, the hold points between buy and sell. Is there any good way to do this?
 
 In stock price analysis, determining **hold points** (the periods between a buy and a sell) is a challenge because you need to tell the model to avoid taking action during those times. Here's an approach to address this using a **multi-class classification** strategy.

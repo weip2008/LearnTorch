@@ -155,6 +155,11 @@ def date2minutes(self, df):
 
 ```
 
+![](images/holdpoints.png)
+
+* [Check to see which feature impacts the price the most.](../src/features.py)
+![](images/features.png)
+
 ### normalization
 
 ```py DataProcess.normalize()
