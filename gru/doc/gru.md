@@ -29,6 +29,9 @@ Model -->Pred
 - [Predict using the model](#predict-using-the-model)
   - [input](#input-3)
   - [output](#output-2)
+- [Unsupervised-learning](#unsupervised-learning)
+  - [聚类(Clustering)](#聚类clustering)
+  - [降维(Reduce features)](#降维reduce-features)
 
 ## Todo
 1. ~~change trainning data format~~
@@ -308,4 +311,33 @@ Target[1.] : Output[0.9837] -> Signal[1.0]
 2024-09-24 10:31:21,632 - gru - INFO - Test Output:  1.0297 => Categorized Output:  1.0, 	Target:  1
 2024-09-24 10:31:21,637 - gru - INFO - Test Output: -1.0142 => Categorized Output: -1.0, 	Target: -1
 2024-09-24 10:31:21,637 - gru - INFO - ================================= Done
+```
+
+
+## Unsupervised-learning
+
+* [unsupervised-learning](https://easyai.tech/ai-definition/unsupervised-learning/)
+
+### 聚类(Clustering)
+
+```dos
+pip install scikit-learn
+```
+
+* [Clustering](../src/culstering.py)
+ 
+ ![](images/culstering.png)
+
+### 降维(Reduce features)
+* [reduce handwrite 28*28 features to 64 features](../src/reduce_features.py)
+
+```
+(env) C:\Users\wangq\workspace\LearnTorch>c:/Users/wangq/workspace/LearnTorch/env/Scripts/python.exe c:/Users/wangq/workspace/LearnTorch/gru/src/reduce_features.py
+Epoch [1/5], Loss: 0.0213
+Epoch [2/5], Loss: 0.0111
+Epoch [3/5], Loss: 0.0099
+Epoch [4/5], Loss: 0.0096
+Epoch [5/5], Loss: 0.0095
+Reduced features shape: torch.Size([60000, 64])
+
 ```
