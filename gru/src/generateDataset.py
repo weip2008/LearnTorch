@@ -725,6 +725,10 @@ def estimateSliceLength():
 def features():
     dp = DataProcessor()
     df = dp.getDataFrame()
+    window = 20
+
+    # Step 2: Calculate the EMA of the "Close" column
+    df['EMA'] = df['Close_SMA_9'].ewm(span=window, adjust=False).std()
 
     # Encode categorical features if necessary
     data = pd.get_dummies(df, drop_first=True)  # This will convert categorical variables to dummy variables
@@ -732,7 +736,7 @@ def features():
     # Ensure to use the correct target column name
     y = data['Close_SMA_9']  # Use the actual column name for the stock price
     X = data.drop(columns=['Close', 'Close_SMA_9', 'High', 'Low', 'Open'])  # Drop the target column from features
-    # X = normalize_column(X, ['MACDs_12_26_9'])
+    X = normalize_column(X, ['MACDs_12_26_9','EMA'])
 
     # Split into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -766,6 +770,18 @@ def features():
     # Visualize the SHAP values
     shap.summary_plot(shap_values, X_test)
 
+    # Assuming you have trained a tree-based model (e.g., XGBoost) and have data (X_test)
+    explainer = shap.TreeExplainer(model)
+
+    # Compute SHAP interaction values
+    shap_interaction_values = explainer.shap_interaction_values(X_test)
+
+    # Plot an interaction summary plot (useful for global interaction insights)
+    shap.summary_plot(shap_interaction_values, X_test)
+
+    # Plot a dependence plot with interaction
+    # For example: See how feature 0 interacts with feature 1
+    # shap.dependence_plot(0, shap_interaction_values, X_test, interaction_index=1) # failed
 
 def saveSHAP(file, shap_values):
     import pickle
