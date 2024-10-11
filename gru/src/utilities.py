@@ -167,15 +167,27 @@ class DataSource:
         df_copy = self.df.copy()
         df_copy.ta.strategy(strategy)
         self.df = df_copy  # Update the original DataFrame if needed
-        self.df.drop(columns=['Open','High','Low','Volume'], inplace=True)
         self.df = self.df.dropna(subset=["STOCHRSIk_70_70_35_35"])
         self.df = self.df.dropna(subset=["STOCHRSId_70_70_35_35"])
         self.df = self.df.dropna(subset=["MACD_12_26_9"])
         self.df = self.df.dropna(subset=["MACDh_12_26_9"])
         self.df = self.df.dropna(subset=["MACDs_12_26_9"])
+        self.df = self.date2minutes()
     
     def getDataFrameFromDB(self):
             return self.df
+
+    def date2minutes(self):
+        tmp = pd.DataFrame(self.df)
+        tmp['Datetime'] = pd.to_datetime(tmp['Datetime'])
+
+        # Extract weekday (as an integer where Monday=0, Sunday=6)
+        tmp['Weekday'] = tmp['Datetime'].dt.weekday  # Or use df['Datetime'].dt.day_name() for names
+
+        # Convert time to total minutes (hours * 60 + minutes)
+        tmp['Time_in_minutes'] = tmp['Datetime'].dt.hour * 60 + tmp['Datetime'].dt.minute
+
+        return tmp
 
     def plot_zigzag(self):
         """

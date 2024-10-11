@@ -13,6 +13,9 @@ import statistics
 from enum import Enum
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
+from sklearn.model_selection import train_test_split
+import xgboost as xgb
+import shap
 
 import zigzagplus1 as zz
 from logger import Logger
@@ -94,31 +97,20 @@ class DataProcessor:
         self.target_map = {'short':[1.,0.,0.], 'hold':[0.,1.,0.], 'long':[0.,0.,1.]}
         if not training:
             self.target_map = {'short':[0], 'hold':[1], 'long':[2]}
+        self.training = training
 
-        self.df = self.getDataFrame(training)
+    def main(self):
+        self.df = self.getDataFrame(self.training)
         self.ds.getZigzag()
         self.ds.getHoldZigzag()
         long_list, short_list, hold_list = self.ds.slice()
         self.normalize(long_list,short_list,hold_list)
-        self.write(long_list,short_list,hold_list,training)
+        self.write(long_list,short_list,hold_list,self.training)
         # self.write2file(long_list,short_list,hold_list, training)
-        log.info(f"DataProcessor for {'Training' if training else 'Testing'} ========================================= Done.\n")
+        log.info(f"DataProcessor for {'Training' if self.training else 'Testing'} ========================================= Done.\n")
 
     def normalize(self, long_list, short_list, hold_list):
         from concurrent.futures import ThreadPoolExecutor
-
-        def normalize_column(df, exclude_cols):
-            # Separate columns to exclude from normalization
-            exclude_columns = df[exclude_cols]
-            
-            # Select numeric columns excluding those in `exclude_cols`
-            numeric_cols = df.drop(columns=exclude_cols).select_dtypes(include='number')
-            
-            # Normalize only the remaining numeric columns
-            normalized_numeric_cols = (numeric_cols - numeric_cols.min()) / (numeric_cols.max() - numeric_cols.min())
-            
-            # Concatenate excluded columns with normalized numeric columns
-            return pd.concat([exclude_columns, normalized_numeric_cols], axis=1)
 
         def normalize_data_list(data_list, exclude_cols):
             for i in range(len(data_list)):
@@ -131,6 +123,8 @@ class DataProcessor:
                 executor.map(lambda data_list: normalize_data_list(data_list, exclude_cols), lists)
 
         normalize_parallel(["Datetime","MACDh_12_26_9"], long_list, short_list, hold_list)
+
+
 
     def write(self, long_list, short_list, hold_list, training=True):
         filepath = config.training_file_path
@@ -154,21 +148,6 @@ class DataProcessor:
             self.writeList2File(f, short_list, 'short')
             self.writeList2File(f, hold_list, 'hold')
         log.info(f"Dataset has been saved to {filepath}.")
-
-    def date2minutes(self, df):
-        tmp = pd.DataFrame(df)
-        tmp['Datetime'] = pd.to_datetime(tmp['Datetime'])
-
-        # Extract weekday (as an integer where Monday=0, Sunday=6)
-        tmp['Weekday'] = tmp['Datetime'].dt.weekday  # Or use df['Datetime'].dt.day_name() for names
-
-        # Convert time to total minutes (hours * 60 + minutes)
-        tmp['Time_in_minutes'] = tmp['Datetime'].dt.hour * 60 + tmp['Datetime'].dt.minute
-
-        # Drop the original 'Datetime' column
-        tmp.drop(columns=['Datetime'], inplace=True)
-        tmp.drop(columns=['Close'], inplace=True)
-        return tmp
 
     def writeList2File(self, f, list, type):
         for df in list:
@@ -199,12 +178,16 @@ class DataProcessor:
         combined_list = []
         slice_len = int(config.slice_length) + 1
 
+        # Process each list with corresponding label
+        combined_list.extend(process_list(short_list, self.target_map['short']))  # For short_list
+        combined_list.extend(process_list(long_list, self.target_map['long']))  # For long_list
+        combined_list.extend(process_list(hold_list, self.target_map['hold']))  # For hold_list
+
+
         # Helper function to process each list with corresponding label
         def process_list(data_list, label):
             list_dict = []
             for df in data_list:
-                df = self.date2minutes(df)
-
                 # Flatten the DataFrame values and create a feature list
                 flattened_data = df.values.flatten().tolist()
 
@@ -221,21 +204,21 @@ class DataProcessor:
                 list_dict.append(data_dict)
             return list_dict
 
-        # Process each list with corresponding label
-        combined_list.extend(process_list(short_list, self.target_map['short']))  # For short_list
-        combined_list.extend(process_list(long_list, self.target_map['long']))  # For long_list
-        combined_list.extend(process_list(hold_list, self.target_map['hold']))  # For hold_list
-
         return combined_list
 
-    def getDataFrame(self, training):
+    def getDataFrame(self):
         self.ds = DataSource()
         self.query_start, self.query_end= DataSource.config.training_start_date, DataSource.config.training_end_date
-        if not training:
+        if not self.training:
             self.query_start, self.query_end= DataSource.config.testing_start_date,DataSource.config.testing_end_date
 
         self.ds.queryDB(self.query_start, self.query_end)
+        self.dropColumns(["Volume","Datetime"])
         return self.ds.getDataFrameFromDB()
+
+    def dropColumns(self, cols):
+        self.ds.df.drop(columns=cols, inplace=True) 
+        return     
 
     def gen_zigzag_patterns(self):
         deviation = float(config.deviation)
@@ -408,6 +391,19 @@ class DataProcessor:
         with open(td_file, "w") as datafile:
             generate_testing_data(tddf_short_list, TradePosition.LONG, datafile)
             generate_testing_data(tddf_long_list, TradePosition.SHORT, datafile)
+
+def normalize_column(df, exclude_cols):
+    # Separate columns to exclude from normalization
+    exclude_columns = df[exclude_cols]
+    
+    # Select numeric columns excluding those in `exclude_cols`
+    numeric_cols = df.drop(columns=exclude_cols).select_dtypes(include='number')
+    
+    # Normalize only the remaining numeric columns
+    normalized_numeric_cols = (numeric_cols - numeric_cols.min()) / (numeric_cols.max() - numeric_cols.min())
+    
+    # Concatenate excluded columns with normalized numeric columns
+    return pd.concat([exclude_columns, normalized_numeric_cols], axis=1)
 
 def cut_slice(ohlc_df, end_index, slice_length):
     # Ensure the start_index and end_index are in the DataFrame index
@@ -704,8 +700,8 @@ def plotSlice(index, column):
 
 @execution_time
 def main():
-    DataProcessor()
-    DataProcessor(training=False)
+    DataProcessor().main()
+    DataProcessor(training=False).main()
     DataSource.conn.close()
     log.info("main() ================================ Done")
 
@@ -726,15 +722,66 @@ def estimateSliceLength():
     dp = DataProcessor()
     dp.zhouhao()
 
+def features():
+    dp = DataProcessor()
+    df = dp.getDataFrame()
+
+    # Encode categorical features if necessary
+    data = pd.get_dummies(df, drop_first=True)  # This will convert categorical variables to dummy variables
+
+    # Ensure to use the correct target column name
+    y = data['Close_SMA_9']  # Use the actual column name for the stock price
+    X = data.drop(columns=['Close', 'Close_SMA_9', 'High', 'Low', 'Open'])  # Drop the target column from features
+    # X = normalize_column(X, ['MACDs_12_26_9'])
+
+    # Split into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Train the XGBoost model
+    model = xgb.XGBRegressor(objective='reg:squarederror')
+    model.fit(X_train, y_train)
+
+    # Create a SHAP explainer
+    explainer = shap.Explainer(model)
+
+    # Compute SHAP values for the test set
+    shap_values = explainer(X_test)
+    # Assuming 'shap_values' is the SHAP explanation object
+    # Extract SHAP values and feature names
+    shap_values_matrix = shap_values.values  # Get the SHAP values matrix
+    feature_names = shap_values.feature_names  # Get feature names
+
+    # Compute the mean absolute SHAP values for each feature
+    mean_abs_shap_values = np.abs(shap_values_matrix).mean(axis=0)
+
+    # Get the indices of the top 3 features
+    top_3_indices = np.argsort(mean_abs_shap_values)[-3:]
+
+    # Extract the top 3 feature names
+    top_3_features = np.array(feature_names)[top_3_indices]
+
+    # Print the top 3 most important features
+    print("Top 3 Features:", top_3_features)
+    
+    # Visualize the SHAP values
+    shap.summary_plot(shap_values, X_test)
+
+
+def saveSHAP(file, shap_values):
+    import pickle
+    # Save shap_values to a file
+    with open(file, 'wb') as f:
+        pickle.dump(shap_values, f)
+    
 if __name__ == "__main__":
     log = Logger('gru/log/gru.log', logger_name='data')
     log.info(f'sqlite version: {pd.__version__}')
 
     config = Config('gru/src/config.ini')
 
-    funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength, 8:plotSlice}
+    funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength, 8:plotSlice, 9:features}
 
-    funcs[1]()
+    funcs[9]()
 
     # funcs[8](500, 1)
 
