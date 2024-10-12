@@ -23,11 +23,11 @@ class TimeSeriesDataset(Dataset):
         return torch.tensor(x, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
 
 class NeuralNetwork(nn.Module):
-    def __init__(self):
+    def __init__(self, num_cols, slice_len):
         super().__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(8*60, 128),
+            nn.Linear(num_cols*slice_len, 128),
             nn.ReLU(),
             nn.Linear(128, 128),
             nn.ReLU(),
@@ -98,7 +98,7 @@ class ModelGenerator:
         
         model_dict = {
             "gru": self.buildGRU,
-            "linear": lambda: NeuralNetwork().to('cpu')
+            "linear": lambda: NeuralNetwork(8,60).to('cpu')
         }
 
         # Select and instantiate the model
@@ -115,7 +115,7 @@ class ModelGenerator:
 
     def buildDefaultModel(self):
         ModelGenerator.log.warning("Unknown model type, falling back to default (NeuralNetwork).")
-        return NeuralNetwork().to('cpu')
+        return NeuralNetwork(8, 60).to('cpu')
     
     def loadData(self):
         training_file_path = ModelGenerator.config.training_file_path

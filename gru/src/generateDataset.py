@@ -133,7 +133,7 @@ class DataProcessor:
 
         dict_list = self.buildDictionaryList(long_list, short_list, hold_list, training)
         # Create dataset
-        dataset = StockDataset(data_list=dict_list)
+        dataset = StockDataset(dict_list,8)
         torch.save(dataset, filepath)
         log.info(f"Dataset has been saved to {filepath}.")
 
@@ -797,9 +797,9 @@ if __name__ == "__main__":
 
     funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength, 8:plotSlice, 9:features}
 
-    # funcs[1]()
+    funcs[1]()
 
-    funcs[8](420, 8) # 1~401=buy; 402-802=sell; 803~1308=hold
+    # funcs[8](860, 8) # 1~401=buy; 402-802=sell; 803~1308=hold
 
     # long,short,hold = funcs[5]()
     # print(f'long list length: {len(long)}; \nshort list length: {len(short)}\nhold list length: {len(hold)}')

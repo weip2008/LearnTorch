@@ -67,12 +67,12 @@ class DataSource:
             if index in self.df.index:
                 if index < slice_len+start_index: continue
                 slice_df = self.get_slice(index, slice_len)
-                slice_df = self.normalize(slice_df)
+                # slice_df = self.normalize(slice_df)
                 self.add_to_list(slice_df, row, long_list, short_list, index)
 
         for index, row in self.hold_zigzag.iterrows():        
             slice_df = self.get_slice(index, slice_len)
-            slice_df = self.normalize(slice_df)
+            # slice_df = self.normalize(slice_df)
             hold_list.append(slice_df)
             
         return long_list, short_list, hold_list
