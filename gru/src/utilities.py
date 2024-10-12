@@ -47,12 +47,19 @@ class DataSource:
         self.zigzag = None
         self.hold_zigzag = None
         self.macd()
+        window = int(DataSource.config.ema_window)
+        self.df['EMA'] = self.df['Close_SMA_9'].ewm(span=window, adjust=False).std()
+        
+        self.df = self.df.dropna()
+        # self.df['EMA_'] = (self.df['EMA'] - self.df['EMA'].min()) / (self.df['EMA'].max() - self.df['EMA'].min())
+        # self.df = self.df.drop(columns=['EMA']).rename(columns={'EMA_': 'EMA'})
         return self
 
     def slice(self):
         slice_len = int(DataSource.config.slice_length)
         DataSource.log.info(f"Slice length: {slice_len}")
-        
+        self.df.drop(columns=["Close","Close_SMA_9"], inplace=True) 
+
         start_index = self.df.index[0]
         # Initialize lists for long and short positions
         long_list, short_list, hold_list = [], [], []
@@ -60,14 +67,23 @@ class DataSource:
             if index in self.df.index:
                 if index < slice_len+start_index: continue
                 slice_df = self.get_slice(index, slice_len)
+                slice_df = self.normalize(slice_df)
                 self.add_to_list(slice_df, row, long_list, short_list, index)
 
         for index, row in self.hold_zigzag.iterrows():        
             slice_df = self.get_slice(index, slice_len)
+            slice_df = self.normalize(slice_df)
             hold_list.append(slice_df)
             
         return long_list, short_list, hold_list
-    
+
+    def normalize(self, slice_df):
+        slice_df = slice_df.copy()
+        slice_df['EMA_'] = (slice_df['EMA'] - slice_df['EMA'].min()) / (slice_df['EMA'].max() - slice_df['EMA'].min())
+        slice_df = slice_df.drop(columns=['EMA']).rename(columns={'EMA_': 'EMA'})
+
+        return slice_df
+        
    # Helper function to slice df for slice_len rows before the given index
     def get_slice(self, index, slice_len):
         # Use iloc to get slice_len rows from current_position backward
@@ -131,7 +147,7 @@ class DataSource:
             if current_price > previous_price and current_price > next_price:
                 self.zigzag.loc[self.zigzag.index[i], 'zigzag_type'] = 'peak'
             
-            # Check if it's a valley (lower than both neighbors)
+            # Check if it's a trough (lower than both neighbors)
             elif current_price < previous_price and current_price < next_price:
                 self.zigzag.loc[self.zigzag.index[i], 'zigzag_type'] = 'valley'
 

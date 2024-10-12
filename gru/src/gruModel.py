@@ -27,7 +27,7 @@ class NeuralNetwork(nn.Module):
         super().__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(8*120, 128),
+            nn.Linear(8*60, 128),
             nn.ReLU(),
             nn.Linear(128, 128),
             nn.ReLU(),
@@ -167,7 +167,6 @@ class ModelGenerator:
         test_loss, correct = 0, 0
         with torch.no_grad():
             for X, y in self.test_dataloader:
-                X, y = X.to(device), y.to(device)
                 pred = self.model(X)
                 y = y.squeeze().to(torch.int64)
                 test_loss += loss_fn(pred, y).item()

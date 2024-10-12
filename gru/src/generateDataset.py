@@ -100,13 +100,13 @@ class DataProcessor:
         self.training = training
 
     def main(self):
-        self.df = self.getDataFrame(self.training)
+        self.df = self.getDataFrame()
         self.ds.getZigzag()
         self.ds.getHoldZigzag()
         long_list, short_list, hold_list = self.ds.slice()
-        self.normalize(long_list,short_list,hold_list)
+        # self.normalize(long_list,short_list,hold_list)
         self.write(long_list,short_list,hold_list,self.training)
-        # self.write2file(long_list,short_list,hold_list, training)
+        # self.write2file(long_list,short_list,hold_list, self.training)
         log.info(f"DataProcessor for {'Training' if self.training else 'Testing'} ========================================= Done.\n")
 
     def normalize(self, long_list, short_list, hold_list):
@@ -122,7 +122,7 @@ class DataProcessor:
             with ThreadPoolExecutor() as executor:
                 executor.map(lambda data_list: normalize_data_list(data_list, exclude_cols), lists)
 
-        normalize_parallel(["Datetime","MACDh_12_26_9"], long_list, short_list, hold_list)
+        normalize_parallel(["MACDh_12_26_9"], long_list, short_list, hold_list)
 
 
 
@@ -178,12 +178,6 @@ class DataProcessor:
         combined_list = []
         slice_len = int(config.slice_length) + 1
 
-        # Process each list with corresponding label
-        combined_list.extend(process_list(short_list, self.target_map['short']))  # For short_list
-        combined_list.extend(process_list(long_list, self.target_map['long']))  # For long_list
-        combined_list.extend(process_list(hold_list, self.target_map['hold']))  # For hold_list
-
-
         # Helper function to process each list with corresponding label
         def process_list(data_list, label):
             list_dict = []
@@ -204,6 +198,11 @@ class DataProcessor:
                 list_dict.append(data_dict)
             return list_dict
 
+        # Process each list with corresponding label
+        combined_list.extend(process_list(short_list, self.target_map['short']))  # For short_list
+        combined_list.extend(process_list(long_list, self.target_map['long']))  # For long_list
+        combined_list.extend(process_list(hold_list, self.target_map['hold']))  # For hold_list
+
         return combined_list
 
     def getDataFrame(self):
@@ -213,7 +212,7 @@ class DataProcessor:
             self.query_start, self.query_end= DataSource.config.testing_start_date,DataSource.config.testing_end_date
 
         self.ds.queryDB(self.query_start, self.query_end)
-        self.dropColumns(["Volume","Datetime"])
+        self.dropColumns(["Volume","Datetime","Open","High","Low"])
         return self.ds.getDataFrameFromDB()
 
     def dropColumns(self, cols):
@@ -681,13 +680,13 @@ def plotSlice(index, column):
     print(f"Total of {len(training_dataset)} rows.")
     features, targets = training_dataset[index]
     data = features[:, column-1]
-    macdh = features[:,0]
-    macd = features[:,4]
-    macds = features[:,5]
+    macdh = features[:,3]
+    macd = features[:,2]
+    macds = features[:,4]
 
     # Plotting the second column
-    plt.plot(data.numpy(), label='Close SMA 9')
-    plt.plot(macdh.numpy()*0.1,label="Histogram")
+    plt.plot(data.numpy(), label='EMA')
+    plt.plot(macdh.numpy(),label="Histogram")
     plt.plot(macd.numpy(),label="MACD")
     plt.plot(macds.numpy(),label="Singnal")
     plt.axhline(y=0, color='r', linestyle='--', linewidth=2)
@@ -736,7 +735,8 @@ def features():
     # Ensure to use the correct target column name
     y = data['Close_SMA_9']  # Use the actual column name for the stock price
     X = data.drop(columns=['Close', 'Close_SMA_9', 'High', 'Low', 'Open'])  # Drop the target column from features
-    X = normalize_column(X, ['MACDs_12_26_9','EMA'])
+    X = normalize_column(X, ['MACDh_12_26_9','EMA'])
+    X['MACDh_12_26_9'] = X['MACDh_12_26_9']*5
 
     # Split into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -771,13 +771,13 @@ def features():
     shap.summary_plot(shap_values, X_test)
 
     # Assuming you have trained a tree-based model (e.g., XGBoost) and have data (X_test)
-    explainer = shap.TreeExplainer(model)
+    # explainer = shap.TreeExplainer(model)
 
     # Compute SHAP interaction values
-    shap_interaction_values = explainer.shap_interaction_values(X_test)
+    # shap_interaction_values = explainer.shap_interaction_values(X_test)
 
     # Plot an interaction summary plot (useful for global interaction insights)
-    shap.summary_plot(shap_interaction_values, X_test)
+    # shap.summary_plot(shap_interaction_values, X_test)
 
     # Plot a dependence plot with interaction
     # For example: See how feature 0 interacts with feature 1
@@ -797,9 +797,9 @@ if __name__ == "__main__":
 
     funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength, 8:plotSlice, 9:features}
 
-    funcs[9]()
+    # funcs[1]()
 
-    # funcs[8](500, 1)
+    funcs[8](420, 8) # 1~401=buy; 402-802=sell; 803~1308=hold
 
     # long,short,hold = funcs[5]()
     # print(f'long list length: {len(long)}; \nshort list length: {len(short)}\nhold list length: {len(hold)}')
