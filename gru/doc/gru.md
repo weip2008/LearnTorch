@@ -136,15 +136,26 @@ def date2minutes(self, df):
 
 ![](images/df_final.png)
 
-* 8 column data feature group
-  1. macdh
-  2. close 9 sma smooth
-  3. rsik
-  4. rsid
-  5. macd
-  6. macds
-  7. weekday
-  8. time in minutes   
+```debug generateDataset.py-main()-103
+self.df.info()
+<class 'pandas.core.frame.DataFrame'>
+Index: 291164 entries, 212 to 291375
+Data columns (total 10 columns):
+ #   Column                 Non-Null Count   Dtype  
+---  ------                 --------------   -----  
+ 0   Close                  291164 non-null  float64
+ 1   Close_SMA_9            291164 non-null  float64
+ 2   STOCHRSIk_70_70_35_35  291164 non-null  float64
+ 3   STOCHRSId_70_70_35_35  291164 non-null  float64
+ 4   MACD_12_26_9           291164 non-null  float64
+ 5   MACDh_12_26_9          291164 non-null  float64
+ 6   MACDs_12_26_9          291164 non-null  float64
+ 7   Weekday                291164 non-null  int32  
+ 8   Time_in_minutes        291164 non-null  int32  
+ 9   EMA                    291164 non-null  float64
+dtypes: float64(8), int32(2)
+memory usage: 22.2 MB
+```
   
 * target map
 
