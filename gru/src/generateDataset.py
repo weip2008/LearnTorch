@@ -90,7 +90,6 @@ class StockDataset(Dataset):
         features, target = self.__getitem__(0)
         return features.shape, target.shape
 
-        
 class DataProcessor:
     slice_length = 76
     def __init__(self, training=True):
@@ -104,26 +103,9 @@ class DataProcessor:
         self.ds.getZigzag()
         self.ds.getHoldZigzag()
         long_list, short_list, hold_list = self.ds.slice()
-        # self.normalize(long_list,short_list,hold_list)
         self.write(long_list,short_list,hold_list,self.training)
         # self.write2file(long_list,short_list,hold_list, self.training)
         log.info(f"DataProcessor for {'Training' if self.training else 'Testing'} ========================================= Done.\n")
-
-    def normalize(self, long_list, short_list, hold_list):
-        from concurrent.futures import ThreadPoolExecutor
-
-        def normalize_data_list(data_list, exclude_cols):
-            for i in range(len(data_list)):
-                df = data_list[i].copy()
-                df = normalize_column(df, exclude_cols)  # Normalize while excluding specific columns
-                data_list[i] = df  # Update the original DataFrame in the list
-
-        def normalize_parallel(exclude_cols, *lists):
-            with ThreadPoolExecutor() as executor:
-                executor.map(lambda data_list: normalize_data_list(data_list, exclude_cols), lists)
-
-        normalize_parallel(["MACDh_12_26_9"], long_list, short_list, hold_list)
-
 
 
     def write(self, long_list, short_list, hold_list, training=True):
@@ -212,12 +194,8 @@ class DataProcessor:
             self.query_start, self.query_end= DataSource.config.testing_start_date,DataSource.config.testing_end_date
 
         self.ds.queryDB(self.query_start, self.query_end)
-        self.dropColumns(["Volume","Datetime","Open","High","Low"])
+        self.ds.df.drop(columns=["Volume","Datetime","Open","High","Low"], inplace=True) 
         return self.ds.getDataFrameFromDB()
-
-    def dropColumns(self, cols):
-        self.ds.df.drop(columns=cols, inplace=True) 
-        return     
 
     def gen_zigzag_patterns(self):
         deviation = float(config.deviation)
@@ -390,19 +368,6 @@ class DataProcessor:
         with open(td_file, "w") as datafile:
             generate_testing_data(tddf_short_list, TradePosition.LONG, datafile)
             generate_testing_data(tddf_long_list, TradePosition.SHORT, datafile)
-
-def normalize_column(df, exclude_cols):
-    # Separate columns to exclude from normalization
-    exclude_columns = df[exclude_cols]
-    
-    # Select numeric columns excluding those in `exclude_cols`
-    numeric_cols = df.drop(columns=exclude_cols).select_dtypes(include='number')
-    
-    # Normalize only the remaining numeric columns
-    normalized_numeric_cols = (numeric_cols - numeric_cols.min()) / (numeric_cols.max() - numeric_cols.min())
-    
-    # Concatenate excluded columns with normalized numeric columns
-    return pd.concat([exclude_columns, normalized_numeric_cols], axis=1)
 
 def cut_slice(ohlc_df, end_index, slice_length):
     # Ensure the start_index and end_index are in the DataFrame index

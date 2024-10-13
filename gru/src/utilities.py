@@ -51,8 +51,6 @@ class DataSource:
         self.df['EMA'] = self.df['Close_SMA_9'].ewm(span=window, adjust=False).std()
         
         self.df = self.df.dropna()
-        # self.df['EMA_'] = (self.df['EMA'] - self.df['EMA'].min()) / (self.df['EMA'].max() - self.df['EMA'].min())
-        # self.df = self.df.drop(columns=['EMA']).rename(columns={'EMA_': 'EMA'})
         return self
 
     def slice(self):
@@ -68,23 +66,26 @@ class DataSource:
             if index in self.df.index:
                 if index < slice_len+start_index: continue
                 slice_df = self.get_slice(index, slice_len)
-                # slice_df = self.normalize(slice_df)
+                slice_df = self.normalize(slice_df)
                 self.add_to_list(slice_df, row, long_list, short_list, index)
 
         for index, row in self.hold_zigzag.iterrows():        
             slice_df = self.get_slice(index, slice_len)
-            # slice_df = self.normalize(slice_df)
+            slice_df = self.normalize(slice_df)
             hold_list.append(slice_df)
             
         return long_list, short_list, hold_list
 
     def normalize(self, slice_df):
+        exclude_cols = ["MACDh_12_26_9",'Weekday'] # Weekday cannot be normalized, since it is possible all data in the same day. (NaN)
         slice_df = slice_df.copy()
-        slice_df['EMA_'] = (slice_df['EMA'] - slice_df['EMA'].min()) / (slice_df['EMA'].max() - slice_df['EMA'].min())
-        slice_df = slice_df.drop(columns=['EMA']).rename(columns={'EMA_': 'EMA'})
-
-        return slice_df
         
+        cols_to_normalize = [col for col in slice_df.columns if col not in exclude_cols]
+        
+        slice_df[cols_to_normalize] = slice_df[cols_to_normalize].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
+
+        return slice_df        
+    
    # Helper function to slice df for slice_len rows before the given index
     def get_slice(self, index, slice_len):
         # Use iloc to get slice_len rows from current_position backward
