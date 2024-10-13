@@ -131,9 +131,9 @@ class DataProcessor:
         if not training:
             filepath = config.testing_file_path
 
-        dict_list = self.buildDictionaryList(long_list, short_list, hold_list, training)
-        # Create dataset
-        dataset = StockDataset(dict_list,8)
+        num_cols = int(config.num_cols)
+        dict_list = self.buildDictionaryList(long_list, short_list, hold_list, num_cols, training)
+        dataset = StockDataset(dict_list, num_cols)
         torch.save(dataset, filepath)
         log.info(f"Dataset has been saved to {filepath}.")
 
@@ -172,7 +172,7 @@ class DataProcessor:
         # else:
         #     self.generateTest(tddf_short_list, tddf_long_list, DataProcessor.slice_length)
 
-    def buildDictionaryList(self, long_list, short_list, hold_list, training=True):
+    def buildDictionaryList(self, long_list, short_list, hold_list, num_cols, training=True):
         log.info(f"{'Training' if training else 'Testing'} data:")
         log.info(f"long points: {len(long_list)}\nshort points: {len(short_list)}\nhold points: {len(hold_list)}")
         combined_list = []
@@ -186,7 +186,7 @@ class DataProcessor:
                 flattened_data = df.values.flatten().tolist()
 
                 # Split flattened data into groups of 8 for the feature
-                feature = [flattened_data[i:i+8] for i in range(0, len(flattened_data), 8)]
+                feature = [flattened_data[i:i+num_cols] for i in range(0, len(flattened_data), num_cols)]
 
                 # Create a dictionary with "feature" and "target"
                 data_dict = {

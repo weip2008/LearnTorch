@@ -58,7 +58,8 @@ class DataSource:
     def slice(self):
         slice_len = int(DataSource.config.slice_length)
         DataSource.log.info(f"Slice length: {slice_len}")
-        self.df.drop(columns=["Close","Close_SMA_9"], inplace=True) 
+        # self.df.drop(columns=["Close","Close_SMA_9"], inplace=True) 
+        self.df.drop(columns=["Close"], inplace=True) 
 
         start_index = self.df.index[0]
         # Initialize lists for long and short positions

@@ -87,6 +87,10 @@ class ModelGenerator:
     log = Logger('gru/log/gru.log',logger_name='model')
 
     def __init__(self):
+        self.num_cols = int(ModelGenerator.config.num_cols)
+        self.slice_len = int(ModelGenerator.config.slice_length)
+
+    def main(self):
         self.loadData()
         self.defineModel("linear")
         self.train_test()
@@ -98,7 +102,7 @@ class ModelGenerator:
         
         model_dict = {
             "gru": self.buildGRU,
-            "linear": lambda: NeuralNetwork(8,60).to('cpu')
+            "linear": lambda: NeuralNetwork(self.num_cols,self.slice_len).to('cpu')
         }
 
         # Select and instantiate the model
@@ -115,7 +119,7 @@ class ModelGenerator:
 
     def buildDefaultModel(self):
         ModelGenerator.log.warning("Unknown model type, falling back to default (NeuralNetwork).")
-        return NeuralNetwork(8, 60).to('cpu')
+        return NeuralNetwork(self.num_cols, self.slice_len).to('cpu')
     
     def loadData(self):
         training_file_path = ModelGenerator.config.training_file_path
@@ -203,4 +207,4 @@ class ModelGenerator:
 
 
 if __name__ == "__main__":
-    ModelGenerator()
+    ModelGenerator().main()
