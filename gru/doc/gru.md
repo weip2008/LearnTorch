@@ -173,17 +173,19 @@ memory usage: 22.2 MB
 
 ### normalization
 
-```py DataProcess.normalize()
-  def normalize(self, long_list, short_list, hold_list):
-      from concurrent.futures import ThreadPoolExecutor
+🔔⚡️All columns should be normalized within slice. 
+💡👉 Weekday cannot be normalized in slice, since the whole slice may has the same weekday value.
 
-      def normalize_column(df, exclude_cols):
-          # Separate columns to exclude from normalization
-          exclude_columns = df[exclude_cols]
-          
-          # Select numeric columns excluding those in `exclude_cols`
-          numeric_cols = df.drop(columns=exclude_cols).select_dtypes(include='number')
+```py DataSource.normalize()
+    def normalize(self, slice_df):
+        exclude_cols = ["MACDh_12_26_9",'Weekday','EMA'] # Weekday cannot be normalized, since it is possible all data in the same day. (NaN)
+        slice_df = slice_df.copy()
+        
+        cols_to_normalize = [col for col in slice_df.columns if col not in exclude_cols]
+        
+        slice_df[cols_to_normalize] = slice_df[cols_to_normalize].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
 
+        return slice_df        
 ```
 
 ![](images/df_normalized.png)

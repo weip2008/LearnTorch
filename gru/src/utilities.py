@@ -77,7 +77,7 @@ class DataSource:
         return long_list, short_list, hold_list
 
     def normalize(self, slice_df):
-        exclude_cols = ["MACDh_12_26_9",'Weekday'] # Weekday cannot be normalized, since it is possible all data in the same day. (NaN)
+        exclude_cols = ["MACDh_12_26_9",'Weekday','EMA'] # Weekday cannot be normalized, since it is possible all data in the same day. (NaN)
         slice_df = slice_df.copy()
         
         cols_to_normalize = [col for col in slice_df.columns if col not in exclude_cols]
