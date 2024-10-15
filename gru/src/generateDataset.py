@@ -194,6 +194,7 @@ class DataProcessor:
             self.query_start, self.query_end= DataSource.config.testing_start_date,DataSource.config.testing_end_date
 
         self.ds.queryDB(self.query_start, self.query_end)
+        # self.ds.df.drop(columns=["Volume","Datetime"], inplace=True) 
         self.ds.df.drop(columns=["Volume","Datetime","Open","High","Low"], inplace=True) 
         return self.ds.getDataFrameFromDB()
 
@@ -689,19 +690,14 @@ def estimateSliceLength():
 def features():
     dp = DataProcessor()
     df = dp.getDataFrame()
-    window = 20
-
-    # Step 2: Calculate the EMA of the "Close" column
-    df['EMA'] = df['Close_SMA_9'].ewm(span=window, adjust=False).std()
-
     # Encode categorical features if necessary
     data = pd.get_dummies(df, drop_first=True)  # This will convert categorical variables to dummy variables
 
     # Ensure to use the correct target column name
-    y = data['Close_SMA_9']  # Use the actual column name for the stock price
-    X = data.drop(columns=['Close', 'Close_SMA_9', 'High', 'Low', 'Open'])  # Drop the target column from features
-    X = normalize_column(X, ['MACDh_12_26_9','EMA'])
-    X['MACDh_12_26_9'] = X['MACDh_12_26_9']*5
+    y = data['Close']  # Use the actual column name for the stock price
+    X = data.drop(columns=['Close', 'Close_SMA_9'])  # Drop the target column from features
+    # X = normalize_column(X, ['MACDh_12_26_9','VOLATILITY'])
+    # X['MACDh_12_26_9'] = X['MACDh_12_26_9']*5
 
     # Split into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -762,7 +758,7 @@ if __name__ == "__main__":
 
     funcs = {1:main, 2:plotMACD_RSI, 3:plotIndex, 4:plotZigzag, 5:slice, 6:plot, 7:estimateSliceLength, 8:plotSlice, 9:features}
 
-    funcs[1]()
+    funcs[9]()
 
     # funcs[8](860, 8) # 1~401=buy; 402-802=sell; 803~1308=hold
 
