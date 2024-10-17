@@ -185,11 +185,6 @@ class DataSource:
         df_copy = self.df.copy()
         df_copy.ta.strategy(strategy)
         self.df = df_copy  # Update the original DataFrame if needed
-        # self.df = self.df.dropna(subset=["STOCHRSIk_70_70_35_35"])
-        # self.df = self.df.dropna(subset=["STOCHRSId_70_70_35_35"])
-        # self.df = self.df.dropna(subset=["MACD_12_26_9"])
-        # self.df = self.df.dropna(subset=["MACDh_12_26_9"])
-        # self.df = self.df.dropna(subset=["MACDs_12_26_9"])
         self.df = self.df.dropna()
         self.df = self.date2minutes()
     
