@@ -73,6 +73,7 @@ a (ɑ) e i o u ü A E I O U Ü
 ⇒ | Rightarrow
 ⟹| Longrightarrow
 ⇓ | Downarrow
+σ | $\sigma$
 
 
 ## Sample File Structure:

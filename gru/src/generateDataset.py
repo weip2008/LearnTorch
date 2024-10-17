@@ -107,7 +107,6 @@ class DataProcessor:
         # self.write2file(long_list,short_list,hold_list, self.training)
         log.info(f"DataProcessor for {'Training' if self.training else 'Testing'} ========================================= Done.\n")
 
-
     def write(self, long_list, short_list, hold_list, training=True):
         filepath = config.training_file_path
         if not training:
@@ -732,17 +731,17 @@ def features():
     shap.summary_plot(shap_values, X_test)
 
     # Assuming you have trained a tree-based model (e.g., XGBoost) and have data (X_test)
-    # explainer = shap.TreeExplainer(model)
+    explainer = shap.TreeExplainer(model)
 
     # Compute SHAP interaction values
-    # shap_interaction_values = explainer.shap_interaction_values(X_test)
+    shap_interaction_values = explainer.shap_interaction_values(X_test)
 
     # Plot an interaction summary plot (useful for global interaction insights)
-    # shap.summary_plot(shap_interaction_values, X_test)
+    shap.summary_plot(shap_interaction_values, X_test)
 
     # Plot a dependence plot with interaction
     # For example: See how feature 0 interacts with feature 1
-    # shap.dependence_plot(0, shap_interaction_values, X_test, interaction_index=1) # failed
+    shap.dependence_plot(0, shap_values.values, X_test, interaction_index=1)
 
 def saveSHAP(file, shap_values):
     import pickle
