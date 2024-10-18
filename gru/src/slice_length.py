@@ -1,4 +1,3 @@
-from enum import Enum
 import statistics
 import numpy as np
 
@@ -6,10 +5,6 @@ from utilities import DataSource
 import zigzagplus1 as zz
 from logger import Logger
 from config import Config
-
-class TradePosition(Enum):
-    LONG = 1
-    SHORT = -1
 
 class Trade:
     def __init__(self, open_price, open_time, trade_cost, label):
@@ -52,7 +47,8 @@ class SliceLength:
 
     def estimateSliceLength(self):
         """
-        this is a test.
+        Calculate Mean Hold Time, Median Hold Time for long/short stock actions, 
+        get Avg mean hold time which may be used for slice length in modeling.
         """
         slice_length = int(config.slice_length)
         longtradecost = float(config.longtradecost)
@@ -182,6 +178,6 @@ def convert_to_day_and_time(timestamp):
    
 if __name__ == '__main__':
     log = Logger('gru/log/gru.log', logger_name='data')
-
     config = Config('gru/src/config.ini')
-    sl = SliceLength()
+
+    SliceLength()

@@ -78,6 +78,10 @@ CLASSES
     class DataProcessor(builtins.object)
      |  DataProcessor(training=True)
 
+
+import importlib
+import your_module_name
+importlib.reload(your_module_name)
 ```
 
 ## Generate Dataset

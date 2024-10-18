@@ -92,7 +92,7 @@ class DataSource:
         return self.df.loc[index - slice_len + 1 : index]
 
     # New helper function to find smaller peaks and valleys
-    def find_smaller_peaks_valleys(self, index, zigzag_type):
+    # def find_smaller_peaks_valleys(self, index, zigzag_type):
         smaller_peaks_valleys = []
         
         # Get the relevant part of the zigzag DataFrame before the current index
@@ -131,6 +131,9 @@ class DataSource:
         return self.hold_zigzag
 
     def getZigzag(self):
+        """
+        Generate zigzag patterns, store in self.zigzag DataFrame.
+        """
         if self.zigzag is None:
             self.zigzag = self.calculate_zigzag(float(DataSource.config.deviation))
 
@@ -210,8 +213,8 @@ class DataSource:
         :param df: DataFrame with 'Close' prices.
         :param zigzag: Series with ZigZag points.
         """
-        deviation = DataSource.config.deviation
-        hlod_deviation = DataSource.config.deviation_hold
+        deviation = float(DataSource.config.deviation)
+        hlod_deviation = float(DataSource.config.deviation_hold)
         zigzag_len = len(self.zigzag["Close"])
         hold_zigzag_len = len(self.hold_zigzag["Close"])
         plt.figure(figsize=(10, 5))
@@ -292,16 +295,18 @@ if __name__ == "__main__":
     query_start, query_end= DataSource.config.training_start_date, DataSource.config.training_end_date
     train_ds.queryDB(query_start, query_end)
     train_ds.getZigzag()
+    train_ds.getHoldZigzag()
     train_ds.plot_zigzag()
-    # train_ds.plotPaterns()
+    train_ds.plotPaterns()
     # train_ds.plot_prices()
 
     # plot testing zigzag
     test_ds = DataSource()
     query_start, query_end= DataSource.config.testing_start_date,DataSource.config.testing_end_date
     test_ds.queryDB(query_start, query_end)
-    # test_ds.getZigzag()
-    # test_ds.plot_zigzag()
+    test_ds.getZigzag()
+    test_ds.getHoldZigzag()
+    test_ds.plot_zigzag()
     # test_ds.plotPaterns()
  
     DataSource.conn.close()
