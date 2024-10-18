@@ -15,6 +15,8 @@ Model -->Pred
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
 - [Todo](#todo)
+- [Tricks](#tricks)
+  - [Use python playground to read/edit moddule documents](#use-python-playground-to-readedit-moddule-documents)
 - [Generate Dataset](#generate-dataset)
   - [Input](#input)
   - [normalization](#normalization)
@@ -49,7 +51,34 @@ Model -->Pred
 13. write unit test for all functions and classes
 14. write tool to check generated dataset
 
+## Tricks
 
+### Use python playground to read/edit moddule documents
+
+```dos
+>>> import sys
+>>> sys.path.append(r'C:\Users\wangq\workspace\LearnTorch\gru\src')                    
+>>> import generateDataset         
+>>> help(generateDataset)
+Help on module generateDataset:
+
+NAME
+    generateDataset
+
+DESCRIPTION
+    This version read source data from SQLite database tables
+    and write dataset to file which name is defined in config.ini
+
+CLASSES
+    builtins.object
+        DataProcessor
+    torch.utils.data.dataset.Dataset(typing.Generic)
+        StockDataset
+
+    class DataProcessor(builtins.object)
+     |  DataProcessor(training=True)
+
+```
 
 ## Generate Dataset
 * [Define Logger class for whole project](../src/logger.py)

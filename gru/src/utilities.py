@@ -38,7 +38,7 @@ class DataSource:
         self.df['Datetime'] = pd.to_datetime(self.df['Datetime'])
         if timeIndex:
             self.df.set_index('Datetime', inplace=True)
-        self.df, self.smooth_column = smooth_sma(self.df,9, True)
+        self.df, self.smooth_column = smooth_sma(self.df, 9, True)
         # Drop NaN values from the smoothed column
         self.df = self.df.dropna(subset=[self.smooth_column])
 
@@ -286,25 +286,6 @@ def smooth_sma(df, points, center=False):
 def normalize(series):
     return (series - series.min()) / (series.max() - series.min())
     
-def convert_to_day_and_time(timestamp):
-    # Get the day of the week (Monday=0, Sunday=6)
-    day_of_week_numeric = timestamp.weekday() + 1
-
-    # Convert the timestamp to a datetime object (to handle timezone)
-    dt = timestamp.to_pydatetime()
-
-    # Calculate the time in float format
-    time_float = dt.hour + dt.minute / 60 + dt.second / 3600
-
-    return day_of_week_numeric, time_float
-
-
-def currentTime():
-    log = Logger("gru/log/gru.log")
-    config = Config("gru/src/config.ini")
-    formatted_now = datetime.now().strftime(config.time_format)
-    log.info(f'Current date and time: {formatted_now}')
-
 if __name__ == "__main__":
     # plot training zigzag
     train_ds = DataSource()
