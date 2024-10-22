@@ -4,10 +4,10 @@ from torch.utils.data import Dataset, DataLoader
 from datetime import datetime
 import numpy as np
 
-from gruModel import load_data, GRUModel, TimeSeriesDataset
+from a2_training import load_data, GRUModel, TimeSeriesDataset
 from config import Config, execution_time
 from logger import Logger
-from predict import categorize_output
+from a4_predict import categorize_output
 
 class Tester:
     config = Config('gru/src/config.ini')

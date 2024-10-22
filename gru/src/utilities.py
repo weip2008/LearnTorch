@@ -234,12 +234,7 @@ class DataSource:
         filtered_zigzag_df = self.df.loc[self.zigzag.index]
         DataSource.log.debug(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n{filtered_zigzag_df}")
 
-        # Detect patterns
-        # df[df['Close'].isin(zigzag)] creates a new DataFrame 
-        # that contains only the rows from df 
-        # where the 'Close' value is in the zigzag list.
-        # patterns = detect_patterns(df[df['Close'].isin(zigzag)])
-        patterns = zz.detect_patterns(filtered_zigzag_df)
+        patterns = zz.detect_patterns()
 
         patterns_df = zz.convert_list_to_df(patterns)
         zz.plot_patterns(self.df, patterns_df)
@@ -297,7 +292,7 @@ if __name__ == "__main__":
     train_ds.getZigzag()
     train_ds.getHoldZigzag()
     train_ds.plot_zigzag()
-    train_ds.plotPaterns()
+    # train_ds.plotPaterns()
     # train_ds.plot_prices()
 
     # plot testing zigzag

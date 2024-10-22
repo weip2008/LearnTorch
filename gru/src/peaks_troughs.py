@@ -6,6 +6,8 @@ from scipy.signal import find_peaks
 # Step 1: Read data from a CSV file
 df = pd.read_csv('data/LULU_max_2024-05-28_2024-05-31_1m.csv')
 
+df['Datetime'] = pd.to_datetime(df['Datetime'])
+
 # Step 2: Assuming the CSV has 'Datetime' and 'Close' columns
 price_data = df['Close']
 # df['Datetime'] = pd.to_datetime(df['Datetime'])

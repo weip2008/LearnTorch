@@ -5,7 +5,7 @@ import numpy as np
 import time
 from config import Config, execution_time
 from logger import Logger
-from generateDataset import StockDataset
+from a1_preparation import StockDataset
 
 
 # Custom dataset class for loading signals and data
@@ -146,7 +146,6 @@ class ModelGenerator:
         self.train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
         # Validation dataloader with shuffling
         self.val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-
 
     @execution_time
     def train(self, criterion):

@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 
 from logger import Logger
 from config import Config, execution_time
-from gruModel import load_data, GRUModel, TimeSeriesDataset
+from a2_training import load_data, GRUModel, TimeSeriesDataset
 
 # Function to categorize the model output
 def categorize_output(output):
