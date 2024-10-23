@@ -27,11 +27,11 @@ class NeuralNetwork(nn.Module):
         super().__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(num_cols*slice_len, 128),
+            nn.Linear(num_cols*slice_len, 512),
             nn.ReLU(),
-            nn.Linear(128, 128),
+            nn.Linear(512, 512),
             nn.ReLU(),
-            nn.Linear(128, 3)
+            nn.Linear(512, 3)
         )
 
     def forward(self, x):
@@ -130,7 +130,7 @@ class ModelGenerator:
         training_dataset = torch.load(training_file_path)
         self.train_dataloader = DataLoader(training_dataset, batch_size=batch_size, shuffle=False)
         testing_dataset =  torch.load(testing_file_path)
-        self.test_dataloader = DataLoader(testing_dataset, batch_size=batch_size, shuffle=False)
+        self.test_dataloader = DataLoader(testing_dataset, batch_size=batch_size, shuffle=True)
         ModelGenerator.log.info(f'Training data size: {len(training_dataset)}, {training_dataset.get_shapes()}')
         ModelGenerator.log.info(f'Testing data size: {len(testing_dataset)}, {testing_dataset.get_shapes()}')
 
@@ -150,6 +150,7 @@ class ModelGenerator:
     @execution_time
     def train(self, criterion):
         self.model.train()
+
         size = len(self.train_dataloader.dataset)
         for batch, (inputs, targets) in enumerate(self.train_dataloader):
             outputs = self.model(inputs)
@@ -170,6 +171,7 @@ class ModelGenerator:
         test_loss, correct = 0, 0
         with torch.no_grad():
             for X, y in self.test_dataloader:
+                X, y = X.to(device), y.to(device)
                 pred = self.model(X)
                 y = y.squeeze().to(torch.int64)
                 test_loss += loss_fn(pred, y).item()
@@ -183,7 +185,8 @@ class ModelGenerator:
         learning_rate = float(ModelGenerator.config.learning_rate)
         loss_fn = nn.CrossEntropyLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate) # Stochastic Gradient Descent
-
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate) 
+        
         epochs = int(ModelGenerator.config.num_epochs)
         for t in range(epochs):
             ModelGenerator.log.info(f"Epoch {t+1}\n-------------------------------")
