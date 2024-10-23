@@ -1,3 +1,9 @@
+"""
+combine more features to smaller features by unsupervised modeling.
+for instance, reduce 28X28=784 handwriting images to 64 features.
+
+only help performance on training, it is not very helpful.
+"""
 import torch
 import torch.nn as nn
 import torch.optim as optim

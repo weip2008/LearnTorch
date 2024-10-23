@@ -48,7 +48,11 @@ class DataSource:
         self.hold_zigzag = None
         self.macd()
         span = int(DataSource.config.volativity_span)
-        self.df['VOLATILITY'] = self.df['Close_SMA_9'].ewm(span=span, adjust=False).std()
+        # self.df['VOLATILITY'] = self.df['Close_SMA_9'].ewm(span=span, adjust=False).std()
+        self.df['EWM'] =  self.df['Close'].ewm(span=span, adjust=False).mean()
+        self.df['VOLATILITY'] = self.df['Close'].ewm(span=span, adjust=False).std()
+        self.df['Uper_band'] = self.df['EWM'] + self.df['VOLATILITY'] *2
+        self.df['Lower_band'] = self.df['EWM'] - self.df['VOLATILITY'] *2
         
         self.df = self.df.dropna()
         return self
@@ -57,7 +61,7 @@ class DataSource:
         slice_len = int(DataSource.config.slice_length)
         DataSource.log.info(f"Slice length: {slice_len}")
         # self.df.drop(columns=["Close","Close_SMA_9"], inplace=True) 
-        self.df.drop(columns=["Close"], inplace=True) 
+        self.df.drop(columns=["Close",'Close_SMA_9','STOCHRSIk_70_70_35_35','STOCHRSId_70_70_35_35'], inplace=True) 
 
         start_index = self.df.index[0]
         # Initialize lists for long and short positions
