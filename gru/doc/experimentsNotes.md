@@ -361,6 +361,8 @@ Testing data size: 368, (torch.Size([60, 9]), torch.Size([1]))
       self.train_test()
       self.save()
 ```
+* features
+![](images/features_III.png)
 
 ### results
 
