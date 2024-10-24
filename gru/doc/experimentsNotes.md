@@ -8,7 +8,7 @@
   - [outputs](#outputs-1)
   - [results](#results)
   - [Conclusion](#conclusion-1)
-- [experiment II](#experiment-ii-1)
+- [experiment III](#experiment-iii)
   - [parameters](#parameters-2)
   - [outputs](#outputs-2)
   - [model environments](#model-environments)
@@ -301,7 +301,7 @@ Test result: Accuracy: 56.0%, Avg loss: 0.833086
 💡👉 little improved, which means the selection of peaks/troughs and holds are sensitive to the final Accuracy.
 
 
-## experiment II
+## experiment III
 
 ### parameters
 
