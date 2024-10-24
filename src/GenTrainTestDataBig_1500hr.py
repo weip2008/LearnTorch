@@ -21,6 +21,84 @@ class TradePosition(Enum):
     HOLD = 0
     SHORT = -1
 
+import pandas as pd
+import sqlite3
+
+import pandas as pd
+import sqlite3
+
+def cut_slice_sql(ohlc_df, table_name, db_file):
+    # List to store the sliced data
+    data_slices_list = []
+    
+    # Connect to the SQLite database
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    
+    # Loop through each row in ohlc_df
+    for idx, row in ohlc_df.iterrows():
+        # Define the current day's 15:00 timestamp as the end point
+        end_point = row.name  # This is the Datetime index from ohlc_df
+        
+        # Calculate the start point as the previous day's 18:00
+        start_point = end_point.replace(hour=18, minute=0, second=0) - pd.Timedelta(days=1)
+        
+        # Convert the start_point and end_point to string format suitable for SQLite
+        start_point_str = start_point.strftime('%Y-%m-%d %H:%M:%S')
+        end_point_str = end_point.strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Query the data between start_point and end_point
+        query = f'''
+        SELECT * FROM {table_name}
+        WHERE Datetime BETWEEN ? AND ?
+        '''
+        # Execute the query and store the result in a DataFrame
+        result_df = pd.read_sql_query(query, conn, params=(start_point_str, end_point_str))
+        
+        # Drop the "Volume" column if it exists
+        if 'Volume' in result_df.columns:
+            result_df.drop(columns=['Volume'], inplace=True)
+            
+        # Drop any rows with NaN values
+        result_df.dropna(inplace=True)
+        
+        # Convert the index to a Datetime column, and then set it back as the index
+        result_df['Datetime'] = pd.to_datetime(result_df['Datetime'])
+        result_df.set_index('Datetime', inplace=True)
+        
+        print("Results dataframe length:", len(result_df))
+        print("Data read from table:", table_name)
+
+        # Print the first few rows of the DataFrame
+        print(result_df.head(20))
+        print(result_df.tail(20))
+        
+        # Resample data into 10-minute intervals
+        agg_df = result_df.resample('10min').agg({
+            'Open': 'first',   # Use the first value in each 10-minute window as Open
+            'High': 'max',     # Use the maximum value in each 10-minute window as High
+            'Low': 'min',      # Use the minimum value in each 10-minute window as Low
+            'Close': 'last'    # Use the last value in each 10-minute window as Close
+        })
+        
+         # Print the first few rows of the DataFrame
+        print("Results dataframe length:", len(agg_df))
+        print(agg_df.head(10))
+        print(agg_df.tail(10))
+        
+        # If the result is not empty, add it to the data_slices_list
+        if not agg_df.empty:
+            data_slices_list.append(agg_df)
+    
+    # Close the database connection
+    conn.close()
+    
+    return data_slices_list
+
+# Example usage:
+# data_slices = cut_slice_sql(ohlc_df, "SPX_5m", "data/stock_bigdata_2010-2023.db")
+
+
 
 def cut_slice(ohlc_df, end_index, traintest_data_len):
     # Ensure the start_index and end_index are in the DataFrame index
@@ -636,25 +714,25 @@ def check_short_patterns(ohlc_df, patterns_df, short_traintest_data_len, IsDebug
 def load_data(query_start, query_end):
     # Connect to the SQLite database
     conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
+    #cursor = conn.cursor()
 
     # Query for records where the time is 15:00 each day between the specified date range
-    # query_time_1500 = f'''
-    # SELECT * FROM {table_name}
-    # WHERE strftime('%H:%M', Datetime) = '15:00'
-    # AND Datetime BETWEEN ? AND ?
-    # '''
-
-    # Query for records where the time is between 14:57 and 15:03 each day
-    query_time_range = f'''
+    query_time_1500 = f'''
     SELECT * FROM {table_name}
-    WHERE strftime('%H:%M', Datetime) BETWEEN '14:57' AND '15:03'
+    WHERE strftime('%H:%M', Datetime) = '15:00'
     AND Datetime BETWEEN ? AND ?
     '''
 
+    # Query for records where the time is between 14:57 and 15:03 each day
+    # query_time_range = f'''
+    # SELECT * FROM {table_name}
+    # WHERE strftime('%H:%M', Datetime) BETWEEN '14:56' AND '15:04'
+    # AND Datetime BETWEEN ? AND ?
+    # '''
+
     # Save the query result into a DataFrame object named query_result_df
     #query_result_df = pd.read_sql_query(query_time_1500, conn, params=(query_start, query_end))
-    query_result_df = pd.read_sql_query(query_time_range, conn, params=(query_start, query_end))
+    query_result_df = pd.read_sql_query(query_time_1500, conn, params=(query_start, query_end))
 
     ohlc_df = query_result_df
     ohlc_df['Datetime'] = pd.to_datetime(ohlc_df['Datetime'])
@@ -670,78 +748,7 @@ def load_data(query_start, query_end):
     # Close the database connection
     conn.close()    
 
-
-def gen_zigzag_patterns(query_start, query_end):
-    # Connect to the SQLite database
-    conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
-
-    # Query the data between May 6th, 2024, and May 12th, 2024
-    query_range = f'''
-    SELECT * FROM {table_name}
-    WHERE Datetime BETWEEN ? AND ?
-    '''
-    # Save the query result into a DataFrame object named query_result_df
-    query_result_df = pd.read_sql_query(query_range, conn, params=(query_start, query_end))
-
-    # print("Length of query result is:", len(query_result_df))
-    # print("Datatype of query result:", type(query_result_df))
-    # print(query_result_df)
-
-    ohlc_df = query_result_df
-    ohlc_df['Datetime'] = pd.to_datetime(ohlc_df['Datetime'])
-    ohlc_df.set_index('Datetime', inplace=True)
-    #ohlc_df.dropna(subset, inplace=True)
-
-    if IsDebug:
-        #print("Time elapsed:", time_elapsed, "seconds")
-        print("Results dataframe length:", len(ohlc_df))  
-        #print("Data read from :", file_path)
-        print("Data read from table:", table_name)
-        # Print the first few rows of the DataFrame
-        print(ohlc_df.head(10))
-        print(ohlc_df.tail(10))
-
-
-    # Calculate ZigZag
-    zigzag = zz.calculate_zigzag(ohlc_df, deviation)
-    if IsDebug:
-        print(f"Zigzag list length:{len(zigzag)}\n",zigzag)
-
-    # Plot ZigZag
-    zz.plot_zigzag(ohlc_df, zigzag)
-
-    # zigzag_counts = df['Close'].value_counts()
-    # zigzag_value_counts = zigzag_counts[zigzag_counts.index.isin(zigzag)]
-    # print("Zigzag value counts:\n", zigzag_value_counts)
-
-    # Filter the original DataFrame using the indices
-    # df.loc[zigzag.index]:
-    # This expression uses the .loc accessor to select rows from the original DataFrame df.
-    # The rows selected are those whose index labels match the index labels of the zigzag DataFrame (or Series).
-    # In other words, it filters df to include only the rows where the index (Date) is present in the zigzag index.
-    filtered_zigzag_df = ohlc_df.loc[zigzag.index]
-    if IsDebug:
-        print(f"filtered_zigzag_df list length:{len(filtered_zigzag_df)}\n",filtered_zigzag_df)
-
-    # Detect patterns
-    # df[df['Close'].isin(zigzag)] creates a new DataFrame 
-    # that contains only the rows from df 
-    # where the 'Close' value is in the zigzag list.
-    # patterns = detect_patterns(df[df['Close'].isin(zigzag)])
-    patterns = zz.detect_patterns(filtered_zigzag_df)
-
-    # if IsDebug:
-    #     print("Patterns list:\n", patterns)
-
-    patterns_df = zz.convert_list_to_df(patterns)
-    if IsDebug:
-        print(f"Patterns dataframe length:{len(patterns_df)}\n",patterns_df)  # Print to verify DataFrame structure
-
-    zz.plot_patterns(ohlc_df, patterns_df)
-
-    return ohlc_df, patterns_df
-    
+    return ohlc_df
     
 
 #
@@ -774,7 +781,7 @@ if __name__ == "__main__":
     #symbol = "MES=F"
 
     # Define the table name as a string variable
-    table_name = "SPX_5m"
+    table_name = "SPX_1m"
     #table_name = "MES=F_1m"
     # Define the SQLite database file directory
     data_dir = "data"
@@ -794,8 +801,12 @@ if __name__ == "__main__":
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
     print("Current date and time:", formatted_now)
     
-    ohlc_df, patterns_df = load_data(training_start_date, training_end_date)
+    ohlc_df = load_data(training_start_date, training_end_date)
     
+    # Example usage:
+    data_slices = cut_slice_sql(ohlc_df, table_name, db_file)
+    
+    patterns_df = []
     traintest_data_len = check_patterns_length(ohlc_df, patterns_df, 60)    
     tddf_long_list = check_long_patterns(ohlc_df, patterns_df, traintest_data_len)
     tddf_short_list = check_short_patterns(ohlc_df, patterns_df, traintest_data_len)
@@ -821,7 +832,7 @@ if __name__ == "__main__":
     formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
     print("Current date and time:", formatted_now)
 
-    ohlc_df, patterns_df = gen_zigzag_patterns(testing_start_date, testing_end_date)
+    ohlc_df = load_data(testing_start_date, testing_end_date)
     
     #short_traintest_data_len, long_traintest_data_len = check_patterns_length(ohlc_df, patterns_df, 60)    
     tddf_long_list = check_long_patterns(ohlc_df, patterns_df, traintest_data_len)
