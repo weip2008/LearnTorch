@@ -50,7 +50,7 @@ class DataSource:
         span = int(DataSource.config.volativity_span)
         # self.df['VOLATILITY'] = self.df['Close_SMA_9'].ewm(span=span, adjust=False).std()
         self.df['EWM'] =  self.df['Close'].ewm(span=span, adjust=False).mean()
-        self.df['VOLATILITY'] = self.df['Close'].ewm(span=span, adjust=False).std()
+        self.df['VOLATILITY'] = self.df['Close'].ewm(span=span, adjust=False).std()  # 包含绝对价格的波动特征
         self.df['Uper_band'] = self.df['EWM'] + self.df['VOLATILITY'] *2
         self.df['Lower_band'] = self.df['EWM'] - self.df['VOLATILITY'] *2
         

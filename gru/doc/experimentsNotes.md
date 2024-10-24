@@ -1,3 +1,7 @@
+<h1>Stock Price Neural Network Deep Learning Notes</h1>
+
+## Tabel of Contents
+- [Tabel of Contents](#tabel-of-contents)
 - [experiment I](#experiment-i)
   - [parameters](#parameters)
   - [outputs](#outputs)
@@ -8,6 +12,12 @@
   - [outputs](#outputs-1)
   - [results](#results)
   - [Conclusion](#conclusion-1)
+- [experiment III](#experiment-iii)
+  - [parameters](#parameters-2)
+  - [outputs](#outputs-2)
+  - [model environments](#model-environments)
+  - [results](#results-1)
+  - [Conclusion](#conclusion-2)
 
 
 ## experiment I
@@ -294,3 +304,207 @@ Test result: Accuracy: 56.0%, Avg loss: 0.833086
 
 ### Conclusion
 💡👉 little improved, which means the selection of peaks/troughs and holds are sensitive to the final Accuracy.
+
+
+## experiment III
+
+### parameters
+
+```
+deviation = 0.002
+deviation_hold = 0.0018
+```
+### outputs
+
+```
+sqlite version: 2.2.2
+Slice length: 60
+Training data:
+long points: 654
+short points: 654
+hold points: 178
+Dataset has been saved to data/SPX_1m_TrainingData.pth.
+DataProcessor for Training ========================================= Done.
+
+Slice length: 60
+Testing data:
+long points: 158
+short points: 158
+hold points: 52
+Dataset has been saved to data/SPX_1m_TestingData.pth.
+DataProcessor for Testing ========================================= Done.
+
+main() ================================ Done
+Execution time of main(): 21.2885 seconds
+```
+
+### model environments
+
+* parameters
+
+```config.ini
+learning_rate = 0.0001
+num_epochs = 20
+```
+* data structure
+
+```dos
+Training data size: 1486, (torch.Size([60, 9]), torch.Size([3]))
+Testing data size: 368, (torch.Size([60, 9]), torch.Size([1]))
+```
+* model class
+  
+```py
+  def main(self):
+      self.loadData()
+      self.defineModel("linear")
+      self.train_test()
+      self.save()
+```
+
+### results
+
+```
+Epoch 1
+-------------------------------
+loss: 1.057150  [   32/ 1486]
+loss: 1.836876  [ 1056/ 1486]
+Execution time of train(): 0.2846 seconds
+Test result: Accuracy: 47.8%, Avg loss: 1.003603 
+
+Epoch 2
+-------------------------------
+loss: 0.943238  [   32/ 1486]
+loss: 0.968719  [ 1056/ 1486]
+Execution time of train(): 0.2734 seconds
+Test result: Accuracy: 47.0%, Avg loss: 0.970266 
+
+Epoch 3
+-------------------------------
+loss: 0.954880  [   32/ 1486]
+loss: 0.886056  [ 1056/ 1486]
+Execution time of train(): 0.2716 seconds
+Test result: Accuracy: 49.2%, Avg loss: 0.947095 
+
+Epoch 4
+-------------------------------
+loss: 0.971180  [   32/ 1486]
+loss: 0.854778  [ 1056/ 1486]
+Execution time of train(): 0.2988 seconds
+Test result: Accuracy: 53.8%, Avg loss: 0.902409 
+
+Epoch 5
+-------------------------------
+loss: 0.969154  [   32/ 1486]
+loss: 0.812290  [ 1056/ 1486]
+Execution time of train(): 0.2721 seconds
+Test result: Accuracy: 56.2%, Avg loss: 0.878211 
+
+Epoch 6
+-------------------------------
+loss: 1.016719  [   32/ 1486]
+loss: 0.781297  [ 1056/ 1486]
+Execution time of train(): 0.2801 seconds
+Test result: Accuracy: 62.2%, Avg loss: 0.807119 
+
+Epoch 7
+-------------------------------
+loss: 0.975887  [   32/ 1486]
+loss: 0.689459  [ 1056/ 1486]
+Execution time of train(): 0.2741 seconds
+Test result: Accuracy: 64.9%, Avg loss: 0.767535 
+
+Epoch 8
+-------------------------------
+loss: 0.993949  [   32/ 1486]
+loss: 0.653907  [ 1056/ 1486]
+Execution time of train(): 0.2726 seconds
+Test result: Accuracy: 71.5%, Avg loss: 0.694774 
+
+Epoch 9
+-------------------------------
+loss: 0.845538  [   32/ 1486]
+loss: 0.566895  [ 1056/ 1486]
+Execution time of train(): 0.2716 seconds
+Test result: Accuracy: 74.2%, Avg loss: 0.633703 
+
+Epoch 10
+-------------------------------
+loss: 0.759297  [   32/ 1486]
+loss: 0.489004  [ 1056/ 1486]
+Execution time of train(): 0.2716 seconds
+Test result: Accuracy: 75.8%, Avg loss: 0.623743 
+
+Epoch 11
+-------------------------------
+loss: 0.718356  [   32/ 1486]
+loss: 0.455563  [ 1056/ 1486]
+Execution time of train(): 0.2720 seconds
+Test result: Accuracy: 78.3%, Avg loss: 0.561403 
+
+Epoch 12
+-------------------------------
+loss: 0.635166  [   32/ 1486]
+loss: 0.402290  [ 1056/ 1486]
+Execution time of train(): 0.2746 seconds
+Test result: Accuracy: 79.6%, Avg loss: 0.533978 
+
+Epoch 13
+-------------------------------
+loss: 0.568633  [   32/ 1486]
+loss: 0.374445  [ 1056/ 1486]
+Execution time of train(): 0.2699 seconds
+Test result: Accuracy: 81.2%, Avg loss: 0.528032 
+
+Epoch 14
+-------------------------------
+loss: 0.503371  [   32/ 1486]
+loss: 0.344814  [ 1056/ 1486]
+Execution time of train(): 0.2716 seconds
+Test result: Accuracy: 82.3%, Avg loss: 0.506276 
+
+Epoch 15
+-------------------------------
+loss: 0.465778  [   32/ 1486]
+loss: 0.321299  [ 1056/ 1486]
+Execution time of train(): 0.2770 seconds
+Test result: Accuracy: 83.2%, Avg loss: 0.483133 
+
+Epoch 16
+-------------------------------
+loss: 0.441938  [   32/ 1486]
+loss: 0.303850  [ 1056/ 1486]
+Execution time of train(): 0.2726 seconds
+Test result: Accuracy: 83.7%, Avg loss: 0.477422 
+
+Epoch 17
+-------------------------------
+loss: 0.421485  [   32/ 1486]
+loss: 0.290050  [ 1056/ 1486]
+Execution time of train(): 0.2793 seconds
+Test result: Accuracy: 83.7%, Avg loss: 0.480852 
+
+Epoch 18
+-------------------------------
+loss: 0.405973  [   32/ 1486]
+loss: 0.279391  [ 1056/ 1486]
+Execution time of train(): 0.2736 seconds
+Test result: Accuracy: 84.0%, Avg loss: 0.457794 
+
+Epoch 19
+-------------------------------
+loss: 0.388468  [   32/ 1486]
+loss: 0.268329  [ 1056/ 1486]
+Execution time of train(): 0.2736 seconds
+Test result: Accuracy: 84.0%, Avg loss: 0.454665 
+
+Epoch 20
+-------------------------------
+loss: 0.372735  [   32/ 1486]
+loss: 0.258871  [ 1056/ 1486]
+Execution time of train(): 0.2746 seconds
+Test result: Accuracy: 84.5%, Avg loss: 0.447803 
+```
+
+### Conclusion
+> 👍😄 Obviously, the accuracy has reached a good level, but there's potential to improve it further by fine-tuning the zigzag deviation and using different AI models.
