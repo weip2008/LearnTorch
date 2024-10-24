@@ -1,3 +1,7 @@
+<h1>Stock Price Neural Network Deep Learning Notes</h1>
+
+## Tabel of Contents
+- [Tabel of Contents](#tabel-of-contents)
 - [experiment I](#experiment-i)
   - [parameters](#parameters)
   - [outputs](#outputs)
@@ -13,6 +17,7 @@
   - [outputs](#outputs-2)
   - [model environments](#model-environments)
   - [results](#results-1)
+  - [Conclusion](#conclusion-2)
 
 
 ## experiment I
@@ -335,24 +340,28 @@ Execution time of main(): 21.2885 seconds
 
 ### model environments
 
+* parameters
+
 ```config.ini
 learning_rate = 0.0001
 num_epochs = 20
 ```
+* data structure
 
 ```dos
 Training data size: 1486, (torch.Size([60, 9]), torch.Size([3]))
 Testing data size: 368, (torch.Size([60, 9]), torch.Size([1]))
 ```
-
+* model class
+  
 ```py
   def main(self):
       self.loadData()
       self.defineModel("linear")
       self.train_test()
       self.save()
-
 ```
+
 ### results
 
 ```
@@ -495,5 +504,7 @@ loss: 0.372735  [   32/ 1486]
 loss: 0.258871  [ 1056/ 1486]
 Execution time of train(): 0.2746 seconds
 Test result: Accuracy: 84.5%, Avg loss: 0.447803 
-
 ```
+
+### Conclusion
+> 👍😄 Obviously, the accuracy has reached a good level, but there's potential to improve it further by fine-tuning the zigzag deviation and using different AI models.

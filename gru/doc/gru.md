@@ -34,6 +34,9 @@ Model -->Pred
 - [Unsupervised-learning](#unsupervised-learning)
   - [聚类(Clustering)](#聚类clustering)
   - [降维(Reduce features)](#降维reduce-features)
+- [Deep Learning Notes](#deep-learning-notes)
+  - [Adding more features](#adding-more-features)
+  - [Remove features](#remove-features)
 
 ## Todo
 1. ~~change trainning data format~~
@@ -394,3 +397,43 @@ Epoch [5/5], Loss: 0.0095
 Reduced features shape: torch.Size([60000, 64])
 
 ```
+
+## Deep Learning Notes
+
+```mermaid
+graph LR
+
+CONFIG(config.ini)
+LOG(log/gru.log)
+PREP[a1_preparation.py]
+TRAIN[a2_training.py]
+TEST[a3_testing.py]
+PREDICT[a4_predictiom.py]
+CONFIG --> PREP & TRAIN & TEST & PREDICT --> LOG
+
+classDef start fill:green,stroke:#DE9E1F,stroke-width:2px,color:white;
+classDef end1 fill:red,stroke:#DE9E1F,stroke-width:2px,color:white;
+
+class CONFIG start
+class LOG end1
+```
+
+* [config.ini](../src/config.ini)
+* [generate dataset from SQLite DB](../src/a1_preparation.py)
+* [create model, and train the model using dataset](../src/a2_training.py)
+* [testing](../src/a3_testing.py)
+* [prediction](../src/a4_predict.py)
+
+![](images/DataSource.png)
+![](images/DataPreprocessSequence.png)
+
+### Adding more features
+
+* [utilities.py -> DataSoutce.queryDB() - line 50~55](../src/utilities.py)
+* [drop useless features, utilities.py -> DataSoutce.slice() - line 64](../src/utilities.py)
+* [change num_cols attribute to match the number of features defined above](../src/config.ini)
+
+### Remove features
+
+* [drop useless features, utilities.py -> DataSoutce.slice() - line 64](../src/utilities.py)
+* [change num_cols attribute to match the number of features defined above](../src/config.ini)
