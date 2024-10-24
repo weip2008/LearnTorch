@@ -1,3 +1,8 @@
+"""
+another usage of unsupervised modeling, that classify features as clustering group.
+
+Don't see any use for stock analysis.
+"""
 import torch
 import numpy as np
 from sklearn.datasets import make_blobs
