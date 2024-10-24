@@ -33,6 +33,7 @@ def getDataFromSQLite():
     ds.queryDB(query_start, query_end)
     df = ds.getDataFrameFromDB()
     # df = convertDatatime(df)
+    # df.drop(columns=['Datetime','Volume','Close_SMA_9','Open','EWM','Low','High','Uper_band',"Lower_band"], inplace=True)
     df.drop(columns=['Datetime','Volume','Close_SMA_9','Open','EWM'], inplace=True)
 
     return df
