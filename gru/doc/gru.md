@@ -37,6 +37,7 @@ Model -->Pred
 - [Deep Learning Notes](#deep-learning-notes)
   - [Adding more features](#adding-more-features)
   - [Remove features](#remove-features)
+  - [Model Training](#model-training)
 
 ## Todo
 1. ~~change trainning data format~~
@@ -421,8 +422,8 @@ class LOG end1
 * [config.ini](../src/config.ini)
 * [generate dataset from SQLite DB](../src/a1_preparation.py)
 * [create model, and train the model using dataset](../src/a2_training.py)
-* [testing](../src/a3_testing.py)
-* [prediction](../src/a4_predict.py)
+* [周浩 testing](../src/a3_testing.py)
+* [周浩 prediction](../src/a4_predict.py)
 
 ![](images/DataSource.png)
 ![](images/DataPreprocessSequence.png)
@@ -432,8 +433,13 @@ class LOG end1
 * [utilities.py -> DataSoutce.queryDB() - line 50~55](../src/utilities.py)
 * [drop useless features, utilities.py -> DataSoutce.slice() - line 64](../src/utilities.py)
 * [change num_cols attribute to match the number of features defined above](../src/config.ini)
+![](images/features_III.png)
 
 ### Remove features
 
 * [drop useless features, utilities.py -> DataSoutce.slice() - line 64](../src/utilities.py)
 * [change num_cols attribute to match the number of features defined above](../src/config.ini)
+
+### Model Training
+![](images/ModelGenerator.png)
+* [define model classes, train and test model, save model to file](../src/a2_training.py)
